@@ -21,7 +21,7 @@
           <div class="grid align-items-center">
             <div class="col-4 project-column">
               <p:selectOneMenu id="app" value="#{cmsEditorBean.selectedProjectName}" class="w-full">
-                <f:selectItem itemLabel="All" itemValue="#{null}" />
+                <f:selectItem itemLabel="#{ivy.cms.co('/Labels/AllProjects')}" itemValue="#{null}" />
                 <f:selectItems value="#{cmsEditorBean.projectCms}" />
                 <p:ajax process="@this" listener="#{cmsEditorBean.onAppChange}" />
               </p:selectOneMenu>

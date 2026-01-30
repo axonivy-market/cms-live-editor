@@ -30,14 +30,13 @@ public class CmsFileUtils {
   private static final String URI_HEADER = "Uri";
   private static final String ZIP_CONTENT_TYPE = "application/zip";
   private static final String EXCEL_FILE_NAME = "%s.xlsx";
-  private static final String ZIP_FILE_NAME = "CMSDownload_%s_%s.zip";
-  private static final String ALL_PROJECTS = "All";
+  private static final String ZIP_FILE_NAME = "%s_%s_%s.zip";
 
   public static StreamedContent writeCmsToZipStreamedContent(String projectName, String applicationName,
       Map<String, PmvCms> cmsPmvMap) throws Exception {
     var workbooks = new HashMap<String, Workbook>();
     if (StringUtils.isEmpty(projectName)) {
-      projectName = ALL_PROJECTS;
+      projectName = Ivy.cms().co("/Labels/AllProjects");
       for (var entry : cmsPmvMap.entrySet()) {
         addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
       }
@@ -112,7 +111,7 @@ public class CmsFileUtils {
       byte[] zipBytes = baos.toByteArray();
 
       return DefaultStreamedContent.builder()
-          .name(String.format(ZIP_FILE_NAME, projectName, applicationName))
+          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
           .contentType(ZIP_CONTENT_TYPE)
           .stream(() -> new ByteArrayInputStream(zipBytes))
           .build();
