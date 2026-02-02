@@ -67,4 +67,44 @@ public class UtilsTest {
 
     assertEquals(expected, result);
   }
+
+  @Test
+  public void testIsHtmlSyntaxValid_nonHtmlOriginal() {
+    String originalContent = "Plain text";
+    String newContent = "<p>Some html</p>";
+
+    assertTrue(Utils.isHtmlSyntaxValid(originalContent, newContent));
+  }
+
+  @Test
+  public void testIsHtmlSyntaxValid_htmlRequiresHtmlNew() {
+    String originalContent = "<p>Original</p>";
+    String newContent = "No html anymore";
+
+    assertFalse(Utils.isHtmlSyntaxValid(originalContent, newContent));
+  }
+
+  @Test
+  public void testHasSamePlaceholders_same() {
+    String originalContent = "Hello {1}, you have {2} messages.";
+    String newContent = "Hallo {1}, du hast {2} Nachrichten.";
+
+    assertTrue(Utils.hasSamePlaceholders(originalContent, newContent));
+  }
+
+  @Test
+  public void testHasSamePlaceholders_differentCount() {
+    String originalContent = "Hello {1}, you have {2} messages.";
+    String newContent = "Hallo, du hast Nachrichten.";
+
+    assertFalse(Utils.hasSamePlaceholders(originalContent, newContent));
+  }
+
+  @Test
+  public void testHasSamePlaceholders_differentIndexes() {
+    String originalContent = "Hello {1}, you have {2} messages.";
+    String newContent = "Hallo {1}, du hast {3} Nachrichten.";
+
+    assertFalse(Utils.hasSamePlaceholders(originalContent, newContent));
+  }
 }
