@@ -6,7 +6,7 @@
 .panel {
   float: left;
   /* Adjust based on desired layout (horizontal/vertical) */
-  border: 1px solid #ccc;
+  border: 1px solid #EBEBEB;
   padding: 0;
   height: 85vh;
   display: block;
@@ -94,12 +94,15 @@ body.dark .column-header {
   border-right: none !important;
 }
 
-#column-container {
-  padding: 0 0.4rem 0 0.4rem;
+.column-container {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #EBEBEB;
+  border-radius: 2px;
 }
 
 .columns {
-  padding: 1rem 0 0 0;
+  padding: 0 0 0 0;
 }
 
 .cms-info-icon {
@@ -195,7 +198,7 @@ body.dark .cms-warning {
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
   .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text
-  {
+{
   padding: 0.5rem 1rem !important;
 }
 

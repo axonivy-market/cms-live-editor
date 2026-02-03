@@ -15,11 +15,11 @@
           partialSubmit="true" actionListener="#{cmsEditorBean.rowSelect}" />
         <h:panelGroup styleClass="flex flex-column">
           <!-- Title -->
-          <div class="grid mb-3">
+          <div class="mb-3">
             <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
           </div>
 
-          <div class="grid flex flex-column gap-2">
+          <div class="flex flex-column gap-2">
             <div class="project-column w-full">
               <p:selectOneMenu id="app" value="#{cmsEditorBean.selectedProjectName}" class="w-full">
                 <f:selectItem itemLabel="All" itemValue="#{null}" />
@@ -39,7 +39,7 @@
             </div>
           </div>
 
-          <h:panelGroup layout="block" class="grid h-full" id="column-container">
+          <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
             <h:panelGroup layout="block" id="link-column"
               styleClass="#{cmsEditorBean.editableCms ? 'col-4' : 'col-6'} columns">
               <div class="column-header flex align-items-center justify-content-between">
@@ -122,7 +122,7 @@
                     </div>
                   </h:panelGroup>
 
-                  <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex">
+                  <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
                     <p:commandButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}"
                       icon="pi pi-download" ajax="false" actionListener="#{cmsEditorBean.handleBeforeDownloadFile}"
                       styleClass="w-full mt-3 cms-download-btn" onstart="initCmsWarnings();"
@@ -172,14 +172,14 @@
                     </div>
                   </h:panelGroup>
 
-                  <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex">
+                  <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
                     <p:commandButton id="cancel-edit-button" value="#{ivy.cms.co('/Labels/Cancel')}" icon="pi pi-times"
                       process="@this" styleClass="flex-1  mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
                       update="column-container" actionListener="#{cmsEditorBean.onCancelEditableButton()}" />
                     <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                       process="@this table-cms-keys" actionListener="#{cmsEditorBean.writeCmsToApplication()}"
                       update="table-cms-keys cms-values cms-edit-value editable-column"
-                      styleClass="flex-1  mt-3 ui-button-raised ui-button-primary cms-save-button"
+                      styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                       onclick="saveAllEditors()" oncomplete="initCmsWarnings(); showSaveSuccess();" partialSubmit="true"
                       onstart="destroyEditors()" />
                   </h:panelGroup>
@@ -207,12 +207,12 @@
                 <p:ajax event="keyup" update="resetBtn" />
               </p:inputText>
             </div>
-            <div class="flex justify-content-end gap-2">
+            <div class="flex justify-content-center gap-2">
               <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
-                styleClass="ui-button-secondary ui-button-outlined"
+                styleClass="ui-button-secondary ui-button-outlined w-full"
                 onclick="PF('resetConfirmDlg').hide(); return false;" />
               <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}" icon="pi pi-refresh"
-                styleClass="ui-button-danger" actionListener="#{cmsEditorBean.resetAllChanges}"
+                styleClass="ui-button-danger w-full" actionListener="#{cmsEditorBean.resetAllChanges}"
                 update="column-container table-cms-keys cms-values cms-edit-value"
                 disabled="#{cmsEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide();" />
             </div>
