@@ -179,6 +179,11 @@ body.dark .cms-warning {
   opacity: 0.85;
 }
 
+.reset-all-change-button {
+  color: #E5151C;
+  font-weight: 500;
+}
+
 .undo-action-custom, .undo-action-custom i, .undo-action-custom span {
   color: #007095;
   font-weight: 500;

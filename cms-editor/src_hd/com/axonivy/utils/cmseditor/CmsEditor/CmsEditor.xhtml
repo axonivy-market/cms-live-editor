@@ -46,10 +46,10 @@
                 <span class="link-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Links')} </span>
                 <h:panelGroup id="reset-all-change-button" layout="block"
                   rendered="#{cmsEditorBean.isRenderResetAllChange()}"
-                  class="flex align-items-center gap-2 cursor-pointer">
+                  class="flex align-items-center gap-2 cursor-pointer reset-all-change-button">
                   <f:passThroughAttribute name="onclick" value="PF('resetConfirmDlg').show();" />
-                  <i class="pi pi-refresh text-red-500" />
-                  <span class="text-red-500 font-medium"> #{ivy.cms.co("/Labels/ResetAllChanges")} </span>
+                  <i class="pi pi-refresh" />
+                  <span> #{ivy.cms.co("/Labels/ResetAllChanges")} </span>
                 </h:panelGroup>
               </div>
 
