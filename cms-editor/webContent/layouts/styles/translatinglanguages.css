@@ -179,6 +179,17 @@ body.dark .cms-warning {
   opacity: 0.85;
 }
 
+.undo-action-custom, .undo-action-custom i, .undo-action-custom span {
+  color: #007095;
+  font-weight: 500;
+}
+
+.undo-action-custom, .undo-action-custom:hover, .undo-action-custom:focus,
+  .undo-action-custom:active {
+  color: #007095 !important;
+  text-decoration: none !important;
+}
+
 /* Common button layout */
 .cms-download-btn, .cms-edit-button, .cms-cancel-button,
   .cms-save-button {
@@ -198,7 +209,7 @@ body.dark .cms-warning {
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
   .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text
-{
+  {
   padding: 0.5rem 1rem !important;
 }
 

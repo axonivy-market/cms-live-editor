@@ -301,9 +301,14 @@ public class CmsEditorBean implements Serializable {
     var context = FacesContext.getCurrentInstance();
     var requestParamMap = context.getExternalContext().getRequestParameterMap();
     var languageIndex = Integer.parseInt(requestParamMap.get("languageIndex"));
-    selectedCms.getContents().get(languageIndex).setEditing(true);
-    if (lastSelectedCms != null) {
-      lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+    var contentByLanguage = requestParamMap.get("content");
+    String santinizedContent =
+        Utils.sanitizeContent(selectedCms.getContents().get(languageIndex).getOriginalContent(), contentByLanguage);
+    if (!santinizedContent.equals(selectedCms.getContents().get(languageIndex).getContent())) {
+      selectedCms.getContents().get(languageIndex).setEditing(true);
+      if (lastSelectedCms != null) {
+        lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+      }
     }
   }
 

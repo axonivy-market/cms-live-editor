@@ -38,7 +38,7 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   function markDirty() {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
-      { name: 'languageIndex', value: languageIndex }
+      { name: 'languageIndex', value: languageIndex }, {name: 'content', value: editor.getContents()}
     ]);
   }
 

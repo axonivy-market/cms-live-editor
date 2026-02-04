@@ -84,9 +84,9 @@
                 <p:commandLink id="undo-change-link" rendered="#{cmsEditorBean.isRenderUndoChange()}"
                   actionListener="#{cmsEditorBean.undoChange}"
                   update="column-container table-cms-keys cms-values cms-edit-value"
-                  styleClass="flex align-items-center gap-2 cursor-pointer undo-action">
-                  <i class="pi pi-undo text-blue-500" />
-                  <span class="text-blue-500 font-medium"> #{ivy.cms.co('/Labels/UndoChanges')} </span>
+                  styleClass="flex align-items-center gap-2 cursor-pointer undo-action-custom">
+                  <i class="pi pi-undo" />
+                  <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
                 </p:commandLink>
 
               </div>
