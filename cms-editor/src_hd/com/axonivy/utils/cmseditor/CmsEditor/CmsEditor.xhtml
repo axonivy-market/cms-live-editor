@@ -77,8 +77,8 @@
               styleClass="#{cmsEditorBean.editableCms ? 'col-4' : 'col-6'} flex flex-column columns">
               <div class="column-header flex align-items-center justify-content-between">
                 <div class="flex align-items-center gap-2">
-                  <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span> <i
-                    class="pi pi-info-circle cms-info-icon" title="CMS information" />
+                  <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span> 
+                  <i class="pi pi-info-circle cms-info-icon" title="CMS information" />
                 </div>
 
                 <p:commandLink id="undo-change-link" rendered="#{cmsEditorBean.isRenderUndoChange()}"
@@ -114,8 +114,8 @@
 
                   <h:panelGroup layout="block" styleClass="cms-warning mt-2" id="cms-warning-container">
                     <div class="cms-warning-title">
-                      <i class="pi pi-exclamation-triangle cms-warning-icon" /> <span>
-                        #{ivy.cms.co('/Labels/Warning')} </span>
+                      <i class="pi pi-exclamation-triangle cms-warning-icon" /> 
+                      <span> #{ivy.cms.co('/Labels/Warning')} </span>
                     </div>
                     <div class="cms-warning-content">
                       <span> #{ivy.cms.co('/Labels/CMSWarningTextForDownload')}</span>
@@ -174,7 +174,7 @@
 
                   <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
                     <p:commandButton id="cancel-edit-button" value="#{ivy.cms.co('/Labels/Cancel')}" icon="pi pi-times"
-                      process="@this" styleClass="flex-1  mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
+                      process="@this" styleClass="flex-1 mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
                       update="column-container" actionListener="#{cmsEditorBean.onCancelEditableButton()}" />
                     <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                       process="@this table-cms-keys" actionListener="#{cmsEditorBean.writeCmsToApplication()}"

@@ -140,14 +140,13 @@ function destroyEditors() {
 
 function showSaveSuccess() {
   const bar = document.getElementById('content-form:save-success-bar');
-  if (!bar) return;
-
+  if (!bar) {
+    return;
+  };
   bar.classList.add('show');
-
   if (bar.hideTimeout) {
     clearTimeout(bar.hideTimeout);
   }
-
   bar.hideTimeout = setTimeout(() => {
     bar.classList.remove('show');
   }, 3500);
