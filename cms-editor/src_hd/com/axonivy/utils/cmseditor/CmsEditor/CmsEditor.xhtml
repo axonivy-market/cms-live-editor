@@ -12,7 +12,7 @@
         <p:remoteCommand id="check-and-show" name="showWarningDailog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
-          partialSubmit="true" actionListener="#{cmsEditorBean.rowSelect}" />
+          partialSubmit="true" actionListener="#{cmsEditorBean.rowSelect}" oncomplete="restoreLinkPanelScroll();"/>
         <h:panelGroup styleClass="flex flex-column">
           <!-- Title -->
           <div class="mb-3">
@@ -56,8 +56,8 @@
               <h:panelGroup styleClass="panel left w-full">
                 <p:dataTable id="table-cms-keys" value="#{cmsEditorBean.filteredCMSKeys}" var="entry"
                   selection="#{cmsEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
-                  scrollHeight="100%" pageLinks="5" styleClass="cms-link-table"
-                  onRowClick="showWarningDailog(); return false;">
+                  widgetVar="cmsTable" scrollHeight="100%" pageLinks="5" styleClass="cms-link-table"
+                  onRowClick="saveLinkPanelScroll(); showWarningDailog(); return false;">
                   <p:column>
                     <div class="link-row">
                       <h:outputText id="cms-uri" class="cms-uri" value="#{entry.uri}" />
@@ -67,8 +67,8 @@
                     </div>
                     <p:tooltip for="cms-uri" value="#{entry.uri} (#{entry.pmvName})" position="top" />
                   </p:column>
-                  <p:ajax event="rowSelect" process="@this" update="@this" partialSubmit="true"
-                    oncomplete="setRowChange()" />
+                  <p:ajax event="rowSelect" process="@this" partialSubmit="true"
+                    oncomplete="setRowChange();" />
                 </p:dataTable>
               </h:panelGroup>
             </h:panelGroup>

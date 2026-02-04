@@ -152,4 +152,29 @@ function showSaveSuccess() {
   }, 3500);
 }
 
+let linkPanelScrollTop = 0;
+
+function getLinkPanel() {
+  return document.querySelector(
+    '#content-form\\:link-column .panel'
+  );
+}
+
+function saveLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+	console.log('AAAAAAAAAAAAAAAAAAAAAAAA' + panel.scrollTop)
+    linkPanelScrollTop = panel.scrollTop;
+  }
+}
+
+function restoreLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+    setTimeout(() => {
+      panel.scrollTop = linkPanelScrollTop;
+    }, 0);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initCmsWarnings);
