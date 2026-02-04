@@ -76,7 +76,7 @@ public class CmsEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean inEditMode;
-  
+
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
