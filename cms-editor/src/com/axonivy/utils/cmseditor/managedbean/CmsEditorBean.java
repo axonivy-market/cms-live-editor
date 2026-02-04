@@ -90,8 +90,8 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    this.isEditableCms = false;
-    cmsService.writeCmsToApplication(this.savedCmsMap);
+    isEditableCms = false;
+    cmsService.writeCmsToApplication(savedCmsMap);
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
@@ -99,49 +99,49 @@ public class CmsEditorBean implements Serializable {
   }
 
   public boolean isRenderResetAllChange() {
-    return this.filteredCMSList.stream().anyMatch(Cms::isDifferentWithApplication);
+    return filteredCMSList.stream().anyMatch(Cms::isDifferentWithApplication);
   }
 
   public boolean isRenderUndoChange() {
-    return Optional.ofNullable(this.selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
+    return Optional.ofNullable(selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
   }
 
   public void resetAllChanges() {
-    this.selectedCms = null;
-    this.filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
-      this.savedCmsMap.remove(cms.getUri());
-      this.cmsService.removeApplicationCmsByUri(cms.getUri());
+    selectedCms = null;
+    filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
+      savedCmsMap.remove(cms.getUri());
+      cmsService.removeApplicationCmsByUri(cms.getUri());
       cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
     });
     onAppChange();
-    this.isEditableCms = false;
+    isEditableCms = false;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void undoChange() {
-    this.savedCmsMap.remove(this.selectedCms.getUri());
-    this.filteredCMSList.stream().filter(cms -> cms.getUri().equals(this.selectedCms.getUri())).forEach(cms -> {
-      this.cmsService.removeApplicationCmsByUri(cms.getUri());
+    savedCmsMap.remove(selectedCms.getUri());
+    filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
+      cmsService.removeApplicationCmsByUri(cms.getUri());
       cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
     });
     onAppChange();
-    this.isEditableCms = false;
+    isEditableCms = false;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void onEditableButton() {
     lastSelectedCms = selectedCms;
-    this.isEditableCms = true;
+    isEditableCms = true;
   }
 
   public void onCancelEditableButton() {
-    this.isEditableCms = false;
-    this.lastSelectedCms = null;
+    isEditableCms = false;
+    lastSelectedCms = null;
     PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   public boolean isDisableEditableButton() {
-    return ObjectUtils.isEmpty(this.selectedCms);
+    return ObjectUtils.isEmpty(selectedCms);
   }
 
   public void search() {
@@ -165,10 +165,10 @@ public class CmsEditorBean implements Serializable {
       return;
     }
 
-    if (StringUtils.isBlank(this.selectedProjectName)) {
-      cmsList = this.pmvCmsMap.values().stream().map(PmvCms::getCmsList).flatMap(List::stream).toList();
+    if (StringUtils.isBlank(selectedProjectName)) {
+      cmsList = pmvCmsMap.values().stream().map(PmvCms::getCmsList).flatMap(List::stream).toList();
     } else {
-      cmsList = this.pmvCmsMap.values().stream().filter(pmvCms -> pmvCms.getPmvName().equals(this.selectedProjectName))
+      cmsList = pmvCmsMap.values().stream().filter(pmvCms -> pmvCms.getPmvName().equals(selectedProjectName))
           .map(PmvCms::getCmsList).flatMap(List::stream).toList();
     }
     search();
@@ -239,9 +239,9 @@ public class CmsEditorBean implements Serializable {
         if (StringUtils.isBlank(child.meta().fileExtension())) {
           var cms = convertToCms(child, locales, pmvName);
           if (cms.getContents() != null) {
-            var contents = this.pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
+            var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
             contents.addCms(cms);
-            this.pmvCmsMap.putIfAbsent(pmvName, contents);
+            pmvCmsMap.putIfAbsent(pmvName, contents);
           }
         }
       }
@@ -313,7 +313,7 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void handleBeforeDownloadFile() throws Exception {
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, this.pmvCmsMap);
+    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, pmvCmsMap);
   }
 
   public void downloadFinished() {
