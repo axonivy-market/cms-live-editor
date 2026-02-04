@@ -9,6 +9,7 @@ public class CmsConstants {
   public static final String CONTENT_FORM_LINK_COLUMN = "content-form:link-column";
   public static final String CONTENT_FORM_EDITABLE_COLUMN = "content-form:editable-column";
   public static final String CONTENT_FORM_CMS_EDIT_VALUE = "content-form:cms-edit-value";
+  public static final String CONTENT_FORM_CMS_COLUMN = "content-form:cms-columns";
   public static final String CONTENT_FORM = "content-form";
 
   public static final String TABLE_CMS_KEY_ID = "table-cms-keys";

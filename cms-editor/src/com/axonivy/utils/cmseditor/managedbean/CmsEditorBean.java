@@ -75,7 +75,8 @@ public class CmsEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
-
+  private boolean inEditMode;
+  
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
@@ -132,11 +133,14 @@ public class CmsEditorBean implements Serializable {
   public void onEditableButton() {
     lastSelectedCms = selectedCms;
     isEditableCms = true;
+    inEditMode = true;
+    PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void onCancelEditableButton() {
     isEditableCms = false;
     lastSelectedCms = null;
+    inEditMode = false;
     PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
@@ -179,8 +183,11 @@ public class CmsEditorBean implements Serializable {
     if (isEditing()) {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
-    } else {
+    } else if (inEditMode) {
+      inEditMode = false;
       PF.current().ajax().update(CONTENT_FORM);
+    } else {
+      PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
     }
   }
 
