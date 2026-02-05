@@ -69,19 +69,24 @@ public class UtilsTest {
   }
 
   @Test
-  public void testIsHtmlSyntaxValid_nonHtmlOriginal() {
-    String originalContent = "Plain text";
-    String newContent = "<p>Some html</p>";
+  public void testIsHtmlSyntaxValid_plainText() {
+    String newContent = "Plain text";
 
-    assertTrue(Utils.isHtmlSyntaxValid(originalContent, newContent));
+    assertTrue(Utils.isHtmlSyntaxValid(newContent));
   }
 
   @Test
-  public void testIsHtmlSyntaxValid_htmlRequiresHtmlNew() {
-    String originalContent = "<p>Original</p>";
-    String newContent = "No html anymore";
+  public void testIsHtmlSyntaxValid_wellFormedHtml() {
+    String newContent = "<p>Hello <strong>World</strong></p>";
 
-    assertFalse(Utils.isHtmlSyntaxValid(originalContent, newContent));
+    assertTrue(Utils.isHtmlSyntaxValid(newContent));
+  }
+
+  @Test
+  public void testIsHtmlSyntaxValid_unbalancedTags() {
+    String newContent = "<p><strong>Hello</p>";
+
+    assertFalse(Utils.isHtmlSyntaxValid(newContent));
   }
 
   @Test

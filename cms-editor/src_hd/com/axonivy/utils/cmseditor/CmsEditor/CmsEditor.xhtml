@@ -9,7 +9,6 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-editor.js" target="head" />
       <h:form id="content-form" onkeypress="if (event.keyCode == 13){return false;}">
-        <p:growl id="validation-growl" showDetail="true" life="8000" />
         <p:remoteCommand id="check-and-show" name="showWarningDailog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsEditorBean.checkisEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -151,8 +150,8 @@
                     <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                       process="@this table-cms-keys" rendered="#{cmsEditorBean.editableCms}"
                       actionListener="#{cmsEditorBean.writeCmsToApplication()}"
-                      update="table-cms-keys cms-values cms-edit-value editable-column content-form:validation-growl"
-                      styleClass="flex-1 ui-button-raised ui-button-primary cms-save-button" onclick="saveAllEditors()"
+                      update="table-cms-keys cms-values cms-edit-value editable-column"
+                      styleClass="flex-1 ui-button-raised ui-button-primary cms-save-button" onclick="return saveAllEditors()"
                       oncomplete="initCmsWarnings();" partialSubmit="true" onstart="destroyEditors()" />
                   </h:panelGroup>
                 </h:panelGroup>

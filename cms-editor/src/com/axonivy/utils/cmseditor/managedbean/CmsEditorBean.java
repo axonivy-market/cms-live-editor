@@ -91,10 +91,6 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    if (!validateBeforeWrite()) {
-      return;
-    }
-
     this.isEditableCms = false;
     cmsService.writeCmsToApplication(this.savedCmsMap);
     selectedCms.getContents().forEach(s -> s.setEditing(false));
@@ -102,43 +98,6 @@ public class CmsEditorBean implements Serializable {
     PF.current().ajax().update(CONTENT_FORM);
     PrimeFaces.current().executeScript(OPEN_SUCCESS_DIALOG_SCRIPT);
     lastSelectedCms = null;
-  }
-
-  private boolean validateBeforeWrite() {
-    if (savedCmsMap == null || savedCmsMap.isEmpty()) {
-      return true;
-    }
-
-    List<String> validationMessages = new ArrayList<>();
-
-    for (Map<String, SavedCms> localeMap : savedCmsMap.values()) {
-      for (SavedCms savedCms : localeMap.values()) {
-        String originalContent = savedCms.getOriginalContent();
-        String newContent = savedCms.getNewContent();
-
-        if (!Utils.isHtmlSyntaxValid(originalContent, newContent)) {
-          validationMessages.add(String.format("%s (%s): invalid HTML syntax", savedCms.getUri(),
-              savedCms.getLocale()));
-        }
-
-        if (!Utils.hasSamePlaceholders(originalContent, newContent)) {
-          validationMessages.add(String.format("%s (%s): placeholder mismatch", savedCms.getUri(),
-              savedCms.getLocale()));
-        }
-      }
-    }
-
-    if (validationMessages.isEmpty()) {
-      return true;
-    }
-
-    FacesContext facesContext = FacesContext.getCurrentInstance();
-    for (String messageText : validationMessages) {
-      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Validation failed", messageText);
-      facesContext.addMessage(null, message);
-    }
-
-    return false;
   }
 
   public void onEditableButton() {
