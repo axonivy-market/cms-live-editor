@@ -195,6 +195,7 @@ body.dark .cms-warning {
   text-decoration: none !important;
 }
 
+/* OVERALL BUTTON OVERRIDE */
 /* Common button layout */
 .cms-download-btn, .cms-edit-button, .cms-cancel-button,
   .cms-save-button {
@@ -205,11 +206,19 @@ body.dark .cms-warning {
 
 /* Common icon styling */
 .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
-  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon {
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
+  .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading
+{
   position: relative !important;
   top: 0 !important;
-  margin-top: -2px !important;
+  margin-top: -0.5px !important;
 }
+
+.ui-icon-loading.left {
+  width: 12px;}
+
+/* END OF OVERALL BUTTON OVERRIDE */
 
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
