@@ -24,8 +24,8 @@ public class CmsService {
 
   private ContentObject createOrGetCmsByUri(String uri) {
     IApplication currentApplication = IApplication.current();
-    var portalCMSEntity = ContentManagement.cms(currentApplication).get(uri);
-    return portalCMSEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().string(uri));
+    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
+    return cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().string(uri));
   }
 
   public void writeCmsToApplication(Map<String, Map<String, SavedCms>> savedCmsMap) {
