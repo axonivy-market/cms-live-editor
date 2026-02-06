@@ -4,6 +4,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Locale;
 
+import org.primefaces.model.StreamedContent;
+
 import com.axonivy.utils.cmseditor.utils.Utils;
 
 public class CmsContent implements Serializable {
@@ -21,6 +23,14 @@ public class CmsContent implements Serializable {
 
   private boolean isEditing;
 
+  private boolean isFile;
+
+  private String uri;
+
+  private String fileName;
+
+  private StreamedContent data;
+
   private final boolean isHtml;
 
   public CmsContent(int index, Locale locale, String originalContent, String content) {
@@ -31,6 +41,16 @@ public class CmsContent implements Serializable {
     this.content = content;
     this.isEditing = false;
     this.isHtml = Utils.containsHtmlTag(originalContent);
+  }
+
+  public CmsContent(int index, Locale locale, boolean isFile, String fileName, String uri) {
+    super();
+    this.index = index;
+    this.locale = locale;
+    this.isFile = isFile;
+    this.fileName = fileName;
+    this.uri = uri;
+    this.isHtml = false;
   }
 
   public int getIndex() {
@@ -82,4 +102,35 @@ public class CmsContent implements Serializable {
     return isHtml;
   }
 
+  public boolean isFile() {
+    return isFile;
+  }
+
+  public void setFile(boolean isFile) {
+    this.isFile = isFile;
+  }
+
+  public String getUri() {
+    return uri;
+  }
+
+  public void setUri(String uri) {
+    this.uri = uri;
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public StreamedContent getData() {
+    return data;
+  }
+
+  public void setData(StreamedContent data) {
+    this.data = data;
+  }
 }
