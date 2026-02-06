@@ -219,7 +219,7 @@
               <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
                 styleClass="ui-button-secondary ui-button-outlined w-full"
                 onclick="PF('resetConfirmDlg').hide(); return false;" />
-              <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}" icon="pi pi-refresh"
+              <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}"
                 styleClass="ui-button-danger w-full" actionListener="#{cmsEditorBean.resetAllChanges}"
                 update="column-container table-cms-keys cms-values cms-edit-value"
                 disabled="#{cmsEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide();" />
