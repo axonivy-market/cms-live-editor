@@ -59,7 +59,6 @@ import ch.ivyteam.ivy.security.ISecurityContext;
 public class CmsEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
-
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -390,5 +389,21 @@ public class CmsEditorBean implements Serializable {
         .map(IProcessModel::getReleasedProcessModelVersion).filter(CmsEditorBean::isActive)
         .map(IProcessModelVersion::getProjectName).filter(projectName -> this.pmvCmsMap.containsKey(projectName))
         .collect(Collectors.toSet());
+  }
+
+  public static String removeWhiteSpace(String text) {
+    if (text == null) {
+      return null;
+    }
+
+    return text
+        // HTML entity → unicode
+        .replace("&nbsp;", "\u00A0")
+        // remove all invisible spaces
+        .replaceAll("[\\u00A0\\u200B\\u200C\\u200D\\uFEFF]", "")
+        // normalize line breaks
+        .replace("\r\n", "\n").replace("\r", "\n")
+        // optional: remove normal spaces too
+        .replaceAll("\\s+", "");
   }
 }
