@@ -28,14 +28,13 @@
               </p:selectOneMenu>
             </div>
             <div class="search-column w-full">
-              <span class="ui-input-icon-left w-full"> 
-              <i class="pi pi-search" />
-              <p:inputText id="search-input" value="#{cmsEditorBean.searchKey}"
-                  placeholder="#{ivy.cms.co('/Labels/Search')}" styleClass="w-full p-inputtext">
+              <span class="ui-input-icon-left w-full"> <i class="pi pi-search" /> <p:inputText id="search-input"
+                  value="#{cmsEditorBean.searchKey}" placeholder="#{ivy.cms.co('/Labels/Search')}"
+                  styleClass="w-full p-inputtext">
                   <p:ajax event="keyup" listener="#{cmsEditorBean.search}"
                     update="table-cms-keys content-form:cms-values content-form:cms-edit-value" delay="500"
                     process="@this" />
-               </p:inputText>
+                </p:inputText>
               </span>
             </div>
           </div>
@@ -111,14 +110,14 @@
                   <h:panelGroup layout="block" styleClass="button-group">
                     <h:panelGroup id="save-success-bar" layout="block"
                       styleClass="save-success-bar flex align-items-center gap-2 p-3 border-round font-medium shadow-2">
-                      <i class="pi pi-check"/>
+                      <i class="pi pi-check" />
                       <span>#{ivy.cms.co("/Labels/ChangesSaved")}</span>
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" styleClass="cms-warning mt-2" id="cms-warning-container">
                       <div class="cms-warning-title">
-                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> 
-                        <span> #{ivy.cms.co('/Labels/Warning')} </span>
+                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> <span>
+                          #{ivy.cms.co('/Labels/Warning')} </span>
                       </div>
                       <div class="cms-warning-content">
                         <span> #{ivy.cms.co('/Labels/CMSWarningTextForDownload')}</span>
@@ -146,8 +145,8 @@
               <h:panelGroup layout="block" id="editable-column" rendered="#{cmsEditorBean.editableCms}"
                 styleClass="col-6 flex flex-column editable-column columns">
                 <div class="column-header font-semibold text-lg cms-title">
-                  <span>#{ivy.cms.co('/Labels/Edit')}</span> 
-                  <i class="pi pi-info-circle cms-info-icon" title="Edit CMS information" />
+                  <span>#{ivy.cms.co('/Labels/Edit')}</span> <i class="pi pi-info-circle cms-info-icon"
+                    title="Edit CMS information" />
                 </div>
                 <h:panelGroup styleClass="panel end w-full flex flex-column flex-grow-1" layout="block">
                   <h:panelGroup styleClass="flex-grow-1 overflow-auto cms-scroll-wrapper" layout="block">
@@ -167,8 +166,8 @@
                   <h:panelGroup layout="block" styleClass="button-group">
                     <h:panelGroup layout="block" styleClass="cms-warning" id="cms-warning-save-container">
                       <div class="cms-warning-title">
-                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> 
-                        <span> #{ivy.cms.co('/Labels/Warning')} </span>
+                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> <span>
+                          #{ivy.cms.co('/Labels/Warning')} </span>
                       </div>
                       <div class="cms-warning-content">
                         <span> #{ivy.cms.co('/Labels/CMSWarningTextForSave')}</span>

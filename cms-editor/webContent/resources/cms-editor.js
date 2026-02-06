@@ -32,14 +32,19 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
       all: 'style|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
     }
   });
-
+  const initialContent = editor.getContents();
   window.cmsEditors[languageIndex] = editor;
 
-  function markDirty() {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: 'languageIndex', value: languageIndex }, {name: 'content', value: editor.getContents()}
-    ]);
+  function markDirtyIfChanged() {
+	const currentContent = editor.getContents();
+
+	if (currentContent !== initialContent) {
+	  window.cmsDirtyEditors.add(languageIndex);
+	  setValueChanged([
+	    { name: 'languageIndex', value: languageIndex },
+	    { name: 'content', value: currentContent }
+	  ]);
+	}
   }
 
   function debounce(fn, delay) {
@@ -52,12 +57,12 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
 
   // Handle fast typing
   editor.onChange = debounce(() => {
-    markDirty();
+    markDirtyIfChanged();
   }, 200);
 
   // Handle quick CMS switching (click outside editor)
   editor.onBlur = () => {
-    markDirty();
+    markDirtyIfChanged();
   };
 }
 
@@ -163,7 +168,6 @@ function getLinkPanel() {
 function saveLinkPanelScroll() {
   const panel = getLinkPanel();
   if (panel) {
-	console.log('AAAAAAAAAAAAAAAAAAAAAAAA' + panel.scrollTop)
     linkPanelScrollTop = panel.scrollTop;
   }
 }

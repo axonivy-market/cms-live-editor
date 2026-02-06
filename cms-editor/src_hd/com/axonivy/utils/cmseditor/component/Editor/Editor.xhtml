@@ -2,7 +2,7 @@
   xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
   xmlns:cc="http://xmlns.jcp.org/jsf/composite" xmlns:ic="http://ivyteam.ch/jsf/component"
   xmlns:p="http://primefaces.org/ui" xmlns:pe="http://primefaces.org/ui/extensions"
-  xmlns:c="http://java.sun.com/jsp/jstl/core">
+  xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:fn="http://java.sun.com/jsp/jstl/functions">
 
 <cc:interface componentType="IvyComponent">
   <cc:attribute name="managedBean" required="true" />
@@ -15,16 +15,20 @@
 
 <cc:implementation>
 
+  <c:set var="originalNormalizedContent" value="#{fn:trim(fn:replace(cc.attrs.originalContent, '&#160;', ' '))}" />
+  <c:set var="currentNormalizedContent" value="#{fn:trim(fn:replace(cc.attrs.content, '&#160;', ' '))}" />
+
   <h:outputStylesheet name="suneditor/css/suneditor.min.css" />
   <h:outputStylesheet name="suneditor/css/suneditor-custom.css" />
   <h:outputScript name="suneditor/suneditor.min.js" target="head" />
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
-    <h:panelGroup rendered="#{cc.attrs.originalContent eq cc.attrs.content}">
+
+    <h:panelGroup rendered="#{originalNormalizedContent eq currentNormalizedContent}">
       <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
 
-    <h:panelGroup rendered="#{cc.attrs.originalContent ne cc.attrs.content}">
+    <h:panelGroup rendered="#{originalNormalizedContent ne currentNormalizedContent}">
       <del class="cms-original-content">
         <h:outputText value="#{cc.attrs.originalContent}" escape="false" />
       </del>
@@ -40,6 +44,7 @@
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
     onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible},#{cc.attrs.languageIndex},'#{cc.clientId}:content-editor-id');"
     global="false" process="@none" update="@none" immediate="true" />
+
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"
     actionListener="#{cc.attrs.managedBean.setValueChanged}" />
 
