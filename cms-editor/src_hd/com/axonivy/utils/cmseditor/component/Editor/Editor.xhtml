@@ -20,16 +20,16 @@
   <h:outputScript name="suneditor/suneditor.min.js" target="head" />
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
+    <h:panelGroup rendered="#{cc.attrs.originalContent eq cc.attrs.content}">
+      <h:outputText value="#{cc.attrs.content}" escape="false" />
+    </h:panelGroup>
 
     <h:panelGroup rendered="#{cc.attrs.originalContent ne cc.attrs.content}">
       <del class="cms-original-content">
         <h:outputText value="#{cc.attrs.originalContent}" escape="false" />
       </del>
+      <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
-
-    <h:outputText rendered="#{not empty cc.attrs.content}" value="#{cc.attrs.content}" escape="false" />
-    <h:outputText rendered="#{empty cc.attrs.content and empty cc.attrs.originalContent}"
-      value="#{ivy.cms.co('/Labels/EmptyContent')}" escape="false" />
   </h:panelGroup>
 
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
@@ -38,9 +38,7 @@
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
-    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible},
-                                          #{cc.attrs.languageIndex},
-                                          '#{cc.clientId}:content-editor-id');"
+    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible},#{cc.attrs.languageIndex},'#{cc.clientId}:content-editor-id');"
     global="false" process="@none" update="@none" immediate="true" />
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"
     actionListener="#{cc.attrs.managedBean.setValueChanged}" />

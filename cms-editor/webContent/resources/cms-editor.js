@@ -38,7 +38,7 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   function markDirty() {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
-      { name: 'languageIndex', value: languageIndex }
+      { name: 'languageIndex', value: languageIndex }, {name: 'content', value: editor.getContents()}
     ]);
   }
 
@@ -140,17 +140,41 @@ function destroyEditors() {
 
 function showSaveSuccess() {
   const bar = document.getElementById('content-form:save-success-bar');
-  if (!bar) return;
-
+  if (!bar) {
+    return;
+  };
   bar.classList.add('show');
-
   if (bar.hideTimeout) {
     clearTimeout(bar.hideTimeout);
   }
-
   bar.hideTimeout = setTimeout(() => {
     bar.classList.remove('show');
   }, 3500);
+}
+
+let linkPanelScrollTop = 0;
+
+function getLinkPanel() {
+  return document.querySelector(
+    '#content-form\\:link-column .panel'
+  );
+}
+
+function saveLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+	console.log('AAAAAAAAAAAAAAAAAAAAAAAA' + panel.scrollTop)
+    linkPanelScrollTop = panel.scrollTop;
+  }
+}
+
+function restoreLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+    setTimeout(() => {
+      panel.scrollTop = linkPanelScrollTop;
+    }, 0);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initCmsWarnings);

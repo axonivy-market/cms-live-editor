@@ -1,15 +1,7 @@
 package com.axonivy.utils.cmseditor.managedbean;
 
 import static ch.ivyteam.ivy.environment.Ivy.cms;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CMS_EDITOR_DEMO_PMV_NAME;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CMS_EDITOR_PMV_NAME;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_CMS_EDIT_VALUE;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_CMS_VALUES;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_LINK_COLUMN;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_SELECTED_URL;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
@@ -90,6 +82,7 @@ public class CmsEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
+  private boolean inEditMode;
 
   @PostConstruct
   private void init() {
@@ -105,8 +98,8 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    this.isEditableCms = false;
-    cmsService.writeCmsToApplication(this.savedCmsMap);
+    isEditableCms = false;
+    cmsService.writeCmsToApplication(savedCmsMap);
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
@@ -114,41 +107,52 @@ public class CmsEditorBean implements Serializable {
   }
 
   public boolean isRenderResetAllChange() {
-    return this.filteredCMSList.stream().anyMatch(Cms::isDifferentWithApplication);
+    return filteredCMSList.stream().anyMatch(Cms::isDifferentWithApplication);
   }
 
   public boolean isRenderUndoChange() {
-    return Optional.ofNullable(this.selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
+    return Optional.ofNullable(selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
   }
 
   public void resetAllChanges() {
-    this.filteredCMSList.stream().filter(Cms::isDifferentWithApplication).map(Cms::getUri)
-        .forEach(uri -> this.cmsService.removeApplicationCmsByUri(uri));
+    selectedCms = null;
+    filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
+      savedCmsMap.remove(cms.getUri());
+      cmsService.removeApplicationCmsByUri(cms.getUri());
+      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+    });
     onAppChange();
-    this.isEditableCms = false;
+    isEditableCms = false;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void undoChange() {
-    this.cmsService.removeApplicationCmsByUri(this.selectedCms.getUri());
+    savedCmsMap.remove(selectedCms.getUri());
+    filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
+      cmsService.removeApplicationCmsByUri(cms.getUri());
+      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+    });
     onAppChange();
-    this.isEditableCms = false;
+    isEditableCms = false;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void onEditableButton() {
     lastSelectedCms = selectedCms;
-    this.isEditableCms = true;
+    isEditableCms = true;
+    inEditMode = true;
+    PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void onCancelEditableButton() {
-    this.isEditableCms = false;
-    this.lastSelectedCms = null;
+    isEditableCms = false;
+    lastSelectedCms = null;
+    inEditMode = false;
     PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   public boolean isDisableEditableButton() {
-    return ObjectUtils.isEmpty(this.selectedCms);
+    return ObjectUtils.isEmpty(selectedCms);
   }
 
   public void search() {
@@ -172,10 +176,10 @@ public class CmsEditorBean implements Serializable {
       return;
     }
 
-    if (StringUtils.isBlank(this.selectedProjectName)) {
-      cmsList = this.pmvCmsMap.values().stream().map(PmvCms::getCmsList).flatMap(List::stream).toList();
+    if (StringUtils.isBlank(selectedProjectName)) {
+      cmsList = pmvCmsMap.values().stream().map(PmvCms::getCmsList).flatMap(List::stream).toList();
     } else {
-      cmsList = this.pmvCmsMap.values().stream().filter(pmvCms -> pmvCms.getPmvName().equals(this.selectedProjectName))
+      cmsList = pmvCmsMap.values().stream().filter(pmvCms -> pmvCms.getPmvName().equals(selectedProjectName))
           .map(PmvCms::getCmsList).flatMap(List::stream).toList();
     }
     search();
@@ -187,11 +191,15 @@ public class CmsEditorBean implements Serializable {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
     } else {
-      if(selectedCms.isFile()) {
+      if (selectedCms.isFile()) {
         loadFileContentOfSelectedCms();
       }
-      PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_SELECTED_URL, CONTENT_FORM_CMS_EDIT_VALUE,
-          CONTENT_FORM_EDITABLE_COLUMN, "content-form:current-cms-column", "content-form:column-container");
+      if (inEditMode) {
+        inEditMode = false;
+        PF.current().ajax().update(CONTENT_FORM);
+      } else {
+        PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+      }
     }
   }
 
@@ -269,9 +277,9 @@ public class CmsEditorBean implements Serializable {
       if (child.children().isEmpty()) {
         var cms = convertToCms(child, locales, pmvName, child.meta().fileExtension());
         if (cms.getContents() != null) {
-          var contents = this.pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
+          var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
           contents.addCms(cms);
-          this.pmvCmsMap.putIfAbsent(pmvName, contents);
+          pmvCmsMap.putIfAbsent(pmvName, contents);
         }
       }
       getAllChildren(pmvName, child, locales);
@@ -360,14 +368,19 @@ public class CmsEditorBean implements Serializable {
     var context = FacesContext.getCurrentInstance();
     var requestParamMap = context.getExternalContext().getRequestParameterMap();
     var languageIndex = Integer.parseInt(requestParamMap.get("languageIndex"));
-    selectedCms.getContents().get(languageIndex).setEditing(true);
-    if (lastSelectedCms != null) {
-      lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+    var contentByLanguage = requestParamMap.get("content");
+    String santinizedContent =
+        Utils.sanitizeContent(selectedCms.getContents().get(languageIndex).getOriginalContent(), contentByLanguage);
+    if (!santinizedContent.equals(selectedCms.getContents().get(languageIndex).getContent())) {
+      selectedCms.getContents().get(languageIndex).setEditing(true);
+      if (lastSelectedCms != null) {
+        lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+      }
     }
   }
 
   public void handleBeforeDownloadFile() throws Exception {
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, this.pmvCmsMap);
+    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, pmvCmsMap);
   }
 
   public void downloadFinished() {

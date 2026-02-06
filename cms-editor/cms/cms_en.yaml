@@ -6,6 +6,7 @@ Labels:
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
   Cancel: Cancel
+  ChangesSaved: Changes saved
   CmsDownloaded: Project CMS saved <br /> to ZIP file
   Download: Download for deployment
   Edit: Edit
@@ -14,6 +15,10 @@ Labels:
   Message: Message
   Options: Options
   ProjectCmsTitle: Project-CMS
+  ResetAdvice: Enter <b>reset</b> to confirm
+  ResetAll: Reset all
+  ResetAllChangeConfirmation: Are you sure you want to reset all changes?
+  ResetAllChanges: Reset all changes
   Save: Save
   Search: Search for links or CMS content
   SelectedCMS: Selected CMS

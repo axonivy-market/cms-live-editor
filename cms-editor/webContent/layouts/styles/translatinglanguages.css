@@ -6,7 +6,7 @@
 .panel {
   float: left;
   /* Adjust based on desired layout (horizontal/vertical) */
-  border: 1px solid #ccc;
+  border: 1px solid #EBEBEB;
   padding: 0;
   height: 85vh;
   display: block;
@@ -94,12 +94,15 @@ body.dark .column-header {
   border-right: none !important;
 }
 
-#column-container {
-  padding: 0 0.4rem 0 0.4rem;
+.column-container {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #EBEBEB;
+  border-radius: 2px;
 }
 
 .columns {
-  padding: 1rem 0 0 0;
+  padding: 0 0 0 0;
 }
 
 .cms-info-icon {
@@ -176,6 +179,23 @@ body.dark .cms-warning {
   opacity: 0.85;
 }
 
+.reset-all-change-button {
+  color: #E5151C;
+  font-weight: 500;
+}
+
+.undo-action-custom, .undo-action-custom i, .undo-action-custom span {
+  color: #007095;
+  font-weight: 500;
+}
+
+.undo-action-custom, .undo-action-custom:hover, .undo-action-custom:focus,
+  .undo-action-custom:active {
+  color: #007095 !important;
+  text-decoration: none !important;
+}
+
+/* OVERALL BUTTON OVERRIDE */
 /* Common button layout */
 .cms-download-btn, .cms-edit-button, .cms-cancel-button,
   .cms-save-button {
@@ -186,11 +206,19 @@ body.dark .cms-warning {
 
 /* Common icon styling */
 .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
-  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon {
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
+  .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading
+{
   position: relative !important;
   top: 0 !important;
-  margin-top: -2px !important;
+  margin-top: -0.5px !important;
 }
+
+.ui-icon-loading.left {
+  width: 12px;}
+
+/* END OF OVERALL BUTTON OVERRIDE */
 
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
