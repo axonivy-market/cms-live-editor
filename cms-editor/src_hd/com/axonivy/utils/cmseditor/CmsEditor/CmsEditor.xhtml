@@ -74,10 +74,9 @@
                     var="language">
                     <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
                       <h:panelGroup styleClass="ui-fluid">
-                        <ic:com.axonivy.utils.cmseditor.component.Editor
-                          content="#{empty language.originalContent ? language.content : language.originalContent}"
-                          languageIndex="#{language.index}" managedBean="#{cmsEditorBean}" isReadOnly="true"
-                          isFormatButtonListVisible="#{language.html}" />
+                        <ic:com.axonivy.utils.cmseditor.component.Editor originalContent="#{language.originalContent}"
+                          content="#{language.content}" languageIndex="#{language.index}" managedBean="#{cmsEditorBean}"
+                          isReadOnly="true" isFormatButtonListVisible="#{language.html}" />
                       </h:panelGroup>
                     </p:tab>
                   </p:accordionPanel>
@@ -118,8 +117,8 @@
                     var="language">
                     <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
                       <h:panelGroup styleClass="ui-fluid">
-                        <ic:com.axonivy.utils.cmseditor.component.Editor content="#{language.content}"
-                          languageIndex="#{language.index}" managedBean="#{cmsEditorBean}"
+                        <ic:com.axonivy.utils.cmseditor.component.Editor originalContent="#{language.originalContent}"
+                          content="#{language.content}" languageIndex="#{language.index}" managedBean="#{cmsEditorBean}"
                           isReadOnly="#{!cmsEditorBean.editableCms}" isFormatButtonListVisible="#{language.html}" />
                       </h:panelGroup>
                     </p:tab>
