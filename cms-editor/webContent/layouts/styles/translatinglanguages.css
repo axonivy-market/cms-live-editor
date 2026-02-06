@@ -209,14 +209,15 @@ body.dark .cms-warning {
   .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
   .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
   .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading
-{
+  {
   position: relative !important;
   top: 0 !important;
   margin-top: -0.5px !important;
 }
 
 .ui-icon-loading.left {
-  width: 12px;}
+  width: 12px;
+}
 
 /* END OF OVERALL BUTTON OVERRIDE */
 

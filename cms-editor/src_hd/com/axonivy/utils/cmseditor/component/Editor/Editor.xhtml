@@ -14,19 +14,20 @@
 </cc:interface>
 
 <cc:implementation>
+  <ui:param name="normalizedOriginal" value="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.originalContent)}" />
+  <ui:param name="normalizedCurrent" value="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.content)}" />
+  <ui:param name="isSameContent" value="#{normalizedOriginal eq normalizedCurrent}" />
 
   <h:outputStylesheet name="suneditor/css/suneditor.min.css" />
   <h:outputStylesheet name="suneditor/css/suneditor-custom.css" />
   <h:outputScript name="suneditor/suneditor.min.js" target="head" />
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
-    <h:panelGroup
-      rendered="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.originalContent) eq cc.attrs.managedBean.removeWhiteSpace(cc.attrs.content)}">
+    <h:panelGroup rendered="#{isSameContent}">
       <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
 
-    <h:panelGroup
-      rendered="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.originalContent) ne cc.attrs.managedBean.removeWhiteSpace(cc.attrs.content)}">
+    <h:panelGroup rendered="#{not isSameContent}">
       <del class="cms-original-content">
         <h:outputText value="#{cc.attrs.originalContent}" escape="false" />
       </del>
@@ -34,17 +35,18 @@
     </h:panelGroup>
   </h:panelGroup>
 
+  <!-- EDIT MODE -->
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
     <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
       autoResize="false" />
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
-    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible},#{cc.attrs.languageIndex},'#{cc.clientId}:content-editor-id');"
+    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible}, #{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id');"
     global="false" process="@none" update="@none" immediate="true" />
 
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"
     actionListener="#{cc.attrs.managedBean.setValueChanged}" />
-
 </cc:implementation>
+
 </html>
