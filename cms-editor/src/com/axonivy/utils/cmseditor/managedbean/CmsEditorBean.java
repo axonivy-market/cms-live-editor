@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -61,7 +62,7 @@ public class CmsEditorBean implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
-
+  private final Pattern WHITESPACE_PATTERN = Pattern.compile("&nbsp;|[\\u00A0\\u200B\\u200C\\u200D\\uFEFF]|\\s+");
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
   private List<Cms> filteredCMSList;
@@ -391,19 +392,10 @@ public class CmsEditorBean implements Serializable {
         .collect(Collectors.toSet());
   }
 
-  public static String removeWhiteSpace(String text) {
+  public String removeWhiteSpace(String text) {
     if (text == null) {
       return null;
     }
-
-    return text
-        // HTML entity → unicode
-        .replace("&nbsp;", "\u00A0")
-        // remove all invisible spaces
-        .replaceAll("[\\u00A0\\u200B\\u200C\\u200D\\uFEFF]", "")
-        // normalize line breaks
-        .replace("\r\n", "\n").replace("\r", "\n")
-        // optional: remove normal spaces too
-        .replaceAll("\\s+", "");
+    return WHITESPACE_PATTERN.matcher(text).replaceAll(EMPTY);
   }
 }
