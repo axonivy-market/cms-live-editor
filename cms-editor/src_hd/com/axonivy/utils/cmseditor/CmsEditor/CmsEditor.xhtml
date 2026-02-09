@@ -216,7 +216,7 @@
             </div>
             <div class="flex justify-content-center gap-2">
               <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
-                styleClass="ui-button-secondary ui-button-outlined w-full"
+                styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
                 onclick="PF('resetConfirmDlg').hide(); return false;" />
               <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}"
                 styleClass="ui-button-danger w-full" actionListener="#{cmsEditorBean.resetAllChanges}"
