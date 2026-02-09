@@ -32,14 +32,19 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
       all: 'style|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
     }
   });
-
+  const initialContent = editor.getContents();
   window.cmsEditors[languageIndex] = editor;
 
-  function markDirty() {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: 'languageIndex', value: languageIndex }
-    ]);
+  function markDirtyIfChanged() {
+	const currentContent = editor.getContents();
+
+	if (currentContent !== initialContent) {
+	  window.cmsDirtyEditors.add(languageIndex);
+	  setValueChanged([
+	    { name: 'languageIndex', value: languageIndex },
+	    { name: 'content', value: currentContent }
+	  ]);
+	}
   }
 
   function debounce(fn, delay) {
@@ -52,12 +57,12 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
 
   // Handle fast typing
   editor.onChange = debounce(() => {
-    markDirty();
+    markDirtyIfChanged();
   }, 200);
 
   // Handle quick CMS switching (click outside editor)
   editor.onBlur = () => {
-    markDirty();
+    markDirtyIfChanged();
   };
 }
 
@@ -136,6 +141,44 @@ function destroyEditors() {
   }
   window.cmsEditors = {};
   window.cmsDirtyEditors.clear();
+}
+
+function showSaveSuccess() {
+  const bar = document.getElementById('content-form:save-success-bar');
+  if (!bar) {
+    return;
+  };
+  bar.classList.add('show');
+  if (bar.hideTimeout) {
+    clearTimeout(bar.hideTimeout);
+  }
+  bar.hideTimeout = setTimeout(() => {
+    bar.classList.remove('show');
+  }, 3500);
+}
+
+let linkPanelScrollTop = 0;
+
+function getLinkPanel() {
+  return document.querySelector(
+    '#content-form\\:link-column .panel'
+  );
+}
+
+function saveLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+    linkPanelScrollTop = panel.scrollTop;
+  }
+}
+
+function restoreLinkPanelScroll() {
+  const panel = getLinkPanel();
+  if (panel) {
+    setTimeout(() => {
+      panel.scrollTop = linkPanelScrollTop;
+    }, 0);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initCmsWarnings);
