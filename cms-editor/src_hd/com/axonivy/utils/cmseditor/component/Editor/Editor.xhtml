@@ -13,9 +13,8 @@
   <cc:attribute name="isReadOnly" default="false" />
 </cc:interface>
 <cc:implementation>
-  <ui:param name="normalizedOriginal" value="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.originalContent)}" />
-  <ui:param name="normalizedCurrent" value="#{cc.attrs.managedBean.removeWhiteSpace(cc.attrs.content)}" />
-  <ui:param name="isSameContent" value="#{cc.attrs.managedBean.isTheSameContent(normalizedOriginal, normalizedCurrent)}" />
+  <ui:param name="isSameContent"
+    value="#{cc.attrs.managedBean.isTheSameContent(cc.attrs.originalContent, cc.attrs.content)}" />
 
   <h:outputStylesheet name="suneditor/css/suneditor.min.css" />
   <h:outputStylesheet name="suneditor/css/suneditor-custom.css" />
@@ -23,12 +22,12 @@
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
     <h:panelGroup rendered="#{isSameContent}">
-      <h:outputText value="#{cc.attrs.content}" escape="true" />
+      <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
 
     <h:panelGroup rendered="#{not isSameContent}">
       <del class="cms-original-content">
-        <h:outputText value="#{cc.attrs.originalContent}" escape="true" />
+        <h:outputText value="#{cc.attrs.originalContent}" escape="false" />
       </del>
       <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
