@@ -31,6 +31,8 @@ import ch.ivyteam.ivy.application.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.primefaces.PF;
 import org.primefaces.PrimeFaces;
 import org.primefaces.model.StreamedContent;
@@ -397,5 +399,12 @@ public class CmsEditorBean implements Serializable {
       return null;
     }
     return WHITESPACE_PATTERN.matcher(text).replaceAll(EMPTY);
+  }
+
+  public boolean isTheSameContent(String originalContent, String content) {
+    Document d1 = Jsoup.parse(originalContent);
+    Document d2 = Jsoup.parse(content);
+
+    return d1.body().html().equals(d2.body().html());
   }
 }
