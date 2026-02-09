@@ -22,7 +22,7 @@
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">
               <p:selectOneMenu id="app" value="#{cmsEditorBean.selectedProjectName}" class="w-full">
-                <f:selectItem itemLabel="All" itemValue="#{null}" />
+                <f:selectItem itemLabel="#{ivy.cms.co('/Labels/AllProjects')}" itemValue="#{null}" />
                 <f:selectItems value="#{cmsEditorBean.projectCms}" />
                 <p:ajax process="@this" listener="#{cmsEditorBean.onAppChange}" />
               </p:selectOneMenu>

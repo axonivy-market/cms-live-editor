@@ -332,7 +332,8 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void handleBeforeDownloadFile() throws Exception {
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, pmvCmsMap);
+    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
+    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
   }
 
   public void downloadFinished() {
