@@ -9,7 +9,7 @@
       <h:outputScript name="resources/cms-editor.js" target="head" />
 
       <h:form id="content-form" onkeypress="if (event.keyCode === 13){return false;}">
-        <p:remoteCommand id="check-and-show" name="showWarningDailog" global="false" process="@this" update="@this"
+        <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restoreLinkPanelScroll();" partialSubmit="true" actionListener="#{cmsEditorBean.rowSelect}" />
@@ -57,7 +57,7 @@
                 <p:dataTable id="table-cms-keys" value="#{cmsEditorBean.filteredCMSKeys}" var="entry"
                   selection="#{cmsEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
                   scrollHeight="100%" pageLinks="5" styleClass="cms-link-table"
-                  onRowClick="saveLinkPanelScroll(); showWarningDailog(); return false;">
+                  onRowClick="saveLinkPanelScroll(); showWarningDialog(); return false;">
                   <p:column>
                     <div class="link-row">
                       <h:outputText id="cms-uri" class="cms-uri" value="#{entry.uri}" />
@@ -79,7 +79,7 @@
                 <div class="column-header flex align-items-center justify-content-between">
                   <div class="flex align-items-center gap-2">
                     <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span> <i
-                      class="pi pi-info-circle cms-info-icon" title="CMS information" />
+                      class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/CmsInformation')}" />
                   </div>
 
                   <p:commandLink id="undo-change-link" rendered="#{cmsEditorBean.isRenderUndoChange()}"
@@ -146,7 +146,7 @@
                 styleClass="col-6 flex flex-column editable-column columns">
                 <div class="column-header font-semibold text-lg cms-title">
                   <span>#{ivy.cms.co('/Labels/Edit')}</span> <i class="pi pi-info-circle cms-info-icon"
-                    title="Edit CMS information" />
+                    title="#{ivy.cms.co('/Labels/EditCmsInformation')}" />
                 </div>
                 <h:panelGroup styleClass="panel end w-full flex flex-column flex-grow-1" layout="block">
                   <h:panelGroup styleClass="flex-grow-1 overflow-auto cms-scroll-wrapper" layout="block">

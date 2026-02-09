@@ -8,8 +8,10 @@ Labels:
   Cancel: Cancel
   ChangesSaved: Changes saved
   CmsDownloaded: Project CMS saved <br /> to ZIP file
+  CmsInformation: CMS Information
   Download: Download for deployment
   Edit: Edit
+  EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Links: Links
   Message: Message
