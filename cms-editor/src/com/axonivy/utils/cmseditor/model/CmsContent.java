@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Locale;
 
 import org.primefaces.model.StreamedContent;
+import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmseditor.utils.Utils;
 
@@ -29,7 +30,11 @@ public class CmsContent implements Serializable {
 
   private String fileName;
 
+  private long fileSize;
+
   private StreamedContent data;
+  
+  private UploadedFile newUploadedFile;
 
   private final boolean isHtml;
 
@@ -132,5 +137,21 @@ public class CmsContent implements Serializable {
 
   public void setData(StreamedContent data) {
     this.data = data;
+  }
+
+  public long getFileSize() {
+    return fileSize;
+  }
+
+  public void setFileSize(long fileSize) {
+    this.fileSize = fileSize;
+  }
+
+  public UploadedFile getNewUploadedFile() {
+    return newUploadedFile;
+  }
+
+  public void setNewUploadedFile(UploadedFile newUploadedFile) {
+    this.newUploadedFile = newUploadedFile;
   }
 }

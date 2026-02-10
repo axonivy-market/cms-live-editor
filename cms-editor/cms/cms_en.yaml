@@ -6,6 +6,7 @@ Labels:
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
   Cancel: Cancel
+  ChangeDocument: Change document
   ChangesSaved: Changes saved
   CmsDownloaded: Project CMS saved <br /> to ZIP file
   Download: Download for deployment

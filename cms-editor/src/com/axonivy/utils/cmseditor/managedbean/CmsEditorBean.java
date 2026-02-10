@@ -2,6 +2,7 @@ package com.axonivy.utils.cmseditor.managedbean;
 
 import static ch.ivyteam.ivy.environment.Ivy.cms;
 import static com.axonivy.utils.cmseditor.constants.CmsConstants.*;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
@@ -33,7 +34,6 @@ import org.primefaces.PF;
 import org.primefaces.PrimeFaces;
 import org.primefaces.model.StreamedContent;
 
-import com.axonivy.utils.cmseditor.constants.DocumentConstants;
 import com.axonivy.utils.cmseditor.dto.CmsValueDto;
 import com.axonivy.utils.cmseditor.enums.FileType;
 import com.axonivy.utils.cmseditor.model.Cms;
@@ -66,7 +66,8 @@ import ch.ivyteam.ivy.security.ISecurityContext;
 public class CmsEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
-  private static final String CMS_FILE_FORMATTER = "%s_%s.%s";
+  private static final String CMS_FILE_FORMAT = "%s_%s.%s";
+  private static final String FILE_EXTENSION_FORMAT = ".%s";  
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -219,6 +220,7 @@ public class CmsEditorBean implements Serializable {
         byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
         if (bytes != null) {
           cmsContent.setData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytes));
+          cmsContent.setFileSize((long) Math.ceil(bytes.length / 1024.0));
         }
       }
     }catch(Exception e) {}
@@ -293,7 +295,7 @@ public class CmsEditorBean implements Serializable {
     boolean isFile = StringUtils.isNotBlank(fileExtension);
     if (isFile) {
       cms.setFile(true);
-      cms.setFileExtension(fileExtension);
+      cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
       FileType fileType = getFileTypeByExtension(fileExtension);
       cms.setFileType(fileType);
     }
@@ -301,7 +303,7 @@ public class CmsEditorBean implements Serializable {
       Locale locale = locales.get(i);
       if (isFile) {
         String language = locale.getLanguage();
-        String projectCmsFileUri = String.format(CMS_FILE_FORMATTER, contentObject.uri(), language, fileExtension);
+        String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
         String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf('/') + 1);
         cms.addContent(new CmsContent(i, locale, isFile, fileName, projectCmsFileUri));
       } else {
@@ -319,19 +321,14 @@ public class CmsEditorBean implements Serializable {
   }
 
   private FileType getFileTypeByExtension(String extension) {
-    FileType fileType;
-    if (Strings.CI.contains(DocumentConstants.DOC_EXTENSION, extension)
-        || Strings.CI.contains(DocumentConstants.DOCX_EXTENSION, extension)) {
-      fileType = FileType.WORD;
-    } else if (Strings.CI.contains(DocumentConstants.XLS_EXTENSION, extension)
-        || Strings.CI.contains(DocumentConstants.XLSX_EXTENSION, extension)) {
-      fileType = FileType.EXCEL;
-    } else if (Strings.CI.contains(DocumentConstants.PDF_EXTENSION, extension)) {
-      fileType = FileType.PDF;
-    } else {
-      fileType = FileType.OTHERS;
-    }
-    return fileType;
+    String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
+    return switch (fileExtension) {
+      case JPEG_EXTENSION, JPG_EXTENSION, PNG_EXTENSION -> FileType.IMAGE;
+      case DOC_EXTENSION, DOCX_EXTENSION -> FileType.WORD;
+      case XLS_EXTENSION, XLSX_EXTENSION -> FileType.EXCEL;
+      case PDF_EXTENSION -> FileType.PDF;
+      default -> FileType.OTHERS;
+    };
   }
 
   private static boolean isActive(IActivity processModelVersion) {

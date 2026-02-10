@@ -11,5 +11,13 @@
     "name" : "fileContent",
     "type" : "org.primefaces.model.StreamedContent",
     "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "uploadedFile",
+    "type" : "org.primefaces.model.file.UploadedFile",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "fileUploadEvent",
+    "type" : "org.primefaces.event.FileUploadEvent",
+    "modifiers" : [ "PERSISTENT" ]
   } ]
 }
