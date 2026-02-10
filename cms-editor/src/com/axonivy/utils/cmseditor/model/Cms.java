@@ -5,6 +5,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.axonivy.utils.cmseditor.enums.FileType;
+
 public class Cms implements Serializable {
 
   @Serial
@@ -13,11 +15,19 @@ public class Cms implements Serializable {
   private String uri;
 
   private List<CmsContent> contents;
-  
+
   private String pmvName;
-  
+
   private boolean isDifferentWithApplication;
-  
+
+  private boolean isFile;
+
+  private String fileName;
+
+  private String fileExtension;
+
+  private FileType fileType;
+
   public boolean isDifferentWithApplication() {
     return isDifferentWithApplication;
   }
@@ -61,4 +71,35 @@ public class Cms implements Serializable {
     this.pmvName = pmvName;
   }
 
+  public boolean isFile() {
+    return isFile;
+  }
+
+  public void setFile(boolean isFile) {
+    this.isFile = isFile;
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public String getFileExtension() {
+    return fileExtension;
+  }
+
+  public void setFileExtension(String fileExtension) {
+    this.fileExtension = fileExtension;
+  }
+
+  public FileType getFileType() {
+    return fileType;
+  }
+
+  public void setFileType(FileType fileType) {
+    this.fileType = fileType;
+  }
 }

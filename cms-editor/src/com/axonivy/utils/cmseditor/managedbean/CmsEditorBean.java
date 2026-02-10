@@ -1,7 +1,22 @@
 package com.axonivy.utils.cmseditor.managedbean;
 
 import static ch.ivyteam.ivy.environment.Ivy.cms;
-import static com.axonivy.utils.cmseditor.constants.CmsConstants.*;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CMS_EDITOR_DEMO_PMV_NAME;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CMS_EDITOR_PMV_NAME;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_LINK_COLUMN;
+import static com.axonivy.utils.cmseditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.DOCX_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.DOC_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.JPEG_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.JPG_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PDF_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PNG_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLSX_EXTENSION;
+import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLS_EXTENSION;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -25,7 +40,6 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 
-import ch.ivyteam.ivy.application.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -36,11 +50,13 @@ import org.primefaces.PrimeFaces;
 import org.primefaces.model.StreamedContent;
 
 import com.axonivy.utils.cmseditor.dto.CmsValueDto;
+import com.axonivy.utils.cmseditor.enums.FileType;
 import com.axonivy.utils.cmseditor.model.Cms;
 import com.axonivy.utils.cmseditor.model.CmsContent;
 import com.axonivy.utils.cmseditor.model.PmvCms;
 import com.axonivy.utils.cmseditor.model.SavedCms;
 import com.axonivy.utils.cmseditor.service.CmsService;
+import com.axonivy.utils.cmseditor.service.DocumentPreviewService;
 import com.axonivy.utils.cmseditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmseditor.utils.FacesContexts;
 import com.axonivy.utils.cmseditor.utils.Utils;
@@ -48,6 +64,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.ivyteam.ivy.application.ActivityState;
+import ch.ivyteam.ivy.application.IActivity;
+import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.IProcessModel;
+import ch.ivyteam.ivy.application.IProcessModelVersion;
 import ch.ivyteam.ivy.application.app.IApplicationRepository;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
@@ -60,8 +81,11 @@ import ch.ivyteam.ivy.security.ISecurityContext;
 public class CmsEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
+  private static final String CMS_FILE_FORMAT = "%s_%s.%s";
+  private static final String FILE_EXTENSION_FORMAT = ".%s";  
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
+
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
   private List<Cms> filteredCMSList;
@@ -194,12 +218,39 @@ public class CmsEditorBean implements Serializable {
     if (isEditing()) {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
-    } else if (isInEditMode) {
-      isInEditMode = false;
-      PF.current().ajax().update(CONTENT_FORM);
     } else {
-      PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+      if (selectedCms.isFile()) {
+        loadFileContentOfSelectedCms();
+      }
+      if (isInEditMode) {
+        isInEditMode = false;
+        PF.current().ajax().update(CONTENT_FORM);
+      } else {
+        PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+      }
     }
+  }
+
+  private void loadFileContentOfSelectedCms() {
+    IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
+        .filter(pmv -> pmv.getProjectName().equals(selectedCms.getPmvName())).findFirst().orElseGet(null);
+    if (selectedPmv != null) {
+      ContentObject contentObject = ContentManagement.cms(selectedPmv).get(selectedCms.getUri()).orElseGet(null);
+      loadFileContentOfCmsContent(contentObject);
+    }
+  }
+  
+  private void loadFileContentOfCmsContent(ContentObject contentObject) {
+    try {
+      for (CmsContent cmsContent: selectedCms.getContents()) {
+        ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
+        byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
+        if (bytes != null) {
+          cmsContent.setData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytes));
+          cmsContent.setFileSize((long) Math.ceil(bytes.length / 1024.0));
+        }
+      }
+    }catch(Exception e) {}
   }
 
   public void saveAll() throws JsonProcessingException {
@@ -253,36 +304,58 @@ public class CmsEditorBean implements Serializable {
 
     for (ContentObject child : contentObject.children()) {
       if (child.children().isEmpty()) {
-        // just allow string cms. not file
-        if (StringUtils.isBlank(child.meta().fileExtension())) {
-          var cms = convertToCms(child, locales, pmvName);
-          if (cms.getContents() != null) {
-            var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
-            contents.addCms(cms);
-            pmvCmsMap.putIfAbsent(pmvName, contents);
-          }
+        var cms = convertToCms(child, locales, pmvName, child.meta().fileExtension());
+        if (cms.getContents() != null) {
+          var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
+          contents.addCms(cms);
+          pmvCmsMap.putIfAbsent(pmvName, contents);
         }
       }
       getAllChildren(pmvName, child, locales);
     }
   }
 
-  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName) {
+  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName, String fileExtension) {
     var cms = new Cms();
     cms.setUri(contentObject.uri());
     cms.setPmvName(pmvName);
+    boolean isFile = StringUtils.isNotBlank(fileExtension);
+    if (isFile) {
+      cms.setFile(true);
+      cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
+      FileType fileType = getFileTypeByExtension(fileExtension);
+      cms.setFileType(fileType);
+    }
     for (var i = 0; i < locales.size(); i++) {
       Locale locale = locales.get(i);
-      ContentObjectValue value = contentObject.value().get(locale);
-      String projectCmsValueString =
-          Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::string).orElse(EMPTY);
-      String cmsApplicationValue = cmsService.getCmsFromApplication(cms.getUri(), locale);
-      if (StringUtils.isBlank(cmsApplicationValue)) {
-        cmsApplicationValue = projectCmsValueString;
+      if (isFile) {
+        String language = locale.getLanguage();
+        String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
+        String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf('/') + 1);
+        cms.addContent(new CmsContent(i, locale, isFile, fileName, projectCmsFileUri));
+      } else {
+        ContentObjectValue value = contentObject.value().get(locale);
+        String projectCmsValueString =
+            ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::string).orElse(EMPTY);
+        String cmsApplicationValue = cmsService.getCmsFromApplication(cms.getUri(), locale);
+        if (StringUtils.isBlank(cmsApplicationValue)) {
+          cmsApplicationValue = projectCmsValueString;
+        }
+        cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
       }
-      cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
     }
     return cms;
+  }
+
+  private FileType getFileTypeByExtension(String extension) {
+    String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
+    return switch (fileExtension) {
+      case JPEG_EXTENSION, JPG_EXTENSION, PNG_EXTENSION -> FileType.IMAGE;
+      case DOC_EXTENSION, DOCX_EXTENSION -> FileType.WORD;
+      case XLS_EXTENSION, XLSX_EXTENSION -> FileType.EXCEL;
+      case PDF_EXTENSION -> FileType.PDF;
+      default -> FileType.OTHERS;
+    };
   }
 
   private static boolean isActive(IActivity processModelVersion) {

@@ -30,6 +30,10 @@ public class CmsService {
 
   private boolean isCmsDifferentWithApplication(Cms cms) {
     for (CmsContent cmsContent : cms.getContents()) {
+      if(cmsContent.isFile()) {
+        return hasCmsFileFromApplication(cms.getUri(), cmsContent.getLocale());
+      }
+
       String valueFromApp = getCmsFromApplication(cms.getUri(), cmsContent.getLocale());
       if (valueFromApp != null && !valueFromApp.equals(cmsContent.getOriginalContent())) {
         return true;
@@ -42,6 +46,15 @@ public class CmsService {
     IApplication currentApplication = IApplication.current();
     var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
     return cmsEntity.map(contentObject -> contentObject.value().get(locale).read().string()).orElse(null);
+  }
+
+  public boolean hasCmsFileFromApplication(String uri, Locale locale) {
+    IApplication currentApplication = IApplication.current();
+    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
+    if (cmsEntity.isEmpty()) {
+      return false;
+    }
+    return cmsEntity.map(contentObject -> contentObject.value().get(locale)).isPresent();
   }
 
 
@@ -57,6 +70,15 @@ public class CmsService {
       ContentObject currentContentObject = createOrGetCmsByUri(uri);
       localeAndContent.forEach((locale, savedCms) -> {
         currentContentObject.value().get(Locale.forLanguageTag(locale)).write().string(savedCms.getNewContent());
+      });
+    }));
+  }
+
+  public void writeCmsFileToApplication(Map<String, Map<String, SavedCms>> savedCmsMap) {
+    Sudo.run(() -> savedCmsMap.forEach((uri, localeAndContent) -> {
+      ContentObject currentContentObject = createOrGetCmsByUri(uri);
+      localeAndContent.forEach((locale, savedCms) -> {
+        currentContentObject.value().get(Locale.forLanguageTag(locale)).write().bytes(savedCms.getNewFileContent());
       });
     }));
   }
