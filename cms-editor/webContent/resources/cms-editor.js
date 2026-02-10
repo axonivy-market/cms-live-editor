@@ -4,6 +4,9 @@ window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsEditorIds = window.cmsEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 
+const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
+const CMS_SAVE_WARNING_CONTAINER_ID = 'content-form:cms-error-container';
+
 function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   let buttonList;
 
@@ -32,7 +35,7 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   const editor = SUNEDITOR.create(document.getElementById(editorId), {
     buttonList: buttonList,
     attributesWhitelist: {
-      all: 'style|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
     }
   });
   const initialContent = editor.getContents();
@@ -90,6 +93,7 @@ function markDirtyIfChanged() {
 function saveAllEditors() {
   const values = [];
   let hasValidationError = false;
+  let hasPlaceholderError = false;
   // Validate and collect values only for locales that the user modified
   for (const languageIndex of window.cmsDirtyEditors) {
     const editor = window.cmsEditors[languageIndex];
@@ -110,6 +114,7 @@ function saveAllEditors() {
       // editor.noticeOpen("Placeholder mismatch: please keep the same {n} placeholders.");
       setEditorError(languageIndex, true);
       hasValidationError = true;
+      hasPlaceholderError = true;
       continue;
     }
 
@@ -123,8 +128,13 @@ function saveAllEditors() {
   }
 
   if (hasValidationError) {
+    // Show the same warning message area as hover warning, but immediately.
+    setSaveWarningVisible(hasPlaceholderError);
     return false;
   }
+
+  // Hide placeholder warning when validations pass.
+  setSaveWarningVisible(false);
 
   saveAllValue([{
     name: 'values',
@@ -168,6 +178,95 @@ function extractPlaceholders(content) {
   return matches ? matches.slice() : [];
 }
 
+function stripPlaceholderHighlightSpans(html) {
+  if (!html || typeof html !== 'string') {
+    return html;
+  }
+
+  // Remove our visual highlight wrappers while keeping inner text intact.
+  const wrapperPattern = new RegExp(
+    `<span\\b[^>]*class\\s*=\\s*"[^\"]*\\b${CMS_PLACEHOLDER_ERROR_CLASS}\\b[^\"]*"[^>]*>([\\s\\S]*?)<\\/span>`,
+    'gi'
+  );
+
+  let cleaned = html;
+  while (wrapperPattern.test(cleaned)) {
+    cleaned = cleaned.replace(wrapperPattern, '$1');
+  }
+  return cleaned;
+}
+
+function buildPlaceholderCounts(placeholders) {
+  const counts = new Map();
+  for (const p of placeholders || []) {
+    counts.set(p, (counts.get(p) || 0) + 1);
+  }
+  return counts;
+}
+
+function wrapExtraPlaceholdersInTextNodes(html, allowedCounts, wrapperClass) {
+  if (!html) {
+    return html;
+  }
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+
+  const countsSeen = new Map();
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  const nodesToProcess = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue && /\{\d+\}/.test(node.nodeValue)) {
+      nodesToProcess.push(node);
+    }
+  }
+
+  for (const textNode of nodesToProcess) {
+    const text = textNode.nodeValue;
+    const regex = /\{\d+\}/g;
+    let lastIndex = 0;
+    let match;
+    let changed = false;
+    const fragment = document.createDocumentFragment();
+
+    while ((match = regex.exec(text)) !== null) {
+      const token = match[0];
+      const start = match.index;
+
+      if (start > lastIndex) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+      }
+
+      const seen = (countsSeen.get(token) || 0) + 1;
+      countsSeen.set(token, seen);
+      const allowed = allowedCounts.get(token) || 0;
+
+      if (seen > allowed) {
+        const span = document.createElement('span');
+        span.className = wrapperClass;
+        span.textContent = token;
+        fragment.appendChild(span);
+        changed = true;
+      } else {
+        fragment.appendChild(document.createTextNode(token));
+      }
+
+      lastIndex = start + token.length;
+    }
+
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    if (changed) {
+      textNode.parentNode.replaceChild(fragment, textNode);
+    }
+  }
+
+  return container.innerHTML;
+}
+
 function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
     return false;
@@ -197,6 +296,9 @@ function bindCmsWarning(hoverId, warningId) {
   }
 
   function hideWarning() {
+    if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
+      return;
+    }
     hideTimeout = setTimeout(function() {
       targetElement.style.display = "none";
     }, 500);
@@ -208,6 +310,15 @@ function bindCmsWarning(hoverId, warningId) {
     clearTimeout(hideTimeout);
   });
   targetElement.addEventListener("mouseleave", hideWarning);
+}
+
+function setSaveWarningVisible(visible) {
+  const el = document.getElementById(CMS_SAVE_WARNING_CONTAINER_ID);
+  if (!el) {
+    return;
+  }
+  el.dataset.forceVisible = visible ? 'true' : 'false';
+  el.style.display = visible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {

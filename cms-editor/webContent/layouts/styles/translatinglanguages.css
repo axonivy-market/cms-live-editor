@@ -143,6 +143,24 @@ body.dark .cms-warning {
   display: none;
 }
 
+.cms-error {
+  display: none;
+}
+
+.cms-error, body.dark .cms-error {
+  border: 1px solid #FFC696;
+  background: #E5151C;
+  opacity: 0.5;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.cms-error-title, .cms-error-content {
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+}
+
 .ui-accordion .ui-accordion-content {
   word-break: break-all;
 }
