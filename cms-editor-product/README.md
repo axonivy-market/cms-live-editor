@@ -6,27 +6,40 @@ In AxonIvy, languages for UIs, notifications, or emails are managed within the C
 - Simple styles available
 - No HTML tags needed in the translation text
 
-** *In this version, real-time CMS updates have not yet been supported. Users are required to download the modified bundle in a ZIP format after making edits and re-import it into the project using Axon Ivy Designer. The changes will take effect only after the new release package is created and deployed to engine.* **
-
 ## Demo
 ### 1. CMS editor process start:
 - Users should have the role of "CMS_ADMIN" to start the process.
 ![](./images/1-cms-editor-process.png)
 
 ### 2. CMS editor main page:
-
-1. Application Selector: Each Ivy engine can contain multiple applications. First, choose the application you want to work on.
-2. Search Input: You can enter text to search by URI and content. The search is case-insensitive.
-3. Selected CMS: Displays the key of the selected content.
-4. Filter Only TODO: This option filters all content with the prefix 'TODO'.
-5. Result Table: Displays all URIs. You can navigate to the next page and change the page size.
-6. Selecting Content: Clicking on the URI loads the content into the content area.
-7. Content Area: Shows all languages in preview mode.
-8. Language Name: Displays the name of the languages.
-9. Content: Displays the content of the language (8) in preview mode.
-10. Editor: Displays the content in edit mode. You can update the content using the WYSIWYG editor.
-11. Save Button: The editor does not save automatically. Click the save button to save the edited content.
-12. Cancel Button: Closes the editor page.
-13. Download Button: Downloads a zip file containing all translated contents.
-
 ![](./images/2-cms-editor-main-page.png)
+
+
+1. Project Selector: Each security context can contain multiple projects. First, choose the project you want to work on. The option "All" will be set as default when the user clicks start process for the first time.
+   ![](./images/3-cms-editor-project-selection.png)
+
+2. Search Input: You can enter text to search by URI and project CMS. The search is case-insensitive.
+   ![](./images/4-cms-editor-search-bar.png)
+
+3. Selected CMS: Displays the key of the selected content.
+4. Edit button: Click to edit this CMS, and another column will be rendered for the user to edit the value for a specific language.
+   ![](./images/5-cms-editor-edit-button.png)
+   ![](./images/6-cms-editor-edit-column.png)
+5. Save button:
+
+   - When we hover to "Save" button , a warning message will be display to impress user
+
+     ![](./images/10-cms-editor-save-button-warning.png)
+   - Change the CMS to application CMS, then mark an "Orange-dot" in the row of the CMS to notify users that this CMS has a different value in the application CMS compared to the project CMS.
+   - In the header of the link column, display the red text "Reset all changes."
+   - In the header of the CMS column, render the blue text "Undo Changes" to allow users to undo all changes for this project CMS (remove all values in the application CMS that belong to this project CMS).
+   - The value of a specific language that the user edited will have a strikethrough for the project CMS sitting on the next newly edited value.
+     ![](./images/7-cms-editor-after-updating.png)
+6. "Reset all changes" button: Display the confirm dialog and the user have to type "reset" word correctly , and button "Reset All" can be clickable. when users click it, all application cms that we updated from project CMS will be deleted
+   ![](./images/8-cms-editor-reset-all-changes.png)
+   ![](./images/9-cms-editor-after-restoring.png)
+7. "Download for deployment" button: Downloads a zip file containing all translated contents.
+
+- When we hover to "download" button , a warning message will be display to impress user
+  ![](./images/11-cms-editor-download-button-warning.png)
+
