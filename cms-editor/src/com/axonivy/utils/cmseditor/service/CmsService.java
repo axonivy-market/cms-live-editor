@@ -28,28 +28,6 @@ public class CmsService {
     return cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().string(uri));
   }
 
-  public void writeCmsToApplication(Map<String, Map<String, SavedCms>> savedCmsMap) {
-    Sudo.run(() -> savedCmsMap.forEach((uri, localeAndContent) -> {
-      ContentObject currentContentObject = createOrGetCmsByUri(uri);
-      localeAndContent.forEach((locale, savedCms) -> {
-        currentContentObject.value().get(Locale.forLanguageTag(locale)).write().string(savedCms.getNewContent());
-      });
-    }));
-  }
-
-  public String getCmsFromApplication(String uri, Locale locale) {
-    IApplication currentApplication = IApplication.current();
-    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
-    return cmsEntity.map(contentObject -> contentObject.value().get(locale).read().string()).orElse(null);
-  }
-
-  public Cms compareWithCmsInApplication(Cms cms) {
-    boolean isDifferent = isCmsDifferentWithApplication(cms);
-    cms.getContents().forEach(content -> content.setEditing(false));
-    cms.setDifferentWithApplication(isDifferent);
-    return cms;
-  }
-
   private boolean isCmsDifferentWithApplication(Cms cms) {
     for (CmsContent cmsContent : cms.getContents()) {
       String valueFromApp = getCmsFromApplication(cms.getUri(), cmsContent.getLocale());
@@ -59,4 +37,32 @@ public class CmsService {
     }
     return false;
   }
+
+  public String getCmsFromApplication(String uri, Locale locale) {
+    IApplication currentApplication = IApplication.current();
+    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
+    return cmsEntity.map(contentObject -> contentObject.value().get(locale).read().string()).orElse(null);
+  }
+
+
+  public Cms compareWithCmsInApplication(Cms cms) {
+    boolean isDifferent = isCmsDifferentWithApplication(cms);
+    cms.getContents().forEach(content -> content.setEditing(false));
+    cms.setDifferentWithApplication(isDifferent);
+    return cms;
+  }
+
+  public void writeCmsToApplication(Map<String, Map<String, SavedCms>> savedCmsMap) {
+    Sudo.run(() -> savedCmsMap.forEach((uri, localeAndContent) -> {
+      ContentObject currentContentObject = createOrGetCmsByUri(uri);
+      localeAndContent.forEach((locale, savedCms) -> {
+        currentContentObject.value().get(Locale.forLanguageTag(locale)).write().string(savedCms.getNewContent());
+      });
+    }));
+  }
+
+  public void removeApplicationCmsByUri(String uri) {
+    Sudo.run(() -> createOrGetCmsByUri(uri).delete());
+  }
+
 }
