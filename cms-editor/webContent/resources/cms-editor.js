@@ -49,17 +49,24 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-  function markDirtyIfChanged() {
-	const currentContent = editor.getContents();
+function markDirtyIfChanged() {
+  const currentContent = editor.getContents();
+  const originalContents = window.cmsInitialContents[languageIndex] || '';
 
-	if (currentContent !== initialContent) {
-	  window.cmsDirtyEditors.add(languageIndex);
-	  setValueChanged([
-	    { name: 'languageIndex', value: languageIndex },
-	    { name: 'content', value: currentContent }
-	  ]);
-	}
+  if (currentContent === originalContents) {
+    // Back to original -> not dirty anymore
+    window.cmsDirtyEditors.delete(languageIndex);
+    setEditorError(languageIndex, false);
+    }
+
+  else if (currentContent !== initialContent) {
+    window.cmsDirtyEditors.add(languageIndex);
+    setValueChanged([
+      { name: 'languageIndex', value: languageIndex },
+      { name: 'content', value: currentContent }
+    ]);
   }
+}
 
   function debounce(fn, delay) {
     let timer;
@@ -91,14 +98,6 @@ function saveAllEditors() {
     const text = removeNonPrintableChars(editor.getText()).trim();
     if (text.length === 0) {
       editor.noticeOpen("The content must not be empty.");
-      setEditorError(languageIndex, true);
-      hasValidationError = true;
-      continue;
-    }
-
-    // HTML syntax validation based only on new content
-    if (!isHtmlSyntaxValid(contents)) {
-      // editor.noticeOpen("Invalid HTML syntax: please check opening and closing tags.");
       setEditorError(languageIndex, true);
       hasValidationError = true;
       continue;
@@ -180,54 +179,6 @@ function arePlaceholderListsEqual(a, b) {
   }
   return true;
 }
-
-function isHtmlSyntaxValid(content) {
-  if (!content || !/[<>]/.test(content)) {
-    return true;
-  }
-
-  const tagPattern = /<\/?([a-zA-Z0-9]+)([^>]*)>/g;
-  const voidTags = [
-    "br", "hr", "img", "input", "meta", "link", "area", "base", "col", "embed", "param", "source",
-    "track", "wbr"
-  ];
-
-  const stack = [];
-  let match;
-
-  while ((match = tagPattern.exec(content)) !== null) {
-    const tagName = match[1] ? match[1].toLowerCase() : "";
-    const rest = match[2] || "";
-    const fullMatch = match[0];
-
-    // Skip comments/doctype
-    if (tagName.startsWith("!") || tagName.startsWith("?")) {
-      continue;
-    }
-
-    const isClosing = /^<\//.test(fullMatch);
-    const selfClosing = /\/$/.test(rest.trim());
-
-    if (selfClosing || voidTags.indexOf(tagName) !== -1) {
-      continue;
-    }
-
-    if (isClosing) {
-      if (stack.length === 0) {
-        return false;
-      }
-      const open = stack.pop();
-      if (open !== tagName) {
-        return false;
-      }
-    } else {
-      stack.push(tagName);
-    }
-  }
-
-  return stack.length === 0;
-}
-
 
 function removeNonPrintableChars(str) {
   return str.replace(/[\u00A0\u0000\u200B]/g, '');

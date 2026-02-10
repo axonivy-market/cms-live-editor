@@ -184,7 +184,7 @@
                         process="@this table-cms-keys" actionListener="#{cmsEditorBean.writeCmsToApplication()}"
                         update="table-cms-keys cms-values cms-edit-value editable-column"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
-                        onclick="saveAllEditors()"
+                        onclick="return saveAllEditors();"
                         oncomplete="initCmsWarnings(); showSaveSuccess(); restoreLinkPanelScroll();"
                         partialSubmit="true" onstart="destroyEditors()" />
                     </h:panelGroup>

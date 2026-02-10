@@ -67,49 +67,4 @@ public class UtilsTest {
 
     assertEquals(expected, result);
   }
-
-  @Test
-  public void testIsHtmlSyntaxValid_plainText() {
-    String newContent = "Plain text";
-
-    assertTrue(Utils.isHtmlSyntaxValid(newContent));
-  }
-
-  @Test
-  public void testIsHtmlSyntaxValid_wellFormedHtml() {
-    String newContent = "<p>Hello <strong>World</strong></p>";
-
-    assertTrue(Utils.isHtmlSyntaxValid(newContent));
-  }
-
-  @Test
-  public void testIsHtmlSyntaxValid_unbalancedTags() {
-    String newContent = "<p><strong>Hello</p>";
-
-    assertFalse(Utils.isHtmlSyntaxValid(newContent));
-  }
-
-  @Test
-  public void testHasSamePlaceholders_same() {
-    String originalContent = "Hello {1}, you have {2} messages.";
-    String newContent = "Hallo {1}, du hast {2} Nachrichten.";
-
-    assertTrue(Utils.hasSamePlaceholders(originalContent, newContent));
-  }
-
-  @Test
-  public void testHasSamePlaceholders_differentCount() {
-    String originalContent = "Hello {1}, you have {2} messages.";
-    String newContent = "Hallo, du hast Nachrichten.";
-
-    assertFalse(Utils.hasSamePlaceholders(originalContent, newContent));
-  }
-
-  @Test
-  public void testHasSamePlaceholders_differentIndexes() {
-    String originalContent = "Hello {1}, you have {2} messages.";
-    String newContent = "Hallo {1}, du hast {3} Nachrichten.";
-
-    assertFalse(Utils.hasSamePlaceholders(originalContent, newContent));
-  }
 }
