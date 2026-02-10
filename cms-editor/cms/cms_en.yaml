@@ -30,6 +30,6 @@ Labels:
   UndoChanges: Undo changes
   Warning: Warning
 Processes:
-  CMSEditor:
+  CMSLiveEditor:
     description: Use this process to translate the current CMS and export it to an Excel file.
     name: CMS Editor

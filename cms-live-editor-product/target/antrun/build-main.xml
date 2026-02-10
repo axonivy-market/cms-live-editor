@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <copy todir="D:\projects\cms-editor\cms-editor-product\target">
+    <fileset includes="doc/**" dir="../../"/>
+  </copy>
+  <copy todir="D:\projects\cms-editor\cms-editor-product\target">
+    <fileset includes="README*.md" dir="."/>
+  </copy>
+</target>
+</project>

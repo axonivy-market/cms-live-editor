@@ -1,7 +1,7 @@
 com:
   axonivy:
     utils:
-      cmseditor:
+      cmsliveeditor:
         demo:
           EmailFormat: |-
             <p><strong>Willkommen in unserem CMS-Editor!</strong></p>
