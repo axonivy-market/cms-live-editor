@@ -41,5 +41,6 @@ In AxonIvy, languages for UIs, notifications, or emails are managed within the C
 7. "Download for deployment" button: Downloads a zip file containing all translated contents.
 
 - When we hover to "download" button , a warning message will be display to impress user
+
   ![](./images/11-cms-editor-download-button-warning.png)
 
