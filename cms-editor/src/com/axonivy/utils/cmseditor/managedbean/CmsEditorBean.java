@@ -399,10 +399,7 @@ public class CmsEditorBean implements Serializable {
   }
 
   public Set<String> getProjectCms() {
-    return IApplication.current().getProcessModels().stream().filter(CmsEditorBean::isActive)
-        .map(IProcessModel::getReleasedProcessModelVersion).filter(CmsEditorBean::isActive)
-        .map(IProcessModelVersion::getProjectName).filter(projectName -> this.pmvCmsMap.containsKey(projectName))
-        .collect(Collectors.toSet());
+    return this.pmvCmsMap.keySet();
   }
 
   public boolean isTheSameContent(String originalContent, String content) {
