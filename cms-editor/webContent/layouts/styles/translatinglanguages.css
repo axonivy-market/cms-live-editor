@@ -128,17 +128,6 @@ body.dark .cms-warning {
   margin-bottom: 4px;
 }
 
-.cms-warning-link {
-  margin-left: 4px;
-  color: #B35100;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.cms-warning-link:hover {
-  text-decoration: underline;
-}
-
 .cms-warning {
   display: none;
 }
@@ -148,16 +137,16 @@ body.dark .cms-warning {
 }
 
 .cms-error, body.dark .cms-error {
-  border: 1px solid #FFC696;
-  background: #E5151C;
-  opacity: 0.5;
+  border: 1px solid #E5151C;
+  background: rgba(229, 21, 28, 0.1);
   border-radius: 6px;
   padding: 12px;
+  color: #000000;
 }
 
-.cms-error-title, .cms-error-content {
+.cms-error-title {
   font-weight: 600;
-  color: white;
+  color: #E5151C;
   margin-bottom: 4px;
 }
 
