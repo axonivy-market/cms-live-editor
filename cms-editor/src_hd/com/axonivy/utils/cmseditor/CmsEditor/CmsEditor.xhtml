@@ -206,10 +206,10 @@
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
                         <f:facet name="actions">
                           <p:fileUpload id="upload" rendered="#{cmsEditorBean.selectedCms.isFile()}"
-                            value="#{language.newUploadedFile}"
-                            chooseIcon="pi pi-paperclip change-document-link"
+                            value="#{language.newUploadedFile}" process="@this" auto="true"
+                            chooseIcon="pi pi-paperclip change-document-link" update="content-form:cms-edit-value:#{language.index}:cms-file-item"
                             styleClass="change-document-link-text"
-                            label="#{ivy.cms.co('/Labels/ChangeDocument')}"
+                            label="#{ivy.cms.co('/Labels/ChangeDocument')}" 
                             mode="simple" skinSimple="true" />
                         </f:facet>
                         <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsEditorBean.selectedCms.isFile()}">
@@ -217,13 +217,13 @@
                             languageIndex="#{language.index}" managedBean="#{cmsEditorBean}"
                             isReadOnly="#{!cmsEditorBean.editableCms}" isFormatButtonListVisible="#{language.html}" />
                         </h:panelGroup>
-                        <h:panelGroup
+                        <h:panelGroup id="cms-file-item"
                           styleClass="ui-fluid cms-file-item"
                           layout="block"
                           rendered="#{cmsEditorBean.selectedCms.isFile()}">
                           <p:commandLink
                             styleClass="flex w-full cms-file-item-link"
-                            actionListener="#{logic.previewDocument(language.data)}"
+                            actionListener="#{logic.previewDocument(language.newData)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
                             <h:panelGroup layout="block"
@@ -259,7 +259,7 @@
                                 value="#{language.fileName}"
                                 styleClass="cms-file-item-name" />
                               <h:outputText id="cms-file-item-type"
-                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.fileSize} KB"
+                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.newFileSize} KB"
                                 styleClass="cms-file-item-type" />
                             </div>
                           </p:commandLink>
@@ -348,7 +348,7 @@
 
       <!-- Dialog for previewing document -->
       <p:dialog widgetVar="preview-document-dialog"
-        id="preview-document-dialog" header="Preview" modal="true"
+        id="preview-document-dialog" header="#{ivy.cms.co('/Labels/Preview')}" modal="true"
         maximizable="true" width="80%" height="80%" showEffect="fade"
         hideEffect="fade" dynamic="true" fitViewport="true"
         responsive="true">

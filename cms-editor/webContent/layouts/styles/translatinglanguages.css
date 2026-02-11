@@ -329,8 +329,8 @@ body.dark .cms-warning {
 .cms-file-item .remove-document-icon {
   position : absolute;
   color: rgba(229, 21, 28, 1);
-  top: 18px;
-  right: 10px;
+  top: 16px;
+  right: 14px;
   font-size: 16.25px;
   position: absolute;
 }

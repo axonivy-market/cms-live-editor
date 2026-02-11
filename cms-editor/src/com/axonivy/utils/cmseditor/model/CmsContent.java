@@ -7,7 +7,10 @@ import java.util.Locale;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmseditor.service.DocumentPreviewService;
 import com.axonivy.utils.cmseditor.utils.Utils;
+
+import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsContent implements Serializable {
 
@@ -35,6 +38,12 @@ public class CmsContent implements Serializable {
   private StreamedContent data;
   
   private UploadedFile newUploadedFile;
+  
+  private long newFileSize;
+  
+  private StreamedContent newData;
+  
+  private boolean isFileDeteled;
 
   private final boolean isHtml;
 
@@ -153,5 +162,35 @@ public class CmsContent implements Serializable {
 
   public void setNewUploadedFile(UploadedFile newUploadedFile) {
     this.newUploadedFile = newUploadedFile;
+    try {
+      setNewData(DocumentPreviewService.getInstance().convertToStreamContent(fileName, newUploadedFile.getContent()));
+      setNewFileSize((long) Math.ceil(newUploadedFile.getSize() / 1024.0));
+    } catch (Exception e) {
+      Ivy.log().error(e);
+    }
+  }
+
+  public long getNewFileSize() {
+    return newFileSize;
+  }
+
+  public void setNewFileSize(long newFileSize) {
+    this.newFileSize = newFileSize;
+  }
+
+  public StreamedContent getNewData() {
+    return newData;
+  }
+
+  public void setNewData(StreamedContent newData) {
+    this.newData = newData;
+  }
+
+  public boolean isFileDeteled() {
+    return isFileDeteled;
+  }
+
+  public void setFileDeteled(boolean isFileDeteled) {
+    this.isFileDeteled = isFileDeteled;
   }
 }
