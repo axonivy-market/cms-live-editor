@@ -3,6 +3,8 @@ package com.axonivy.utils.cmseditor.service;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import com.axonivy.utils.cmseditor.model.Cms;
 import com.axonivy.utils.cmseditor.model.CmsContent;
 import com.axonivy.utils.cmseditor.model.SavedCms;
@@ -74,14 +76,29 @@ public class CmsService {
     }));
   }
 
-  public void writeCmsFileToApplication(Map<String, Map<String, SavedCms>> savedCmsMap) {
-    Sudo.run(() -> savedCmsMap.forEach((uri, localeAndContent) -> {
-      ContentObject currentContentObject = createOrGetCmsByUri(uri);
-      localeAndContent.forEach((locale, savedCms) -> {
-        currentContentObject.value().get(Locale.forLanguageTag(locale)).write().bytes(savedCms.getNewFileContent());
-      });
+  public void writeCmsFileToApplication(Cms cms) {
+    if (cms == null || CollectionUtils.isEmpty(cms.getContents())) {
+      return;
+    }
+    Sudo.run(() -> cms.getContents().forEach(cmsContent -> {
+      IApplication currentApplication = IApplication.current();
+      var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+      ContentObject currentContentObject = cmsEntity.orElseGet(
+          () -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
+      if (cmsContent.getNewFileSize() > 0) {
+        currentContentObject.value().get(cmsContent.getLocale()).write().bytes(cmsContent.getNewFileContent());
+      } else {
+        currentContentObject.value().get(cmsContent.getLocale()).delete();
+      }
     }));
   }
+//
+//  private ContentObject createOrGetCmsByUri(String uri) {
+//    IApplication currentApplication = IApplication.current();
+//    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
+//    return cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().file(uri, uri));
+//  }
+
 
   public void removeApplicationCmsByUri(String uri) {
     Sudo.run(() -> createOrGetCmsByUri(uri).delete());

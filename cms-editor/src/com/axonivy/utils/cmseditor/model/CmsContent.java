@@ -43,7 +43,7 @@ public class CmsContent implements Serializable {
   
   private StreamedContent newData;
   
-  private boolean isFileDeteled;
+  private byte[] newFileContent;
 
   private final boolean isHtml;
 
@@ -163,6 +163,7 @@ public class CmsContent implements Serializable {
   public void setNewUploadedFile(UploadedFile newUploadedFile) {
     this.newUploadedFile = newUploadedFile;
     try {
+      setNewFileContent(newUploadedFile.getContent());
       setNewData(DocumentPreviewService.getInstance().convertToStreamContent(fileName, newUploadedFile.getContent()));
       setNewFileSize((long) Math.ceil(newUploadedFile.getSize() / 1024.0));
     } catch (Exception e) {
@@ -186,11 +187,11 @@ public class CmsContent implements Serializable {
     this.newData = newData;
   }
 
-  public boolean isFileDeteled() {
-    return isFileDeteled;
+  public byte[] getNewFileContent() {
+    return newFileContent;
   }
 
-  public void setFileDeteled(boolean isFileDeteled) {
-    this.isFileDeteled = isFileDeteled;
+  public void setNewFileContent(byte[] newFileContent) {
+    this.newFileContent = newFileContent;
   }
 }

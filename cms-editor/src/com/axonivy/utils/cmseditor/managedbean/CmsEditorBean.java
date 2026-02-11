@@ -115,7 +115,11 @@ public class CmsEditorBean implements Serializable {
 
   public void writeCmsToApplication() {
     isEditableCms = false;
-    cmsService.writeCmsToApplication(savedCmsMap);
+    if(selectedCms.isFile()) {
+      cmsService.writeCmsFileToApplication(selectedCms);
+    } else {
+      cmsService.writeCmsToApplication(savedCmsMap);
+    }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
@@ -130,6 +134,10 @@ public class CmsEditorBean implements Serializable {
     return Optional.ofNullable(selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
   }
 
+  public void removeCmsFileInApplicationCMS(int index) {
+    this.selectedCms.getContents().get(index).setNewFileSize(0);
+  }
+  
   /*
    * 
    * This method is used to reset all values in filteredCMSList where each CMS has the flag isDifferentWithApplication
@@ -140,9 +148,12 @@ public class CmsEditorBean implements Serializable {
   public void resetAllChanges() {
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
-      savedCmsMap.remove(cms.getUri());
-      cmsService.removeApplicationCmsByUri(cms.getUri());
-      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      if (cms.isFile()) {
+      } else {
+        savedCmsMap.remove(cms.getUri());
+        cmsService.removeApplicationCmsByUri(cms.getUri());
+        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      }
     });
     onAppChange();
     isEditableCms = false;
@@ -157,8 +168,12 @@ public class CmsEditorBean implements Serializable {
   public void undoChange() {
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
-      cmsService.removeApplicationCmsByUri(cms.getUri());
-      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      if (selectedCms.isFile()) {
+
+      } else {
+        cmsService.removeApplicationCmsByUri(cms.getUri());
+        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      }
     });
     onAppChange();
     isEditableCms = false;
@@ -239,18 +254,32 @@ public class CmsEditorBean implements Serializable {
       loadFileContentOfCmsContent(contentObject);
     }
   }
-  
+
   private void loadFileContentOfCmsContent(ContentObject contentObject) {
     try {
-      for (CmsContent cmsContent: selectedCms.getContents()) {
+      for (CmsContent cmsContent : selectedCms.getContents()) {
         ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
         byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
         if (bytes != null) {
-          cmsContent.setData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytes));
+          cmsContent
+              .setData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytes));
           cmsContent.setFileSize((long) Math.ceil(bytes.length / 1024.0));
         }
+        
+        IApplication currentApplication = IApplication.current();
+        var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+        ContentObject currentContentObject = cmsEntity.orElseGet(
+            () -> ContentManagement.cms(currentApplication).root().child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
+        byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
+        if (bytesOfApplicationCmsFile != null) {
+          cmsContent
+              .setNewData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytesOfApplicationCmsFile));
+          cmsContent.setNewFileSize((long) Math.ceil(bytesOfApplicationCmsFile.length / 1024.0));
+        }
+
       }
-    }catch(Exception e) {}
+    } catch (Exception e) {
+    }
   }
 
   public void saveAll() throws JsonProcessingException {

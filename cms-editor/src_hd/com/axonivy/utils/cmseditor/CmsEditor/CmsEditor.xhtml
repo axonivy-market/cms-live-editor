@@ -221,9 +221,9 @@
                           styleClass="ui-fluid cms-file-item"
                           layout="block"
                           rendered="#{cmsEditorBean.selectedCms.isFile()}">
-                          <p:commandLink
+                          <p:commandLink id="cms-file-item-link"
                             styleClass="flex w-full cms-file-item-link"
-                            actionListener="#{logic.previewDocument(language.newData)}"
+                            actionListener="#{logic.previewDocument(language.newFileSize > 0 ? language.newData : language.data)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
                             <h:panelGroup layout="block"
@@ -259,12 +259,12 @@
                                 value="#{language.fileName}"
                                 styleClass="cms-file-item-name" />
                               <h:outputText id="cms-file-item-type"
-                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.newFileSize} KB"
+                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.newFileSize > 0 ? language.newFileSize : language.fileSize} KB"
                                 styleClass="cms-file-item-type" />
                             </div>
                           </p:commandLink>
-                          <p:commandLink
-                            styleClass="remove-document-icon">
+                          <p:commandLink rendered="#{language.newFileSize > 0}" action="#{cmsEditorBean.removeCmsFileInApplicationCMS(language.index)}"
+                            styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item">
                             <i class="pi pi-trash" />
                           </p:commandLink>
                         </h:panelGroup>
