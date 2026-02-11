@@ -1,6 +1,8 @@
 package com.axonivy.utils.cmseditor.utils;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,7 +10,7 @@ import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
 
 public class Utils {
-
+  private static final String HTML_TAG_PATTERN = "<.*?>";
   private static final String TABLE_ELEMENT = "table";
   private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
   private static final String LIST_ITEM_PATTERN = "<li style='padding:0 2rem 0.25rem 0;'> %s </li>";
@@ -22,6 +24,14 @@ public class Utils {
       return Parser.unescapeEntities(doc.body().html(), false);
     }
     return doc.body().text();
+  }
+
+  public static boolean containsHtmlTag(String str) {
+    if (Objects.isNull(str)) {
+      return false;
+    }
+    var pattern = Pattern.compile(HTML_TAG_PATTERN);
+    return pattern.matcher(str).find();
   }
 
   public static boolean isOnlyWrappedPlainText(String html) {
