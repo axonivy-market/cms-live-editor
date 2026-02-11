@@ -5,7 +5,7 @@ window.cmsEditorIds = window.cmsEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
-const CMS_SAVE_WARNING_CONTAINER_ID = 'content-form:cms-error-container';
+const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 
 function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   let buttonList;
@@ -60,9 +60,7 @@ function markDirtyIfChanged() {
     // Back to original -> not dirty anymore
     window.cmsDirtyEditors.delete(languageIndex);
     setEditorError(languageIndex, false);
-    }
-
-  else if (currentContent !== initialContent) {
+  } else if (currentContent !== initialContent) {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
       { name: 'languageIndex', value: languageIndex },
@@ -94,6 +92,9 @@ function saveAllEditors() {
   const values = [];
   let hasValidationError = false;
   let hasPlaceholderError = false;
+  const editorCount = Object.keys(window.cmsEditors || {}).length;
+  const allLocalesEdited = editorCount > 0 && window.cmsDirtyEditors.size === editorCount;
+  let expectedPlaceholders = null;
   // Validate and collect values only for locales that the user modified
   for (const languageIndex of window.cmsDirtyEditors) {
     const editor = window.cmsEditors[languageIndex];
@@ -107,15 +108,26 @@ function saveAllEditors() {
       continue;
     }
 
-    // Placeholder validation: ensure same set as original in this editor
-    const originalPlaceholders = window.cmsOriginalPlaceholders[languageIndex] || [];
     const newPlaceholders = extractPlaceholders(contents).sort();
-    if (!arePlaceholderListsEqual(originalPlaceholders, newPlaceholders)) {
-      // editor.noticeOpen("Placeholder mismatch: please keep the same {n} placeholders.");
-      setEditorError(languageIndex, true);
-      hasValidationError = true;
-      hasPlaceholderError = true;
-      continue;
+    if (allLocalesEdited) {
+      // If all locales edited: validate placeholder consistency across editing locales (not original anymore).
+      if (expectedPlaceholders === null) {
+        expectedPlaceholders = newPlaceholders;
+      } else if (!arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders)) {
+        setEditorError(languageIndex, true);
+        hasValidationError = true;
+        hasPlaceholderError = true;
+        continue;
+      }
+    } else {
+      // If not all locales edited: ensure placeholder numbers match the original of this locale.
+      const originalPlaceholders = window.cmsOriginalPlaceholders[languageIndex] || [];
+      if (!arePlaceholderListsEqual(originalPlaceholders, newPlaceholders)) {
+        setEditorError(languageIndex, true);
+        hasValidationError = true;
+        hasPlaceholderError = true;
+        continue;
+      }
     }
 
     // Clear error highlight when all validations for this editor pass
@@ -129,12 +141,12 @@ function saveAllEditors() {
 
   if (hasValidationError) {
     // Show the same warning message area as hover warning, but immediately.
-    setSaveWarningVisible(hasPlaceholderError);
+    setSaveErrorVisible(hasPlaceholderError);
     return false;
   }
 
   // Hide placeholder warning when validations pass.
-  setSaveWarningVisible(false);
+  setSaveErrorVisible(false);
 
   saveAllValue([{
     name: 'values',
@@ -176,95 +188,6 @@ function extractPlaceholders(content) {
   }
   const matches = content.match(/\{\d+\}/g);
   return matches ? matches.slice() : [];
-}
-
-function stripPlaceholderHighlightSpans(html) {
-  if (!html || typeof html !== 'string') {
-    return html;
-  }
-
-  // Remove our visual highlight wrappers while keeping inner text intact.
-  const wrapperPattern = new RegExp(
-    `<span\\b[^>]*class\\s*=\\s*"[^\"]*\\b${CMS_PLACEHOLDER_ERROR_CLASS}\\b[^\"]*"[^>]*>([\\s\\S]*?)<\\/span>`,
-    'gi'
-  );
-
-  let cleaned = html;
-  while (wrapperPattern.test(cleaned)) {
-    cleaned = cleaned.replace(wrapperPattern, '$1');
-  }
-  return cleaned;
-}
-
-function buildPlaceholderCounts(placeholders) {
-  const counts = new Map();
-  for (const p of placeholders || []) {
-    counts.set(p, (counts.get(p) || 0) + 1);
-  }
-  return counts;
-}
-
-function wrapExtraPlaceholdersInTextNodes(html, allowedCounts, wrapperClass) {
-  if (!html) {
-    return html;
-  }
-
-  const container = document.createElement('div');
-  container.innerHTML = html;
-
-  const countsSeen = new Map();
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-  const nodesToProcess = [];
-  let node;
-  while ((node = walker.nextNode())) {
-    if (node.nodeValue && /\{\d+\}/.test(node.nodeValue)) {
-      nodesToProcess.push(node);
-    }
-  }
-
-  for (const textNode of nodesToProcess) {
-    const text = textNode.nodeValue;
-    const regex = /\{\d+\}/g;
-    let lastIndex = 0;
-    let match;
-    let changed = false;
-    const fragment = document.createDocumentFragment();
-
-    while ((match = regex.exec(text)) !== null) {
-      const token = match[0];
-      const start = match.index;
-
-      if (start > lastIndex) {
-        fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
-      }
-
-      const seen = (countsSeen.get(token) || 0) + 1;
-      countsSeen.set(token, seen);
-      const allowed = allowedCounts.get(token) || 0;
-
-      if (seen > allowed) {
-        const span = document.createElement('span');
-        span.className = wrapperClass;
-        span.textContent = token;
-        fragment.appendChild(span);
-        changed = true;
-      } else {
-        fragment.appendChild(document.createTextNode(token));
-      }
-
-      lastIndex = start + token.length;
-    }
-
-    if (lastIndex < text.length) {
-      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-    }
-
-    if (changed) {
-      textNode.parentNode.replaceChild(fragment, textNode);
-    }
-  }
-
-  return container.innerHTML;
 }
 
 function arePlaceholderListsEqual(a, b) {
@@ -312,13 +235,13 @@ function bindCmsWarning(hoverId, warningId) {
   targetElement.addEventListener("mouseleave", hideWarning);
 }
 
-function setSaveWarningVisible(visible) {
-  const el = document.getElementById(CMS_SAVE_WARNING_CONTAINER_ID);
-  if (!el) {
+function setSaveErrorVisible(visible) {
+  const element = document.getElementById(CMS_SAVE_ERROR_CONTAINER_ID);
+  if (!element) {
     return;
   }
-  el.dataset.forceVisible = visible ? 'true' : 'false';
-  el.style.display = visible ? 'block' : 'none';
+  element.dataset.forceVisible = visible ? 'true' : 'false';
+  element.style.display = visible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {
