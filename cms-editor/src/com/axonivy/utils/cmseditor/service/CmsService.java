@@ -92,13 +92,6 @@ public class CmsService {
       }
     }));
   }
-//
-//  private ContentObject createOrGetCmsByUri(String uri) {
-//    IApplication currentApplication = IApplication.current();
-//    var cmsEntity = ContentManagement.cms(currentApplication).get(uri);
-//    return cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().file(uri, uri));
-//  }
-
 
   public void removeApplicationCmsByUri(String uri) {
     Sudo.run(() -> createOrGetCmsByUri(uri).delete());
