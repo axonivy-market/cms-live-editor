@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.axonivy.utils.cmseditor.model.Cms;
 import com.axonivy.utils.cmseditor.model.CmsContent;
@@ -91,6 +92,30 @@ public class CmsService {
         currentContentObject.value().get(cmsContent.getLocale()).delete();
       }
     }));
+  }
+
+  public void removeAllCmsFiles(Cms cms) {
+    if (cms == null || CollectionUtils.isEmpty(cms.getContents())) {
+      return;
+    }
+    Sudo.run(() -> cms.getContents().forEach(cmsContent -> {
+      IApplication currentApplication = IApplication.current();
+      var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+      ContentObject currentContentObject = cmsEntity.orElseGet(
+          () -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
+      currentContentObject.value().get(cmsContent.getLocale()).delete();
+    }));
+  }
+
+  public void removeApplicationCmsFileByUri(String uri) {
+    if (StringUtils.isEmpty(uri)) {
+      return;
+    }
+    IApplication currentApplication = IApplication.current();
+    ContentObject currentContentObject = ContentManagement.cms(currentApplication).root().child().get(uri).orElseGet(null);
+    if(currentContentObject == null) {
+      return;
+    }
   }
 
   public void removeApplicationCmsByUri(String uri) {

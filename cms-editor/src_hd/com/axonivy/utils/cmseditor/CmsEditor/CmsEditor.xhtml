@@ -208,7 +208,7 @@
                           <p:fileUpload id="upload" rendered="#{cmsEditorBean.selectedCms.isFile()}"
                             value="#{language.newUploadedFile}" process="@this" auto="true"
                             chooseIcon="pi pi-paperclip change-document-link" update="content-form:cms-edit-value:#{language.index}:cms-file-item"
-                            styleClass="change-document-link-text"
+                            styleClass="change-document-link-text" allowTypes="#{cmsEditorBean.getAllowedFileTypesUpload(cmsEditorBean.selectedCms)}"
                             label="#{ivy.cms.co('/Labels/ChangeDocument')}" 
                             mode="simple" skinSimple="true" />
                         </f:facet>

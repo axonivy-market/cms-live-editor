@@ -16,6 +16,11 @@ import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PDF_EXTENS
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PNG_EXTENSION;
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLSX_EXTENSION;
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLS_EXTENSION;
+import static com.axonivy.utils.cmseditor.enums.FileType.WORD;
+import static com.axonivy.utils.cmseditor.enums.FileType.EXCEL;
+import static com.axonivy.utils.cmseditor.enums.FileType.IMAGE;
+import static com.axonivy.utils.cmseditor.enums.FileType.OTHERS;
+import static com.axonivy.utils.cmseditor.enums.FileType.PDF;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
@@ -82,7 +87,8 @@ public class CmsEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
   private static final String CMS_FILE_FORMAT = "%s_%s.%s";
-  private static final String FILE_EXTENSION_FORMAT = ".%s";  
+  private static final String FILE_EXTENSION_FORMAT = ".%s";
+  private static final String ALLOWED_UPLOAD_FILE_TYPE = "/(\\.|\\/)(%s)$/";
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -149,6 +155,7 @@ public class CmsEditorBean implements Serializable {
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
       if (cms.isFile()) {
+        cmsService.removeAllCmsFiles(cms);
       } else {
         savedCmsMap.remove(cms.getUri());
         cmsService.removeApplicationCmsByUri(cms.getUri());
@@ -169,7 +176,10 @@ public class CmsEditorBean implements Serializable {
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
       if (selectedCms.isFile()) {
-
+        cmsService.removeAllCmsFiles(selectedCms);
+        selectedCms.getContents().forEach(cmsContent -> {
+          cmsContent.setNewFileSize(0);
+        });
       } else {
         cmsService.removeApplicationCmsByUri(cms.getUri());
         cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
@@ -379,11 +389,11 @@ public class CmsEditorBean implements Serializable {
   private FileType getFileTypeByExtension(String extension) {
     String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
     return switch (fileExtension) {
-      case JPEG_EXTENSION, JPG_EXTENSION, PNG_EXTENSION -> FileType.IMAGE;
-      case DOC_EXTENSION, DOCX_EXTENSION -> FileType.WORD;
-      case XLS_EXTENSION, XLSX_EXTENSION -> FileType.EXCEL;
-      case PDF_EXTENSION -> FileType.PDF;
-      default -> FileType.OTHERS;
+      case JPEG_EXTENSION, JPG_EXTENSION, PNG_EXTENSION -> IMAGE;
+      case DOC_EXTENSION, DOCX_EXTENSION -> WORD;
+      case XLS_EXTENSION, XLSX_EXTENSION -> EXCEL;
+      case PDF_EXTENSION -> PDF;
+      default -> OTHERS;
     };
   }
 
@@ -509,5 +519,19 @@ public class CmsEditorBean implements Serializable {
     Document newValue = Jsoup.parse(content);
 
     return originValue.body().html().equals(newValue.body().html());
+  }
+
+  public String getAllowedFileTypesUpload(Cms cms) {
+    String pdf = String.format(ALLOWED_UPLOAD_FILE_TYPE, PDF.getFileExtension());
+    if (cms == null || cms.getFileType() == null) {
+      return pdf;
+    }
+    return switch (cms.getFileType()) {
+      case PDF -> pdf;
+      case WORD -> String.format(ALLOWED_UPLOAD_FILE_TYPE, WORD.getFileExtension());
+      case IMAGE -> String.format(ALLOWED_UPLOAD_FILE_TYPE, IMAGE.getFileExtension());
+      case EXCEL -> String.format(ALLOWED_UPLOAD_FILE_TYPE, EXCEL.getFileExtension());
+      default -> pdf;
+    };
   }
 }
