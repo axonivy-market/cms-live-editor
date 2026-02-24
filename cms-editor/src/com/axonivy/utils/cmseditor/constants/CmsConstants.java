@@ -18,6 +18,7 @@ public class CmsConstants {
   public static final String DOWNLOAD_BUTTON_ID = "content-form:download-button";
   public static final String CMS_WARNING_CONTAINER_ID = "content-form:cms-warning-container";
   public static final String CMS_WARNING_SAVE_CONTAINER_ID = "content-form:cms-warning-save-container";
+  public static final String CMS_ERROR_CONTAINER_ID = "content-form:cms-error-container";
   public static final String SEARCH_INPUT_ID = "content-form:search-input";
   public static final String SAVE_SUCCESS_BAR_ID = "content-form:save-success-bar";
   public static final String UNDO_CHANGES_LINK_ID = "content-form:undo-change-link";
@@ -25,5 +26,6 @@ public class CmsConstants {
   public static final String RESET_CONFIRM_INPUT_ID = "content-form:resetConfirmInput";
   public static final String RESET_BTN_ID = "content-form:resetBtn";
   public static final String ORANGE_DOT_CLASS = ".orange-dot";
+  public static final String SUN_EDITOR_EDITABLE_SELECTOR = ".sun-editor-editable";
 
 }

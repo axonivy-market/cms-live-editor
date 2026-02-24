@@ -32,8 +32,6 @@ public class CmsEditorWebTest {
   private static final String CMS_LINK_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String CMS_EDIT_VALUE_TAB_SELECTOR = "[id^='content-form:cms-edit-value:'][id$=':cms-values-tab']";
-  private static final By CMS_ERROR_CONTAINER = By.cssSelector("[id$='cms-error-container']");
-  private static final String SUN_EDITOR_EDITABLE_SELECTOR = ".sun-editor-editable";
 
   /**
    * Dear Bug Hunter,
@@ -79,7 +77,7 @@ public class CmsEditorWebTest {
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
-    $(By.className("sun-editor-editable")).setValue("Content is updated at 2 " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     $(".se-btn.se-resizing-enabled.se-tooltip").should(enabled);
     Selenide.sleep(1000);
     otherCms.click();
@@ -122,7 +120,7 @@ public class CmsEditorWebTest {
     var otherCms = cmsList.get(1);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     Selenide.sleep(1000);
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
@@ -137,7 +135,7 @@ public class CmsEditorWebTest {
     var selectedCms = cmsList.get(0);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
@@ -177,7 +175,7 @@ public class CmsEditorWebTest {
     setVisibleEditorValue("Updated {0} " + System.currentTimeMillis());
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(CMS_ERROR_CONTAINER).shouldBe(visible);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
@@ -194,7 +192,7 @@ public class CmsEditorWebTest {
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(CMS_ERROR_CONTAINER).shouldBe(hidden);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
   }
 
   @Test
@@ -218,7 +216,7 @@ public class CmsEditorWebTest {
     }
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(CMS_ERROR_CONTAINER).shouldBe(visible);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
@@ -244,7 +242,7 @@ public class CmsEditorWebTest {
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(CMS_ERROR_CONTAINER).shouldBe(hidden);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
   }
 
   @Test
@@ -268,7 +266,7 @@ public class CmsEditorWebTest {
     }
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(CMS_ERROR_CONTAINER).shouldBe(visible);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 

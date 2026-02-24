@@ -64,7 +64,7 @@ function markDirtyIfChanged() {
     // Back to original -> not dirty anymore
     window.cmsDirtyEditors.delete(languageIndex);
     setEditorError(languageIndex, false);
-  } else if (currentContent !== initialContent) {
+  } else {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
       { name: 'languageIndex', value: languageIndex },
@@ -93,11 +93,14 @@ function markDirtyIfChanged() {
 }
 
 function saveAllEditors() {
-  const dirtyEditors = recomputeDirtyEditors();
+  const dirtyEditors = new Set(window.cmsDirtyEditors);
+  if (dirtyEditors.size === 0) {
+    return true;
+  }
+
   const editorKeys = Object.keys(window.cmsEditors || {});
   const allLocalesEdited =
     editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
-
   const values = [];
   let placeholderError = false;
   let hasAnyError = false;
@@ -148,29 +151,6 @@ function saveAllEditors() {
   }]);
 
   return true;
-}
-
-function recomputeDirtyEditors() {
-  const editorKeys = Object.keys(window.cmsEditors || {});
-  const dirtyEditors = new Set();
-
-  for (const languageIndex of editorKeys) {
-    const editor = window.cmsEditors[languageIndex];
-    if (!editor) continue;
-
-    const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || '';
-
-    if (currentContent !== originalContents) {
-      dirtyEditors.add(languageIndex);
-    }
-  }
-
-  // Sync global state
-  window.cmsDirtyEditors.clear();
-  dirtyEditors.forEach(index => window.cmsDirtyEditors.add(index));
-
-  return dirtyEditors;
 }
 
 function validateNotEmpty(editor, languageIndex) {
