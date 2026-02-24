@@ -8,8 +8,12 @@ const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 
 function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
-  let buttonList;
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return;
+  }
 
+  let buttonList;
   if (isFormatButtonListVisible) {
     buttonList = [
       ['font', 'fontSize', 'formatBlock'],
@@ -32,8 +36,8 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
     ];
   }
 
-  const editor = SUNEDITOR.create(document.getElementById(editorId), {
-    buttonList: buttonList,
+  const editor = SUNEDITOR.create(textarea, {
+    buttonList,
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
     }
@@ -89,71 +93,40 @@ function markDirtyIfChanged() {
 }
 
 function saveAllEditors() {
-  const values = [];
-  let hasValidationError = false;
-  let hasPlaceholderError = false;
+  const dirtyEditors = recomputeDirtyEditors();
   const editorKeys = Object.keys(window.cmsEditors || {});
-  const editorCount = editorKeys.length;
+  const allLocalesEdited =
+    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
 
-  // Recompute dirty editors at save-time so quick save clicks (before debounced onChange)
-  // are still handled correctly.
-  const dirtyEditors = new Set();
-  for (const languageIndex of editorKeys) {
-    const editor = window.cmsEditors[languageIndex];
-    if (!editor) {
-      continue;
-    }
-    const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || '';
-    if (currentContent !== originalContents) {
-      dirtyEditors.add(languageIndex);
-    }
-  }
-
-  // Keep global state in sync (used elsewhere for UI state).
-  window.cmsDirtyEditors.clear();
-  for (const languageIndex of dirtyEditors) {
-    window.cmsDirtyEditors.add(languageIndex);
-  }
-
-  const allLocalesEdited = editorCount > 0 && dirtyEditors.size === editorCount;
+  const values = [];
+  let placeholderError = false;
+  let hasAnyError = false;
   let expectedPlaceholders = null;
-  // Validate and collect values only for locales that the user modified
+
   for (const languageIndex of dirtyEditors) {
     const editor = window.cmsEditors[languageIndex];
-
     const contents = editor.getContents();
-    const text = removeNonPrintableChars(editor.getText()).trim();
-    if (text.length === 0) {
-      editor.noticeOpen("The content must not be empty.");
-      setEditorError(languageIndex, true);
-      hasValidationError = true;
+
+    if (!validateNotEmpty(editor, languageIndex)) {
+      hasAnyError = true;
       continue;
     }
 
-    const newPlaceholders = extractPlaceholders(contents).sort();
-    if (allLocalesEdited) {
-      // If all locales edited: validate placeholder consistency across editing locales (not original anymore).
-      if (expectedPlaceholders === null) {
-        expectedPlaceholders = newPlaceholders;
-      } else if (!arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders)) {
-        setEditorError(languageIndex, true);
-        hasValidationError = true;
-        hasPlaceholderError = true;
-        continue;
-      }
-    } else {
-      // If not all locales edited: ensure placeholder numbers match the original of this locale.
-      const originalPlaceholders = window.cmsOriginalPlaceholders[languageIndex] || [];
-      if (!arePlaceholderListsEqual(originalPlaceholders, newPlaceholders)) {
-        setEditorError(languageIndex, true);
-        hasValidationError = true;
-        hasPlaceholderError = true;
-        continue;
-      }
+    const validationResult = validatePlaceholders({
+      languageIndex,
+      contents,
+      allLocalesEdited,
+      expectedPlaceholders
+    });
+
+    if (!validationResult.valid) {
+      hasAnyError = true;
+      placeholderError = true;
+      setEditorError(languageIndex, true);
+      continue;
     }
 
-    // Clear error highlight when all validations for this editor pass
+    expectedPlaceholders = validationResult.expectedPlaceholders;
     setEditorError(languageIndex, false);
 
     values.push({
@@ -162,13 +135,11 @@ function saveAllEditors() {
     });
   }
 
-  if (hasValidationError) {
-    // Show the same warning message area as hover warning, but immediately.
-    setSaveErrorVisible(hasPlaceholderError);
+  if (hasAnyError) {
+    setSaveErrorVisible(placeholderError);
     return false;
   }
 
-  // Hide placeholder warning when validations pass.
   setSaveErrorVisible(false);
 
   saveAllValue([{
@@ -179,32 +150,102 @@ function saveAllEditors() {
   return true;
 }
 
-function setEditorError(languageIndex, hasError) {
-  const editorId = window.cmsEditorIds[languageIndex];
-  if (!editorId) {
-    return;
+function recomputeDirtyEditors() {
+  const editorKeys = Object.keys(window.cmsEditors || {});
+  const dirtyEditors = new Set();
+
+  for (const languageIndex of editorKeys) {
+    const editor = window.cmsEditors[languageIndex];
+    if (!editor) continue;
+
+    const currentContent = editor.getContents();
+    const originalContents = window.cmsInitialContents[languageIndex] || '';
+
+    if (currentContent !== originalContents) {
+      dirtyEditors.add(languageIndex);
+    }
   }
 
-  const textarea = document.getElementById(editorId);
-  if (!textarea) {
-    return;
+  // Sync global state
+  window.cmsDirtyEditors.clear();
+  dirtyEditors.forEach(index => window.cmsDirtyEditors.add(index));
+
+  return dirtyEditors;
+}
+
+function validateNotEmpty(editor, languageIndex) {
+  const text = removeNonPrintableChars(editor.getText()).trim();
+
+  if (text.length === 0) {
+    editor.noticeOpen("The content must not be empty.");
+    setEditorError(languageIndex, true);
+    return false;
   }
-  // suneditor creates a sibling .sun-editor element next to the textarea
-  let container = textarea.nextElementSibling;
-  if (!container || !container.classList.contains('sun-editor')) {
-    container = textarea.parentElement && textarea.parentElement.querySelector('.sun-editor');
+
+  return true;
+}
+
+/** Placeholder validation:
+* - If all locales are edited → ensure placeholders are consistent across locales.
+* - If only some locales edited → ensure placeholder numbers match the original of this locale.
+*/
+function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
+  const newPlaceholders = extractPlaceholders(contents).sort();
+
+  if (allLocalesEdited) {
+    if (expectedPlaceholders === null) {
+      return {
+        valid: true,
+        expectedPlaceholders: newPlaceholders
+      };
+    }
+
+    return {
+      valid: arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders),
+      expectedPlaceholders
+    };
   }
+
+  const originalPlaceholders =
+    window.cmsOriginalPlaceholders[languageIndex] || [];
+
+  return {
+    valid: arePlaceholderListsEqual(originalPlaceholders, newPlaceholders),
+    expectedPlaceholders
+  };
+}
+
+function setEditorError(languageIndex, hasError) {
+  const container = getEditorContainer(languageIndex);
   if (!container) {
     return;
   }
 
-  if (hasError) {
-    container.classList.add('cms-editor-error');
-  } else {
-    container.classList.remove('cms-editor-error');
-  }
+  container.classList.toggle('cms-editor-error', hasError);
 }
 
+function getEditorContainer(languageIndex) {
+  const editorId = window.cmsEditorIds[languageIndex];
+  if (!editorId) {
+    return null;
+  }
+
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return null;
+  }
+
+  // SunEditor creates .sun-editor next to textarea
+  return (
+    textarea.nextElementSibling?.classList.contains('sun-editor')
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector('.sun-editor')
+  ) || null;
+}
+
+/** Extracts numbered placeholders from the editing content.
+* A placeholder is defined as format {number}, e.g. {0}, {1}
+*/
 function extractPlaceholders(content) {
   if (!content) {
     return [];
@@ -213,6 +254,11 @@ function extractPlaceholders(content) {
   return matches ? matches.slice() : [];
 }
 
+/** Compares two placeholder lists for exact equality.
+* The lists must:
+* - Have the same length
+* - Contain the same elements
+*/
 function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
     return false;
