@@ -92,11 +92,34 @@ function saveAllEditors() {
   const values = [];
   let hasValidationError = false;
   let hasPlaceholderError = false;
-  const editorCount = Object.keys(window.cmsEditors || {}).length;
-  const allLocalesEdited = editorCount > 0 && window.cmsDirtyEditors.size === editorCount;
+  const editorKeys = Object.keys(window.cmsEditors || {});
+  const editorCount = editorKeys.length;
+
+  // Recompute dirty editors at save-time so quick save clicks (before debounced onChange)
+  // are still handled correctly.
+  const dirtyEditors = new Set();
+  for (const languageIndex of editorKeys) {
+    const editor = window.cmsEditors[languageIndex];
+    if (!editor) {
+      continue;
+    }
+    const currentContent = editor.getContents();
+    const originalContents = window.cmsInitialContents[languageIndex] || '';
+    if (currentContent !== originalContents) {
+      dirtyEditors.add(languageIndex);
+    }
+  }
+
+  // Keep global state in sync (used elsewhere for UI state).
+  window.cmsDirtyEditors.clear();
+  for (const languageIndex of dirtyEditors) {
+    window.cmsDirtyEditors.add(languageIndex);
+  }
+
+  const allLocalesEdited = editorCount > 0 && dirtyEditors.size === editorCount;
   let expectedPlaceholders = null;
   // Validate and collect values only for locales that the user modified
-  for (const languageIndex of window.cmsDirtyEditors) {
+  for (const languageIndex of dirtyEditors) {
     const editor = window.cmsEditors[languageIndex];
 
     const contents = editor.getContents();
