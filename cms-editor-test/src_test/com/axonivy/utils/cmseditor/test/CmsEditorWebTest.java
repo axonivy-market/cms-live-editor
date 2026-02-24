@@ -32,7 +32,7 @@ public class CmsEditorWebTest {
   private static final String CMS_LINK_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String CMS_EDIT_VALUE_TAB_SELECTOR = "[id^='content-form:cms-edit-value:'][id$=':cms-values-tab']";
-  private static final String CMS_ERROR_CONTAINER_ID = "content-form:cms-error-container";
+  private static final By CMS_ERROR_CONTAINER = By.cssSelector("[id$='cms-error-container']");
   private static final String SUN_EDITOR_EDITABLE_SELECTOR = ".sun-editor-editable";
 
   /**
@@ -177,7 +177,7 @@ public class CmsEditorWebTest {
     setVisibleEditorValue("Updated {0} " + System.currentTimeMillis());
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
+    $(CMS_ERROR_CONTAINER).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
@@ -194,7 +194,7 @@ public class CmsEditorWebTest {
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
+    $(CMS_ERROR_CONTAINER).shouldBe(hidden);
   }
 
   @Test
@@ -218,7 +218,7 @@ public class CmsEditorWebTest {
     }
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
+    $(CMS_ERROR_CONTAINER).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
@@ -244,7 +244,7 @@ public class CmsEditorWebTest {
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
+    $(CMS_ERROR_CONTAINER).shouldBe(hidden);
   }
 
   @Test
@@ -268,7 +268,7 @@ public class CmsEditorWebTest {
     }
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
+    $(CMS_ERROR_CONTAINER).shouldBe(visible);
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
