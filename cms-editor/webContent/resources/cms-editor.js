@@ -144,7 +144,7 @@ function saveAllEditors() {
   }
 
   setSaveErrorVisible(false);
-
+  destroyEditors();
   saveAllValue([{
     name: 'values',
     value: JSON.stringify(values)
