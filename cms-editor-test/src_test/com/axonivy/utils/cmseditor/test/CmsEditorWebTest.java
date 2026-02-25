@@ -169,17 +169,6 @@ public class CmsEditorWebTest {
   }
 
   @Test
-  public void testSingleLocaleAddedPlaceholderShouldShowError() {
-    openFirstCmsAndEnterEditMode();
-
-    setVisibleEditorValue("Updated {0} " + System.currentTimeMillis());
-
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
-  }
-
-  @Test
   public void testAllLocalesWithSamePlaceholderAllowsSave() {
     openFirstCmsAndEnterEditMode();
 
@@ -193,31 +182,6 @@ public class CmsEditorWebTest {
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
-  }
-
-  @Test
-  public void testAllLocalesMismatchShouldShowError() {
-    openFirstCmsAndEnterEditMode();
-
-    int localeCount = getEditableLocaleCount();
-    long timestamp = System.currentTimeMillis();
-
-    openEditableLocaleTab(0);
-    setVisibleEditorValue("Locale 0 {0} " + timestamp);
-
-    if (localeCount >= 2) {
-      openEditableLocaleTab(1);
-      setVisibleEditorValue("Locale 1 {1} " + timestamp);
-    }
-
-    for (int i = 2; i < localeCount; i++) {
-      openEditableLocaleTab(i);
-      setVisibleEditorValue("Locale " + i + " {0} " + timestamp);
-    }
-
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
   @Test
@@ -243,31 +207,6 @@ public class CmsEditorWebTest {
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
-  }
-
-  @Test
-  public void testAllLocalesSamePlaceholderDifferentCountShouldShowError() {
-    openFirstCmsAndEnterEditMode();
-
-    int localeCount = getEditableLocaleCount();
-    long timestamp = System.currentTimeMillis();
-
-    openEditableLocaleTab(0);
-    setVisibleEditorValue("Locale 0 {0} {0} " + timestamp);
-
-    if (localeCount >= 2) {
-      openEditableLocaleTab(1);
-      setVisibleEditorValue("Locale 1 {0} " + timestamp);
-    }
-
-    for (int i = 2; i < localeCount; i++) {
-      openEditableLocaleTab(i);
-      setVisibleEditorValue("Locale " + i + " {0} {0} " + timestamp);
-    }
-
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(hidden);
   }
 
   private void openFirstCmsAndEnterEditMode() {

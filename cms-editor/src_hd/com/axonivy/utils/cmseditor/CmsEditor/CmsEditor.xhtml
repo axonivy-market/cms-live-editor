@@ -192,7 +192,7 @@
                         oncomplete="restoreLinkPanelScroll();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys" actionListener="#{cmsEditorBean.writeCmsToApplication()}"
-                        update="table-cms-keys cms-values cms-edit-value"
+                        update="table-cms-keys cms-values cms-edit-value editable-column"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
                         oncomplete="initCmsWarnings(); showSaveSuccess(); restoreLinkPanelScroll();"
