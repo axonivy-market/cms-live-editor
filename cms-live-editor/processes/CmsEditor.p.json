@@ -46,7 +46,7 @@
     }, {
       "id" : "f3",
       "type" : "DialogCall",
-      "name" : "Cms editor",
+      "name" : "Cms live editor",
       "config" : {
         "dialog" : "com.axonivy.utils.cmsliveeditor.CmsLiveEditor:start(Boolean)",
         "call" : {

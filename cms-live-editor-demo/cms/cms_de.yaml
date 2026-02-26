@@ -4,7 +4,7 @@ com:
       cmsliveeditor:
         demo:
           EmailFormat: |-
-            <p><strong>Willkommen in unserem CMS-Editor!</strong></p>
+            <p><strong>Willkommen in unserem CMS-Live-Editor!</strong></p>
             <p>Schön, dass du da bist. Hier ein Überblick über die wichtigsten Features:</p>
             <ul>
              <li><strong>WYSIWYG-Editor:</strong> Übersetze Inhalte ganz einfach und intuitiv.</li>
@@ -13,8 +13,8 @@ com:
             </ul>
             <p>Für mehr Infos schau gerne auf unserer <a href="https://market.axonivy.com/">website</a> vorbei.</p>
             <p>Bleib gespannt – wir entwickeln neue Funktionen für dich!</p>
-            <p>Vielen Dank, dass Sie unseren CMS-Editor verwenden!</p>
+            <p>Vielen Dank, dass Sie unseren CMS-Live-Editor verwenden!</p>
             <p>Mit freundlichen Grüßen,<br>
-            Das CMS-Editor-Team
+            Das CMS-Live-Editor-Team
             </p>
           TODO: TODO The content after TODO should be translated. You can click Options > Show only TODO to show all of them.
