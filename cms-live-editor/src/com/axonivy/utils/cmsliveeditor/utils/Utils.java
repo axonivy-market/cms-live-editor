@@ -16,8 +16,8 @@ public class Utils {
   private static final String TABLE_ELEMENT = "table";
   private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
   private static final String LIST_ITEM_PATTERN = "<li style='padding:0 2rem 0.25rem 0;'> %s </li>";
-  private static final String P_TAG = "p";
-  private static final String TEXT_TAG = "#text";
+  private static final String PARAGRAPH_TAG = "p";
+  private static final String TEXT_NODE = "#text";
   private static final String BR_TAG = "br";
 
   public static String sanitizeContent(String originalContent, String content) {
@@ -48,12 +48,12 @@ public class Utils {
       return false;
     }
     var element = docBody.child(0);
-    if (!P_TAG.equals(element.tagName())) {
+    if (!PARAGRAPH_TAG.equals(element.tagName())) {
       return false;
     }
     // Allow only text nodes and <br>
     return element.childNodes().stream()
-        .allMatch(node -> node.nodeName().equals(TEXT_TAG) || node.nodeName().equals(BR_TAG));
+        .allMatch(node -> node.nodeName().equals(TEXT_NODE) || node.nodeName().equals(BR_TAG));
   }
 
   private static void migrateTableAttr(Document originalDoc, Document doc) {
