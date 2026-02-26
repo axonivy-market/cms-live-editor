@@ -32,4 +32,4 @@ Labels:
 Processes:
   CMSLiveEditor:
     description: Use this process to translate the current CMS and export it to an Excel file.
-    name: CMS Editor
+    name: CMS Live Editor
