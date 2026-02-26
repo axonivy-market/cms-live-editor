@@ -1,6 +1,6 @@
-# CMS Editor
+# CMS Live Editor
 
-In AxonIvy werden Sprachen für Benutzeroberflächen, Benachrichtigungen oder E-Mails im CMS verwaltet. Wir freuen uns, den neuen CMS-Editor vorzustellen, der die Bearbeitung von Sprachen erheblich vereinfacht! Die wichtigsten Funktionen sind:
+In AxonIvy werden Sprachen für Benutzeroberflächen, Benachrichtigungen oder E-Mails im CMS verwaltet. Wir freuen uns, den neuen CMS-Live-Editor vorzustellen, der die Bearbeitung von Sprachen erheblich vereinfacht! Die wichtigsten Funktionen sind:
 
 - Benutzerfreundlicher Editor zum Übersetzen neuer Sprachen
 - Bearbeite eine unbegrenzte Anzahl von Sprachen
@@ -10,11 +10,11 @@ In AxonIvy werden Sprachen für Benutzeroberflächen, Benachrichtigungen oder E-
 ** *In dieser Version gibt es noch keine Echtzeit-CMS-Updates. Nutzer müssen die bearbeiteten Dokumente als ZIP-Datei herunterladen und erneut ins Projekt importieren (mit dem Axon Ivy Designer). Die Änderungen wirken erst, wenn ein neues Release-Paket erstellt und auf der Engine bereitgestellt wurde.* **
 
 ## Demo
-### 1. CMS-Editor-Prozessstart:
+### 1. CMS-Live-Editor-Prozessstart:
 - Der Benutzer sollte die Roller "CMS_ADMIN" haben, um den Prozess zu starten.
 ![](./images/1-cms-editor-process.png)
 
-### 2. Hauptseite des CMS-Editors:
+### 2. Hauptseite des CMS-Live-Editors:
 
 1. **Applikationsauswahl**: Jede Ivy-Engine kann mehrere Anwendungen enthalten. Wähle zuerst die Anwendung aus, an der Du arbeiten möchtest.
 2. **Suchfeld**: Du kannst Text eingeben, um nach URI und Inhalt zu suchen. Die Suche ist nicht auf Groß- und Kleinschreibung beschränkt.

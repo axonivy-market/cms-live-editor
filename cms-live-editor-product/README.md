@@ -1,5 +1,5 @@
-# CMS Editor
-In AxonIvy, languages for UIs, notifications, or emails are managed within the CMS. We are excited to introduce the new CMS editor that significantly simplifies language editing! The key features are:
+# CMS Live Editor
+In AxonIvy, languages for UIs, notifications, or emails are managed within the CMS. We are excited to introduce the new CMS live editor that significantly simplifies language editing! The key features are:
 
 - User-friendly editor for translating new languages
 - Edit an unlimited number of languages
@@ -9,11 +9,11 @@ In AxonIvy, languages for UIs, notifications, or emails are managed within the C
 ** *In this version, real-time CMS updates have not yet been supported. Users are required to download the modified bundle in a ZIP format after making edits and re-import it into the project using Axon Ivy Designer. The changes will take effect only after the new release package is created and deployed to engine.* **
 
 ## Demo
-### 1. CMS editor process start:
+### 1. CMS live editor process start:
 - Users should have the role of "CMS_ADMIN" to start the process.
 ![](./images/1-cms-editor-process.png)
 
-### 2. CMS editor main page:
+### 2. CMS live editor main page:
 
 1. Application Selector: Each Ivy engine can contain multiple applications. First, choose the application you want to work on.
 2. Search Input: You can enter text to search by URI and content. The search is case-insensitive.
