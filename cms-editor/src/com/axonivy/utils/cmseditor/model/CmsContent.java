@@ -4,13 +4,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Locale;
 
-import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
-import com.axonivy.utils.cmseditor.service.DocumentPreviewService;
 import com.axonivy.utils.cmseditor.utils.Utils;
-
-import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsContent implements Serializable {
 
@@ -35,14 +31,16 @@ public class CmsContent implements Serializable {
 
   private long fileSize;
 
-  private StreamedContent data;
-  
+  private byte[] fileContent;
+
   private UploadedFile newUploadedFile;
-  
+
+  private long applicationFileSize;
+
+  private byte[] applicationFileContent;
+
   private long newFileSize;
-  
-  private StreamedContent newData;
-  
+
   private byte[] newFileContent;
 
   private final boolean isHtml;
@@ -140,12 +138,12 @@ public class CmsContent implements Serializable {
     this.fileName = fileName;
   }
 
-  public StreamedContent getData() {
-    return data;
+  public byte[] getFileContent() {
+    return fileContent;
   }
 
-  public void setData(StreamedContent data) {
-    this.data = data;
+  public void setFileContent(byte[] fileContent) {
+    this.fileContent = fileContent;
   }
 
   public long getFileSize() {
@@ -156,19 +154,28 @@ public class CmsContent implements Serializable {
     this.fileSize = fileSize;
   }
 
+  public long getApplicationFileSize() {
+    return applicationFileSize;
+  }
+
+  public void setApplicationFileSize(long applicationFileSize) {
+    this.applicationFileSize = applicationFileSize;
+  }
+
+  public byte[] getApplicationFileContent() {
+    return applicationFileContent;
+  }
+
+  public void setApplicationFileContent(byte[] applicationFileContent) {
+    this.applicationFileContent = applicationFileContent;
+  }
+
   public UploadedFile getNewUploadedFile() {
     return newUploadedFile;
   }
 
   public void setNewUploadedFile(UploadedFile newUploadedFile) {
     this.newUploadedFile = newUploadedFile;
-    try {
-      setNewFileContent(newUploadedFile.getContent());
-      setNewData(DocumentPreviewService.getInstance().convertToStreamContent(fileName, newUploadedFile.getContent()));
-      setNewFileSize((long) Math.ceil(newUploadedFile.getSize() / 1024.0));
-    } catch (Exception e) {
-      Ivy.log().error(e);
-    }
   }
 
   public long getNewFileSize() {
@@ -177,14 +184,6 @@ public class CmsContent implements Serializable {
 
   public void setNewFileSize(long newFileSize) {
     this.newFileSize = newFileSize;
-  }
-
-  public StreamedContent getNewData() {
-    return newData;
-  }
-
-  public void setNewData(StreamedContent newData) {
-    this.newData = newData;
   }
 
   public byte[] getNewFileContent() {

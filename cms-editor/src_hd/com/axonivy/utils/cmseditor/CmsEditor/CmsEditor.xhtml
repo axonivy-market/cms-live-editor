@@ -10,8 +10,7 @@
     <ui:define name="content">
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-editor.js" target="head" />
-
-      <h:form id="content-form" onkeypress="if (event.keyCode === 13){return false;}">
+      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}">
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -112,7 +111,7 @@
                           rendered="#{cmsEditorBean.selectedCms.isFile()}">
                           <p:commandLink
                             styleClass="flex w-full cms-file-item-link"
-                            actionListener="#{logic.previewDocument(language.data)}"
+                            actionListener="#{logic.previewDocument(language, cmsEditorBean.editableCms, false)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
                             <h:panelGroup layout="block"
@@ -147,7 +146,10 @@
                               <h:outputText id="cms-file-item-name"
                                 value="#{language.fileName}"
                                 styleClass="cms-file-item-name" />
-                              <h:outputText id="cms-file-item-type"
+                              <h:outputText rendered="#{cmsEditorBean.editableCms eq false}"
+                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.applicationFileSize > 0 ? language.applicationFileSize : language.fileSize} KB"
+                                styleClass="cms-file-item-type" />
+                              <h:outputText rendered="#{cmsEditorBean.editableCms eq true}"
                                 value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.fileSize} KB"
                                 styleClass="cms-file-item-type" />
                             </div>
@@ -188,7 +190,6 @@
                         disabled="#{cmsEditorBean.disableEditableButton}" partialSubmit="true" />
                     </h:panelGroup>
                   </h:panelGroup>
-
                 </h:panelGroup>
               </h:panelGroup>
 
@@ -205,12 +206,19 @@
                       var="language">
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
                         <f:facet name="actions">
-                          <p:fileUpload id="upload" rendered="#{cmsEditorBean.selectedCms.isFile()}"
-                            value="#{language.newUploadedFile}" process="@this" auto="true"
-                            chooseIcon="pi pi-paperclip change-document-link" update="content-form:cms-edit-value:#{language.index}:cms-file-item"
-                            styleClass="change-document-link-text" allowTypes="#{cmsEditorBean.getAllowedFileTypesUpload(cmsEditorBean.selectedCms)}"
-                            label="#{ivy.cms.co('/Labels/ChangeDocument')}" 
-                            mode="simple" skinSimple="true" />
+                          <p:fileUpload id="upload"
+                            listener="#{cmsEditorBean.handleFileUpload}"
+                            rendered="#{cmsEditorBean.selectedCms.isFile()}"
+                            value="#{language.newUploadedFile}"
+                            process="@this" auto="true"
+                            chooseIcon="pi pi-paperclip change-document-link"
+                            update="content-form:cms-edit-value:#{language.index}:cms-file-item content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
+                            styleClass="change-document-link-text"
+                            label="#{ivy.cms.co('/Labels/ChangeDocument')}"
+                            fileLimit="1" mode="simple"
+                            skinSimple="true">
+                            <f:attribute name="index" value="#{language.index}" />
+                          </p:fileUpload>
                         </f:facet>
                         <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmseditor.component.Editor content="#{language.content}"
@@ -223,7 +231,7 @@
                           rendered="#{cmsEditorBean.selectedCms.isFile()}">
                           <p:commandLink id="cms-file-item-link"
                             styleClass="flex w-full cms-file-item-link"
-                            actionListener="#{logic.previewDocument(language.newFileSize > 0 ? language.newData : language.data)}"
+                            actionListener="#{logic.previewDocument(language, cmsEditorBean.editableCms, true)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
                             <h:panelGroup layout="block"
@@ -259,15 +267,16 @@
                                 value="#{language.fileName}"
                                 styleClass="cms-file-item-name" />
                               <h:outputText id="cms-file-item-type"
-                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.newFileSize > 0 ? language.newFileSize : language.fileSize} KB"
+                                value="#{cmsEditorBean.selectedCms.fileExtension} - #{language.newFileSize > 0 ? language.newFileSize : (language.applicationFileSize > 0 ? language.applicationFileSize : language.fileSize)} KB"
                                 styleClass="cms-file-item-type" />
                             </div>
                           </p:commandLink>
-                          <p:commandLink rendered="#{language.newFileSize > 0}" action="#{cmsEditorBean.removeCmsFileInApplicationCMS(language.index)}"
+                          <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsEditorBean.removeCmsFileInApplicationCMS(language.index)}"
                             styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item">
                             <i class="pi pi-trash" />
                           </p:commandLink>
                         </h:panelGroup>
+                        <p:messages id="cms-file-content-msg" showDetail="true" closable="true" />
                       </p:tab>
                     </p:accordionPanel>
                   </h:panelGroup>
@@ -297,12 +306,10 @@
                         oncomplete="initCmsWarnings(); showSaveSuccess(); restoreLinkPanelScroll();"
                         partialSubmit="true" onstart="destroyEditors()" />
                     </h:panelGroup>
-
                   </h:panelGroup>
                 </h:panelGroup>
               </h:panelGroup>
             </h:panelGroup>
-
           </h:panelGroup>
         </h:panelGroup>
         <div class="command-btns pt-2">
@@ -354,7 +361,7 @@
         responsive="true">
 
         <div class="ui-g-12">
-          <p:media value="#{data.fileContent}" width="100%" height="620"
+          <p:media value="#{data.streamedContent}" width="100%" height="620"
             cache="false" id="media-content" player="pdf" />
         </div>
       </p:dialog>

@@ -82,12 +82,17 @@ public class CmsService {
       return;
     }
     Sudo.run(() -> cms.getContents().forEach(cmsContent -> {
+      if (!cmsContent.isEditing()) {
+        return;
+      }
       IApplication currentApplication = IApplication.current();
       var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
       ContentObject currentContentObject = cmsEntity.orElseGet(
           () -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
       if (cmsContent.getNewFileSize() > 0) {
         currentContentObject.value().get(cmsContent.getLocale()).write().bytes(cmsContent.getNewFileContent());
+        cmsContent.setApplicationFileContent(cmsContent.getNewFileContent());
+        cmsContent.setApplicationFileSize(cmsContent.getNewFileSize());
       } else {
         currentContentObject.value().get(cmsContent.getLocale()).delete();
       }

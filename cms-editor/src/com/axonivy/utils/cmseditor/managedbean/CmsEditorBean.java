@@ -16,11 +16,11 @@ import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PDF_EXTENS
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.PNG_EXTENSION;
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLSX_EXTENSION;
 import static com.axonivy.utils.cmseditor.constants.DocumentConstants.XLS_EXTENSION;
-import static com.axonivy.utils.cmseditor.enums.FileType.WORD;
 import static com.axonivy.utils.cmseditor.enums.FileType.EXCEL;
 import static com.axonivy.utils.cmseditor.enums.FileType.IMAGE;
 import static com.axonivy.utils.cmseditor.enums.FileType.OTHERS;
 import static com.axonivy.utils.cmseditor.enums.FileType.PDF;
+import static com.axonivy.utils.cmseditor.enums.FileType.WORD;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
@@ -52,8 +52,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.primefaces.PF;
 import org.primefaces.PrimeFaces;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.StreamedContent;
+import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmseditor.constants.FileConstants;
 import com.axonivy.utils.cmseditor.dto.CmsValueDto;
 import com.axonivy.utils.cmseditor.enums.FileType;
 import com.axonivy.utils.cmseditor.model.Cms;
@@ -61,9 +64,9 @@ import com.axonivy.utils.cmseditor.model.CmsContent;
 import com.axonivy.utils.cmseditor.model.PmvCms;
 import com.axonivy.utils.cmseditor.model.SavedCms;
 import com.axonivy.utils.cmseditor.service.CmsService;
-import com.axonivy.utils.cmseditor.service.DocumentPreviewService;
 import com.axonivy.utils.cmseditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmseditor.utils.FacesContexts;
+import com.axonivy.utils.cmseditor.utils.FileSizeUtils;
 import com.axonivy.utils.cmseditor.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -79,6 +82,7 @@ import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
 import ch.ivyteam.ivy.cm.ContentObjectValue;
 import ch.ivyteam.ivy.cm.exec.ContentManagement;
+import ch.ivyteam.ivy.environment.Ivy;
 import ch.ivyteam.ivy.security.ISecurityContext;
 
 @ViewScoped
@@ -88,7 +92,6 @@ public class CmsEditorBean implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final String CMS_FILE_FORMAT = "%s_%s.%s";
   private static final String FILE_EXTENSION_FORMAT = ".%s";
-  private static final String ALLOWED_UPLOAD_FILE_TYPE = "/(\\.|\\/)(%s)$/";
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -121,8 +124,9 @@ public class CmsEditorBean implements Serializable {
 
   public void writeCmsToApplication() {
     isEditableCms = false;
-    if(selectedCms.isFile()) {
+    if (selectedCms.isFile()) {
       cmsService.writeCmsFileToApplication(selectedCms);
+      clearNewUploadFile();
     } else {
       cmsService.writeCmsToApplication(savedCmsMap);
     }
@@ -141,9 +145,14 @@ public class CmsEditorBean implements Serializable {
   }
 
   public void removeCmsFileInApplicationCMS(int index) {
+    this.selectedCms.getContents().get(index).setNewUploadedFile(null);
     this.selectedCms.getContents().get(index).setNewFileSize(0);
+    this.selectedCms.getContents().get(index).setNewFileContent(null);
+    this.selectedCms.getContents().get(index).setApplicationFileSize(0);
+    this.selectedCms.getContents().get(index).setApplicationFileContent(null);
+    this.selectedCms.getContents().get(index).setEditing(true);
   }
-  
+
   /*
    * 
    * This method is used to reset all values in filteredCMSList where each CMS has the flag isDifferentWithApplication
@@ -178,7 +187,8 @@ public class CmsEditorBean implements Serializable {
       if (selectedCms.isFile()) {
         cmsService.removeAllCmsFiles(selectedCms);
         selectedCms.getContents().forEach(cmsContent -> {
-          cmsContent.setNewFileSize(0);
+          cmsContent.setApplicationFileSize(0);
+          cmsContent.setApplicationFileContent(null);
         });
       } else {
         cmsService.removeApplicationCmsByUri(cms.getUri());
@@ -201,7 +211,16 @@ public class CmsEditorBean implements Serializable {
     isEditableCms = false;
     lastSelectedCms = null;
     isInEditMode = false;
+    clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+  }
+
+  private void clearNewUploadFile() {
+    if (selectedCms.isFile()) {
+      selectedCms.getContents().stream().forEach(cmsContent -> {
+        cmsContent.setNewUploadedFile(null);
+      });
+    }
   }
 
   public boolean isDisableEditableButton() {
@@ -271,22 +290,20 @@ public class CmsEditorBean implements Serializable {
         ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
         byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
         if (bytes != null) {
-          cmsContent
-              .setData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytes));
-          cmsContent.setFileSize((long) Math.ceil(bytes.length / 1024.0));
-        }
-        
-        IApplication currentApplication = IApplication.current();
-        var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
-        ContentObject currentContentObject = cmsEntity.orElseGet(
-            () -> ContentManagement.cms(currentApplication).root().child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
-        byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
-        if (bytesOfApplicationCmsFile != null) {
-          cmsContent
-              .setNewData(DocumentPreviewService.getInstance().convertToStreamContent(cmsContent.getFileName(), bytesOfApplicationCmsFile));
-          cmsContent.setNewFileSize((long) Math.ceil(bytesOfApplicationCmsFile.length / 1024.0));
+          cmsContent.setFileContent(bytes);
+          cmsContent.setFileSize(FileSizeUtils.calculateToKB(bytes.length));
         }
 
+        // Load file from application CMS
+        IApplication currentApplication = IApplication.current();
+        var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+        ContentObject currentContentObject = cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root()
+            .child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
+        byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
+        if (bytesOfApplicationCmsFile != null) {
+          cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
+          cmsContent.setApplicationFileSize(FileSizeUtils.calculateToKB(bytesOfApplicationCmsFile.length));
+        }
       }
     } catch (Exception e) {
     }
@@ -458,6 +475,69 @@ public class CmsEditorBean implements Serializable {
         .orElse(StringUtils.EMPTY);
   }
 
+  public boolean isTheSameContent(String originalContent, String content) {
+    Document originValue = Jsoup.parse(originalContent);
+    Document newValue = Jsoup.parse(content);
+
+    return originValue.body().html().equals(newValue.body().html());
+  }
+
+  public void handleFileUpload(FileUploadEvent event) {
+    int index = (Integer) event.getComponent().getAttributes().get("index");
+    CmsContent cmsContent = selectedCms.getContents().get(index);
+    UploadedFile file = event.getFile();
+    String fileExtension = getFileExtension(file);
+    boolean isValidFileType = selectedCms.getFileType().getFileExtension().contains(fileExtension);
+    if (!isValidFileType) {
+      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"),
+          Ivy.cms().co("/Labels/InvalidFileTypeMessage"));
+      FacesContext.getCurrentInstance().addMessage("content-form:cms-edit-value:" + index + ":cms-file-content-msg",
+          message);
+    }
+
+    boolean isValidFileSize =
+        file.getSize() <= FileConstants.MAX_VALID_SIZE_MB * FileConstants.KB_IN_MB * FileConstants.BYTE_IN_KB;
+    if (!isValidFileSize) {
+      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"),
+          Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(FileConstants.MAX_VALID_SIZE_MB)));
+      FacesContext.getCurrentInstance().addMessage("content-form:cms-edit-value:" + index + ":cms-file-content-msg",
+          message);
+    }
+
+    if (isValidFileType && isValidFileSize) {
+      handleUploadNewFile(file, cmsContent);
+    } else {
+      handleUploadNewFile(null, cmsContent);
+    }
+  }
+
+  private String getFileExtension(UploadedFile file) {
+    if (file == null) {
+      return StringUtils.EMPTY;
+    }
+    String extension = StringUtils.EMPTY;
+    String fileName = file.getFileName();
+    if (StringUtils.isNotBlank(fileName)) {
+      int lastDot = fileName.lastIndexOf(".");
+      if (lastDot > 0 && lastDot < fileName.length() - 1) {
+        extension = fileName.substring(lastDot + 1).toLowerCase();
+      }
+    }
+    return extension;
+  }
+
+  private void handleUploadNewFile(UploadedFile newUploadedFile, CmsContent cmsContent ) {
+    if (newUploadedFile != null) {
+      cmsContent.setNewFileContent(newUploadedFile.getContent());
+      cmsContent.setNewFileSize(FileSizeUtils.calculateToKB(newUploadedFile.getSize()));
+      cmsContent.setEditing(true);
+    } else {
+      cmsContent.setNewFileContent(null);
+      cmsContent.setNewFileSize(0);
+      cmsContent.setEditing(false);
+    }
+  }
+
   public List<Cms> getFilteredCMSKeys() {
     return filteredCMSList;
   }
@@ -512,26 +592,5 @@ public class CmsEditorBean implements Serializable {
 
   public Set<String> getProjectCms() {
     return this.pmvCmsMap.keySet();
-  }
-
-  public boolean isTheSameContent(String originalContent, String content) {
-    Document originValue = Jsoup.parse(originalContent);
-    Document newValue = Jsoup.parse(content);
-
-    return originValue.body().html().equals(newValue.body().html());
-  }
-
-  public String getAllowedFileTypesUpload(Cms cms) {
-    String pdf = String.format(ALLOWED_UPLOAD_FILE_TYPE, PDF.getFileExtension());
-    if (cms == null || cms.getFileType() == null) {
-      return pdf;
-    }
-    return switch (cms.getFileType()) {
-      case PDF -> pdf;
-      case WORD -> String.format(ALLOWED_UPLOAD_FILE_TYPE, WORD.getFileExtension());
-      case IMAGE -> String.format(ALLOWED_UPLOAD_FILE_TYPE, IMAGE.getFileExtension());
-      case EXCEL -> String.format(ALLOWED_UPLOAD_FILE_TYPE, EXCEL.getFileExtension());
-      default -> pdf;
-    };
   }
 }

@@ -15,6 +15,9 @@ Labels:
   Edit: Edit
   EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
+  Error: Error
+  InvalidFileSizeMessage: The file size must not be larger than {0} MB.
+  InvalidFileTypeMessage: The file type is invalid.
   Links: Links
   Message: Message
   Options: Options
