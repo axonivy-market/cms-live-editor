@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,7 +40,7 @@ public class Utils {
   }
 
   public static boolean isOnlyWrappedPlainText(String html) {
-    if (html.isBlank()) {
+    if (StringUtils.isBlank(html)) {
       return true;
     }
     Element docBody = Jsoup.parseBodyFragment(html).body();
