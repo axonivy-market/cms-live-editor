@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
 
@@ -14,6 +15,9 @@ public class Utils {
   private static final String TABLE_ELEMENT = "table";
   private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
   private static final String LIST_ITEM_PATTERN = "<li style='padding:0 2rem 0.25rem 0;'> %s </li>";
+  private static final String P_TAG = "p";
+  private static final String TEXT_TAG = "#text";
+  private static final String BR_TAG = "br";
 
   public static String sanitizeContent(String originalContent, String content) {
     var doc = Jsoup.parseBodyFragment(content);
@@ -35,20 +39,20 @@ public class Utils {
   }
 
   public static boolean isOnlyWrappedPlainText(String html) {
-    if (html == null || html.isBlank()) {
+    if (html.isBlank()) {
       return true;
     }
-    Document doc = Jsoup.parseBodyFragment(html);
-    if (doc.body().childrenSize() != 1) {
+    Element docBody = Jsoup.parseBodyFragment(html).body();
+    if (docBody.childrenSize() != 1) {
       return false;
     }
-    var element = doc.body().child(0);
-    if (!"p".equals(element.tagName())) {
+    var element = docBody.child(0);
+    if (!P_TAG.equals(element.tagName())) {
       return false;
     }
     // Allow only text nodes and <br>
     return element.childNodes().stream()
-        .allMatch(node -> node.nodeName().equals("#text") || node.nodeName().equals("br"));
+        .allMatch(node -> node.nodeName().equals(TEXT_TAG) || node.nodeName().equals(BR_TAG));
   }
 
   private static void migrateTableAttr(Document originalDoc, Document doc) {
