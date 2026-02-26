@@ -18,26 +18,32 @@ Users should have the role of "CMS_ADMIN" to start the process.
    ![](./images/3-cms-live-editor-project-selection.png)
 
 2. Search Input: You can enter text to search by URI and project CMS. The search is case-insensitive.
+
    ![](./images/4-cms-live-editor-search-bar.png)
 
-3. Selected CMS: Displays the uri path of the selected content.
+3. Selected CMS: Display the URI path of the selected content.
 4. Edit button: Click to edit this CMS, and another column will be rendered for the user to edit the value for a specific language.
+
    ![](./images/5-cms-live-editor-edit-button.png)
    ![](./images/6-cms-live-editor-edit-column.png)
 5. Save button:
-- When we hover to "Save" button, a warning message will be display to impress user
+- When hovering over the **Save** button, a warning message is displayed to inform the user of potential changes.
+
   ![](./images/10-cms-live-editor-save-button-warning.png)
-- Change the CMS to application CMS, then the "Orange-dot" will be automatically marked in the row of the application CMS to notify users that this CMS has a different value in the application CMS compared to the project CMS.
-- In the header of the link column, red text "Reset all changes" will be displayed, allowing users to restore all updated CMS values that are different from the project's CMS.
-- In the header of the CMS column, the blue text "Undo Changes" will be shown to enable users to undo all changes for this project's CMS (remove all values in the application CMS that belong to this project's CMS).
-- The value of a specific language that the user edited will have a strikethrough for the project's CMS sitting on the next newly edited value.
+- When a CMS value is modified in the application CMS, an "orange dot" indicator automatically appears in the corresponding row. This indicator notifies users that the application CMS value differs from the project CMS value.
+- In the header of the Path column, the red text **Reset all changes** is displayed. This option allows users to restore all CMS values that have been modified and differ from the project CMS.
+- In the header of the CMS column, the blue text **Undo Changes** is shown. This option allows users to undo all changes associated with the current project's CMS by removing all related values from the application CMS.
+- The value of a specific language that the user edited will have a ~~strikethrough~~ for the project CMS value, followed by the newly edited value. This helps users clearly identify modified content.
+
   ![](./images/7-cms-live-editor-after-updating.png)
-6. "Reset all changes" button: Display the confirm dialog and the user have to type "reset" word correctly, and button "Reset All" can be clickable. when users click it, all application CMS that we updated from project CMS will be deleted
+6. "Reset all changes" button:
+- A confirmation dialog is displayed, and the user must type the word *"reset"* correctly to enable the **Reset all** button.
+- After clicking **Reset all**, all CMS values in the application CMS that were updated from the project CMS will be permanently removed and restored to their original state.
+
    ![](./images/8-cms-live-editor-reset-all-changes.png)
    ![](./images/9-cms-live-editor-after-restoring.png)
 7. "Download for deployment" button: Downloads a zip file containing all translated contents.
-
-- When we hover to "download" button, a warning message will be display to impress user
+- The **Download for deployment** button allows users to download a ZIP file containing all translated content.
+- When hovering over the button, a warning message is displayed to inform the user before downloading.
 
   ![](./images/11-cms-live-editor-download-button-warning.png)
-
