@@ -181,4 +181,11 @@ function restoreLinkPanelScroll() {
   }
 }
 
+function handleTabClose(panel) {
+  let messageElements = panel[0].getElementsByClassName("ui-messages-error ui-corner-all");
+  if (messageElements && messageElements.length > 0) {
+    messageElements[0].style.display = "none";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initCmsWarnings);

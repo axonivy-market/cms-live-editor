@@ -206,7 +206,7 @@
                   <h:panelGroup styleClass="flex-grow-1 overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
-                      var="language">
+                      var="language" onTabClose="handleTabClose(panel)">
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
                         <f:facet name="actions">
                           <p:fileUpload id="upload"
