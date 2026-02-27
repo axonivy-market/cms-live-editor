@@ -1,0 +1,20 @@
+com:
+  axonivy:
+    utils:
+      cmsliveeditor:
+        demo:
+          EmailFormat: |-
+            <p><strong>Welcome to our CMS Editor!</strong></p>
+            <p>Great to have you here. Here’s a quick look at the key features:</p>
+            <ul>
+             <li><strong>WYSIWYG Editor:</strong> Translate content easily and intuitively.</li>
+             <li><strong>Collaboration:</strong> Work together on texts.</li>
+             <li><strong>Export:</strong> Conveniently download your translated content as a ZIP file.</li>
+            </ul>
+            <p>For more details, feel free to visit our <a href="https://market.axonivy.com/">website</a>.</p>
+            <p>Stay tuned – we’re building new features just for you!</p>
+            <p>Thank you for using our CMS Editor!</p>
+            <p>Best regards,<br>
+             The CMS Editor Team
+            </p>
+          TODO: The content after TODO should be translated. You can click Options > Show only TODO to show all of them.
