@@ -139,11 +139,11 @@ function saveAllEditors() {
   }
 
   if (hasAnyError) {
-    setSaveErrorVisible(placeholderError);
+    setErrorMessageVisible(placeholderError);
     return false;
   }
 
-  setSaveErrorVisible(false);
+  setErrorMessageVisible(false);
   destroyEditors();
   saveAllValue([{
     name: 'values',
@@ -284,13 +284,13 @@ function bindCmsWarning(hoverId, warningId) {
   targetElement.addEventListener("mouseleave", hideWarning);
 }
 
-function setSaveErrorVisible(visible) {
+function setErrorMessageVisible(isVisible) {
   const element = document.getElementById(CMS_SAVE_ERROR_CONTAINER_ID);
   if (!element) {
     return;
   }
-  element.dataset.forceVisible = visible ? 'true' : 'false';
-  element.style.display = visible ? 'block' : 'none';
+  element.dataset.forceVisible = isVisible ? 'true' : 'false';
+  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {

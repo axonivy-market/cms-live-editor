@@ -3,7 +3,7 @@ Labels:
   Application: Application
   CMS: CMS
   CMSDownload: CMSDownload
-  CMSErrorMessage: Invalid placeholder syntax.
+  CMSPlaceHolderErrorMessage: Invalid placeholder syntax.
   CMSSaved: Saved application <br /> CMS to Engine
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
