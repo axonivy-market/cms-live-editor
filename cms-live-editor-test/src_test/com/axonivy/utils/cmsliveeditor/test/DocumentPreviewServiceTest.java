@@ -59,7 +59,6 @@ public class DocumentPreviewServiceTest {
     assertEquals(PDF_CONTENT_TYPE, content.getContentType());
     tempFile.deleteOnExit();
   }
-  
 
   @Test
   void testConvertToStreamContent_Pdf() throws Exception {
