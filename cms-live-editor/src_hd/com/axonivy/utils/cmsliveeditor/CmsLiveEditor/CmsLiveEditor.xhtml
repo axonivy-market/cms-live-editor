@@ -12,7 +12,7 @@
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
-          oncomplete="restoreLinkPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
+          oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
         <h:panelGroup styleClass="flex flex-column">
           <!-- Title -->
           <div class="mb-3">
@@ -40,10 +40,10 @@
           </div>
 
           <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
-            <h:panelGroup layout="block" id="link-column"
+            <h:panelGroup layout="block" id="path-column"
               styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} columns">
               <div class="column-header flex align-items-center justify-content-between">
-                <span class="link-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Paths')} </span>
+                <span class="path-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Paths')} </span>
                 <h:panelGroup id="reset-all-change-button" layout="block"
                   rendered="#{cmsLiveEditorBean.isRenderResetAllChange()}"
                   class="flex align-items-center gap-2 cursor-pointer reset-all-change-button">
@@ -56,10 +56,10 @@
               <h:panelGroup styleClass="panel left w-full">
                 <p:dataTable id="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                   selection="#{cmsLiveEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
-                  scrollHeight="100%" pageLinks="5" styleClass="cms-link-table"
-                  onRowClick="saveLinkPanelScroll(); showWarningDialog(); return false;">
+                  scrollHeight="100%" pageLinks="5" styleClass="cms-path-table"
+                  onRowClick="savePathPanelScroll(); showWarningDialog(); return false;">
                   <p:column>
-                    <div class="link-row">
+                    <div class="path-row">
                       <h:outputText id="cms-uri" class="cms-uri" value="#{entry.uri}" />
                       <h:panelGroup rendered="#{entry.differentWithApplication}">
                         <span class="orange-dot" />
@@ -82,10 +82,10 @@
                       class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/CmsInformation')}" />
                   </div>
 
-                  <p:commandLink id="undo-change-link" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
+                  <p:commandLink id="undo-change-path" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
                     actionListener="#{cmsLiveEditorBean.undoChange}"
                     update="column-container table-cms-keys cms-values cms-edit-value"
-                    oncomplete="restoreLinkPanelScroll();"
+                    oncomplete="restorePathPanelScroll();"
                     styleClass="flex align-items-center gap-2 cursor-pointer undo-action-custom">
                     <i class="pi pi-undo" />
                     <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
@@ -133,7 +133,7 @@
                         <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
                       </p:commandButton>
                       <p:commandButton id="edit-button" value="#{ivy.cms.co('/Labels/Edit')}" icon="pi pi-pencil"
-                        process="@this" update="cms-columns" oncomplete="initCmsWarnings(); restoreLinkPanelScroll();"
+                        process="@this" update="cms-columns" oncomplete="initCmsWarnings(); restorePathPanelScroll();"
                         styleClass="w-full mt-3 ui-button-outlined ui-button-secondary cms-edit-button"
                         actionListener="#{cmsLiveEditorBean.onEditableButton()}"
                         rendered="#{!cmsLiveEditorBean.editableCms}"
@@ -191,13 +191,13 @@
                         icon="pi pi-times" process="@this"
                         styleClass="flex-1 mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
                         update="column-container" actionListener="#{cmsLiveEditorBean.onCancelEditableButton()}"
-                        oncomplete="restoreLinkPanelScroll();" />
+                        oncomplete="restorePathPanelScroll();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
                         update="table-cms-keys cms-values cms-edit-value editable-column"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
-                        oncomplete="initCmsWarnings(); showSaveSuccess(); restoreLinkPanelScroll();"
+                        oncomplete="initCmsWarnings(); showSaveSuccess(); restorePathPanelScroll();"
                         partialSubmit="true" />
                     </h:panelGroup>
 

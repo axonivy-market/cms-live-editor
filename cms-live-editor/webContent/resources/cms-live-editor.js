@@ -329,26 +329,26 @@ function showSaveSuccess() {
   }, 3500);
 }
 
-let linkPanelScrollTop = 0;
+let pathPanelScrollTop = 0;
 
-function getLinkPanel() {
+function getPathPanel() {
   return document.querySelector(
-    '#content-form\\:link-column .panel'
+    '#content-form\\:path-column .panel'
   );
 }
 
-function saveLinkPanelScroll() {
-  const panel = getLinkPanel();
+function savePathPanelScroll() {
+  const panel = getPathPanel();
   if (panel) {
-    linkPanelScrollTop = panel.scrollTop;
+    pathPanelScrollTop = panel.scrollTop;
   }
 }
 
-function restoreLinkPanelScroll() {
-  const panel = getLinkPanel();
+function restorePathPanelScroll() {
+  const panel = getPathPanel();
   if (panel) {
     setTimeout(() => {
-      panel.scrollTop = linkPanelScrollTop;
+      panel.scrollTop = pathPanelScrollTop;
     }, 0);
   }
 }

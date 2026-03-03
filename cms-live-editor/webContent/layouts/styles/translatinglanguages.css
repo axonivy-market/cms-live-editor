@@ -39,7 +39,7 @@
   min-height: 0;
 }
 
-.link-row {
+.path-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
