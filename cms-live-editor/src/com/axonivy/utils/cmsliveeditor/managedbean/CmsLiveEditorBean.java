@@ -152,7 +152,7 @@ public class CmsLiveEditorBean implements Serializable {
     isEditableCms = false;
     lastSelectedCms = null;
     isInEditMode = false;
-    PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+    PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   public boolean isDisableEditableButton() {
