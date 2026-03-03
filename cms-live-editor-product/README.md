@@ -1,23 +1,30 @@
 # CMS Live Editor
-In AxonIvy, languages for UIs, notifications, or emails are managed within the CMS. We are excited to introduce the new CMS live editor that significantly simplifies language editing! The key features are:
+In Axon Ivy, languages for UIs, notifications, and emails are managed in the CMS (Content Management System). We are excited to introduce the new CMS Live Editor, which significantly simplifies language editing.
 
-- User-friendly editor for translating new languages
-- Edit an unlimited number of languages
-- Simple styles available
-- No HTML tags needed in the translation text
+**Key features:**
+
+- User-friendly editor for translating into new languages
+- Support for an unlimited number of languages
+- Simple styling options
+- No HTML tags required in translation texts
 
 ## Demo
-### 1. CMS live editor process start:
-Users should have the role of "CMS_ADMIN" to start the process.
+### 1. Install the CMS Live Editor
+The CMS Live Editor must be installed in the same security context as the project content you want to edit.
+
+### 2. CMS Live Editor process start:
+The CMS Live Editor is now available as a process start in the dashboard. Users must have the role `CMS_ADMIN` to see and start the process.
+
 ![](./images/1-cms-live-editor-process.png)
 
-### 2. CMS live editor main page:
+### 2. CMS Live Editor main page:
 ![](./images/2-cms-live-editor-main-page.png)
 
-1. Project Selector: Each security context can contain multiple projects. First, choose the project you want to work on. The option "All" will be set as default when the user clicks start process for the first time.
+
+1. Project Selector: Each security context can contain multiple projects. The option "All" will be set as default. Select a project if you want to view the content of a specific project only.
    ![](./images/3-cms-live-editor-project-selection.png)
 
-2. Search Input: You can enter text to search by URI and project CMS. The search is case-insensitive.
+2. Search Input: You can enter text to search by URI or by content. The search is **case-insensitive**.
 
    ![](./images/4-cms-live-editor-search-bar.png)
 
