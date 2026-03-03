@@ -16,7 +16,7 @@ Labels:
   EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
-  Links: Links
+  Paths: Paths
   Message: Message
   Options: Options
   ProjectCmsTitle: Project-CMS
@@ -25,7 +25,7 @@ Labels:
   ResetAllChangeConfirmation: Are you sure you want to reset all changes?
   ResetAllChanges: Reset all changes
   Save: Save
-  Search: Search for links or CMS content
+  Search: Search for paths or CMS content
   SelectedCMS: Selected CMS
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
