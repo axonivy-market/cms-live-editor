@@ -29,7 +29,6 @@ public class CmsLiveEditorWebTest {
 
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
-  private static final String CMS_EDIT_VALUE_TAB_SELECTOR = "[id^='content-form:cms-edit-value:'][id$=':cms-values-tab']";
 
   /**
    * Dear Bug Hunter,
