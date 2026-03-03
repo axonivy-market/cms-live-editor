@@ -168,11 +168,21 @@
                   <h:panelGroup layout="block" styleClass="button-group">
                     <h:panelGroup layout="block" styleClass="cms-warning" id="cms-warning-save-container">
                       <div class="cms-warning-title">
-                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> <span>
-                          #{ivy.cms.co('/Labels/Warning')} </span>
+                        <i class="pi pi-exclamation-triangle cms-warning-icon" />
+                        <span>#{ivy.cms.co('/Labels/Warning')}</span>
                       </div>
                       <div class="cms-warning-content">
                         <span> #{ivy.cms.co('/Labels/CMSWarningTextForSave')}</span>
+                      </div>
+                    </h:panelGroup>
+
+                    <h:panelGroup layout="block" styleClass="cms-error" id="cms-error-container">
+                      <div class="cms-error-title">
+                        <i class="si-delete-1 cms-error-icon" /> 
+                        <span>#{ivy.cms.co('/Labels/Error')}</span>
+                      </div>
+                      <div class="cms-error-content">
+                        <span> #{ivy.cms.co('/Labels/CMSPlaceHolderErrorMessage')}</span>
                       </div>
                     </h:panelGroup>
 
@@ -186,9 +196,9 @@
                         process="@this table-cms-keys" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
                         update="table-cms-keys cms-values cms-edit-value editable-column"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
-                        onclick="saveAllEditors()"
+                        onclick="return saveAllEditors();"
                         oncomplete="initCmsWarnings(); showSaveSuccess(); restoreLinkPanelScroll();"
-                        partialSubmit="true" onstart="destroyEditors()" />
+                        partialSubmit="true" />
                     </h:panelGroup>
 
                   </h:panelGroup>

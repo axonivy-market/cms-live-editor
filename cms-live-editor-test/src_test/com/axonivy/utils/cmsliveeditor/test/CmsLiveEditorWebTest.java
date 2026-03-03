@@ -29,6 +29,7 @@ public class CmsLiveEditorWebTest {
 
   private static final String CMS_LINK_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
+  private static final String CMS_EDIT_VALUE_TAB_SELECTOR = "[id^='content-form:cms-edit-value:'][id$=':cms-values-tab']";
 
   /**
    * Dear Bug Hunter,
@@ -74,7 +75,7 @@ public class CmsLiveEditorWebTest {
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
-    $(By.className("sun-editor-editable")).setValue("Content is updated at 2 " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     $(".se-btn.se-resizing-enabled.se-tooltip").should(enabled);
     Selenide.sleep(1000);
     otherCms.click();
@@ -117,7 +118,7 @@ public class CmsLiveEditorWebTest {
     var otherCms = cmsList.get(1);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     Selenide.sleep(1000);
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
@@ -132,7 +133,7 @@ public class CmsLiveEditorWebTest {
     var selectedCms = cmsList.get(0);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
@@ -163,6 +164,72 @@ public class CmsLiveEditorWebTest {
     loginAndStartProcess("normalUser", "123456");
     var exception = $(By.cssSelector(".exception-content"));
     exception.shouldBe(visible).shouldHave(matchText("Access denied. Need role CMS_ADMIN"));
+  }
+
+  @Test
+  public void testAllLocalesWithSamePlaceholderAllowsSave() {
+    openFirstCmsAndEnterEditMode();
+
+    int localeCount = getEditableLocaleCount();
+    long timestamp = System.currentTimeMillis();
+    for (int i = 0; i < localeCount; i++) {
+      openEditableLocaleTab(i);
+      setVisibleEditorValue("Locale " + i + " {0} " + timestamp);
+    }
+
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
+  }
+
+  @Test
+  public void testAllLocalesSamePlaceholdersDifferentOrderAllowsSave() {
+    openFirstCmsAndEnterEditMode();
+
+    int localeCount = getEditableLocaleCount();
+    long timestamp = System.currentTimeMillis();
+
+    openEditableLocaleTab(0);
+    setVisibleEditorValue("Locale 0 {0} {1} " + timestamp);
+
+    if (localeCount >= 2) {
+      openEditableLocaleTab(1);
+      setVisibleEditorValue("Locale 1 {1} {0} " + timestamp);
+    }
+
+    for (int i = 2; i < localeCount; i++) {
+      openEditableLocaleTab(i);
+      setVisibleEditorValue("Locale " + i + " {0} {1} " + timestamp);
+    }
+
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(hidden);
+  }
+
+  private void openFirstCmsAndEnterEditMode() {
+    var cmsList = $$(CMS_LINK_URI);
+    cmsList.shouldHave(sizeGreaterThanOrEqual(1));
+    cmsList.get(0).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+
+    $$(SUN_EDITOR_EDITABLE_SELECTOR).findBy(visible).shouldBe(visible);
+  }
+
+  private int getEditableLocaleCount() {
+    $$(CMS_EDIT_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
+    return $$(CMS_EDIT_VALUE_TAB_SELECTOR).size();
+  }
+
+  private void openEditableLocaleTab(int index) {
+    var tabs = $$(CMS_EDIT_VALUE_TAB_SELECTOR);
+    tabs.shouldHave(sizeGreaterThanOrEqual(index + 1));
+    tabs.get(index).scrollIntoView(true).click();
+  }
+
+  private void setVisibleEditorValue(String value) {
+    var editable = $$(SUN_EDITOR_EDITABLE_SELECTOR).findBy(visible);
+    editable.shouldBe(visible).setValue(value);
   }
 
   /**
