@@ -47,3 +47,4 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
 ### 6. Download for deployment
 - The **Download for deployment** button allows users to download a ZIP file containing all translated content.
 - This can be used for a permanent engine deployment of the CMS values in the application.
+  ![](./images/14-cms-live-editor-undo.png)
