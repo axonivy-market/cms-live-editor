@@ -42,7 +42,7 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
 
 ### 5. Undo changes
 - “Undo Change” reverses the changes "made to the currently selected CMS entry.
-- "Reset all" will reverse **all** changes made in the currentley selected project. As this could be a disruptive activity,a confirmation dialog is displayed and the user must type the word *"reset"*  to enable the **Reset all** activity.
+- "Reset all" will revert **all** changes made in the currently selected project, i.e., all entries marked with a red dot in the path column. As this can be a disruptive action, a confirmation dialog is displayed and the user must type the word "reset" to enable the "Reset all"-action.
 
 ### 6. Download for deployment
 - The **Download for deployment** button allows users to download a ZIP file containing all translated content.
