@@ -3,6 +3,7 @@ Labels:
   Application: Application
   CMS: CMS
   CMSDownload: CMSDownload
+  CMSPlaceHolderErrorMessage: Invalid placeholder syntax.
   CMSSaved: Saved application <br /> CMS to Engine
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
@@ -18,7 +19,7 @@ Labels:
   Error: Error
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
-  Links: Links
+  Paths: Paths
   Message: Message
   Options: Options
   Preview: Preview
@@ -28,7 +29,7 @@ Labels:
   ResetAllChangeConfirmation: Are you sure you want to reset all changes?
   ResetAllChanges: Reset all changes
   Save: Save
-  Search: Search for links or CMS content
+  Search: Search for paths or CMS content
   SelectedCMS: Selected CMS
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet

@@ -212,7 +212,7 @@ public class CmsLiveEditorBean implements Serializable {
     lastSelectedCms = null;
     isInEditMode = false;
     clearNewUploadFile();
-    PF.current().ajax().update(CONTENT_FORM_LINK_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+    PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   private void clearNewUploadFile() {

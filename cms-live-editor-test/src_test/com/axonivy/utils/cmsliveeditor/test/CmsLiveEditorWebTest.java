@@ -34,7 +34,7 @@ public class CmsLiveEditorWebTest {
   private static final String TEST_CMS_URI = "/Test/TestContent";
   private static final String PRIMEFACES_MESSAGE_DIALOG = "primefacesmessagedlg";
 
-  private static final String CMS_LINK_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
+  private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
 
   /**
@@ -71,7 +71,7 @@ public class CmsLiveEditorWebTest {
   }
 
   private void assertCmsTableRowCountGte(int size) {
-    $$(CMS_LINK_URI).shouldHave(sizeGreaterThanOrEqual(size));
+    $$(CMS_PATH_URI).shouldHave(sizeGreaterThanOrEqual(size));
   }
 
   private void sendKeysToSearchInput(String keysToSend) {
@@ -80,14 +80,14 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testEditedButNotSaveShouldShowError() {
-    var cmsList = $$(CMS_LINK_URI);
+    var cmsList = $$(CMS_PATH_URI);
     var selectedCms = cmsList.get(0);
     var otherCms = cmsList.get(1);
     selectedCms.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
-    $(By.className("sun-editor-editable")).setValue("Content is updated at 2 " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     $(".se-btn.se-resizing-enabled.se-tooltip").should(enabled);
     Selenide.sleep(1000);
     otherCms.click();
@@ -112,7 +112,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testHoverEditButtonToShowWarningMessage() {
-    var cmsList = $$(CMS_LINK_URI);
+    var cmsList = $$(CMS_PATH_URI);
     var selectedCms = cmsList.get(0);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
@@ -123,27 +123,27 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testEditedAndSavedShouldNotShowError() {
-    var cmsList = $$(CMS_LINK_URI);
+    var cmsList = $$(CMS_PATH_URI);
     var selectedCms = cmsList.get(0);
     var otherCms = cmsList.get(1);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     Selenide.sleep(1000);
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(By.id(UNDO_CHANGES_LINK_ID)).shouldBe(visible);
+    $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherCms.click();
     $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
   }
 
   @Test
   public void testResetAllChanges() {
-    var cmsList = $$(CMS_LINK_URI);
+    var cmsList = $$(CMS_PATH_URI);
     var selectedCms = cmsList.get(0);
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.className("sun-editor-editable")).setValue("Content is updated at " + System.currentTimeMillis());
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
