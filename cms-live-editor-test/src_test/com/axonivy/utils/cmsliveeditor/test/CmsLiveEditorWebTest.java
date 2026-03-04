@@ -160,7 +160,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testEditCmsFileDocX() {
-    var cmsList = $$(CMS_LINK_URI);
+    var cmsList = $$(CMS_PATH_URI);
     cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI)).click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();

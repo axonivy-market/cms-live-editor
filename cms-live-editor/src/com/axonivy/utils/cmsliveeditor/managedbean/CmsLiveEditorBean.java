@@ -6,7 +6,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_ED
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
-import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_LINK_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
 import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.DOCX_EXTENSION;
 import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.DOC_EXTENSION;
