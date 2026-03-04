@@ -40,22 +40,10 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
 - Example: For the CMS entry *UploadFileExists*, the current edits must still contain `{0}`. Do not remove it, rename it (e.g., to `{1}`), remove the brackets, or add extra placeholders in some locales but not others.
    ![](./images/11-cms-live-editor-placeholder-validation.png)
 
-- When a CMS value is modified in the application CMS, an "orange dot" indicator automatically appears in the corresponding row. This indicator notifies users that the application CMS value differs from the project CMS value.
-- In the header of the Path column, the red text **Reset all changes** is displayed. This option allows users to restore all CMS values that have been modified and differ from the project CMS.
-- In the header of the CMS column, the blue text **Undo Changes** is shown. This option allows users to undo all changes associated with the current project's CMS by removing all related values from the application CMS.
-- The value of a specific language that the user edited will have a ~~strikethrough~~ for the project CMS value, followed by the newly edited value. This helps users clearly identify modified content.
+### 5. Undo changes
+- “Undo Change” reverses the changes "made to the currently selected CMS entry.
+- "Reset all" will reverse **all** changes made in the currentley selected project. As this could be a disruptive activity,a confirmation dialog is displayed and the user must type the word *"reset"*  to enable the **Reset all** activity.
 
-  ![](./images/7-cms-live-editor-after-updating.png)
-
-  ### 5. Reset all changes
-- After clicking **Reset all**, all CMS values in the application CMS that were updated from the project CMS will be permanently removed and restored to their original state.
-- As this could be a disruptive activity,a confirmation dialog is displayed and the user must type the word *"reset"*  to enable the **Reset all** activity.
-
-   ![](./images/8-cms-live-editor-reset-all-changes.png)
-   ![](./images/9-cms-live-editor-after-restoring.png)
-
-  ### 6. Download for deployment
+### 6. Download for deployment
 - The **Download for deployment** button allows users to download a ZIP file containing all translated content.
 - This can be used for a permanent engine deployment of the CMS values in the application.
-
-  ![](./images/12-cms-live-editor-download-button-warning.png)
