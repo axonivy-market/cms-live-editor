@@ -17,26 +17,17 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
 
 ![](./images/1-cms-live-editor-process.png)
 
-### 2. CMS Live Editor main page:
+### 3. CMS Live Editor main page:
 ![](./images/2-cms-live-editor-main-page.png)
 
 
 1. Project Selector: Each security context can contain multiple projects. The option "All" will be set as default. Select a project if you want to view the content of a specific project only.
-   ![](./images/3-cms-live-editor-project-selection.png)
-
 2. Search Input: You can enter text to search by URI or by content. The search is **case-insensitive**.
-
-   ![](./images/4-cms-live-editor-search-bar.png)
-
 3. Selected CMS: Display the URI path of the selected content.
 4. Edit button: Click to edit this CMS, and another column will be rendered for the user to edit the value for a specific language.
+5. Save makes these changes immediately visible in the application
 
-   ![](./images/5-cms-live-editor-edit-button.png)
-   ![](./images/6-cms-live-editor-edit-column.png)
-5. Save button:
-- When hovering over the **Save** button, a warning message is displayed to inform the user of potential changes.
-
-  ![](./images/10-cms-live-editor-save-button-warning.png)
+  ![](./images/13-cms-live-editor-howto.png)
 
 - When clicking **Save**, the editor validates **numbered placeholders** in the format `{0}`, `{1}`, etc.
    - If **all locales** of the current CMS entry were edited, they must contain the same set of placeholders (order does not matter).
