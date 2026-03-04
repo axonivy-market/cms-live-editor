@@ -3,6 +3,8 @@ In Axon Ivy, languages for UIs, notifications, and emails are managed in the CMS
 
 **Key features:**
 
+- Process based, i.e. the CMS Live Editor can be started from the dashboard
+- Live edits are enabled (i.e. no deployment necessary)
 - User-friendly editor for translating into new languages
 - Support for an unlimited number of languages
 - Simple styling options
