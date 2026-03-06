@@ -36,7 +36,7 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
   - If **only specific locales** were edited, each edited locale must contain exactly the same placeholders as its original value.
 - When placeholder validation fails:
    - Save is blocked, the affected editor(s) are highlighted, and an error message is shown: **Invalid placeholder syntax.**
-   - You cannot switch to another CMS entry, use the search filter, or change the project. A popup appears **Some fields have not been saved yet** You must **Cancel** and correct your current edits to continue.
+   - You cannot switch to another CMS entry, use the search filter, or change the project. A popup appears **Some fields have not been saved yet**. You must **Cancel** or correct your current edits to continue.
 - Example: For the CMS entry *UploadFileExists*, the current edits must still contain `{0}`. Do not remove it, rename it (e.g., to `{1}`), remove the brackets, or add extra placeholders in some locales but not others.
    ![](./images/11-cms-live-editor-placeholder-validation.png)
 
