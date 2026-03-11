@@ -46,7 +46,6 @@ public class CmsContent implements Serializable {
   private final boolean isHtml;
 
   public CmsContent(int index, Locale locale, String originalContent, String content) {
-    super();
     this.index = index;
     this.locale = locale;
     this.originalContent = originalContent;
@@ -56,7 +55,6 @@ public class CmsContent implements Serializable {
   }
 
   public CmsContent(int index, Locale locale, boolean isFile, String fileName, String uri) {
-    super();
     this.index = index;
     this.locale = locale;
     this.isFile = isFile;

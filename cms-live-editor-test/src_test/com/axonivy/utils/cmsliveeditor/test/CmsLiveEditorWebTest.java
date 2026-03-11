@@ -31,7 +31,7 @@ public class CmsLiveEditorWebTest {
   private String testCmsUri = "/TestContent";
   private String testCmsValue = "Test Content";
   private static final String TEST_CMS_FILE_DOCX_URI= "/Test/TestFileDocX";
-  private static final String TEST_CMS_URI = "/Test/TestContent";
+  private static final String TEST_CMS_TEXT_URI = "/Test/TestContent";
   private static final String PRIMEFACES_MESSAGE_DIALOG = "primefacesmessagedlg";
 
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
@@ -174,7 +174,7 @@ public class CmsLiveEditorWebTest {
     File docFile = new File("resource_test/blank_doc.docx");
     firstInputElement.uploadFile(docFile);
     errorMessageElement.shouldBe(hidden);
-    cmsList.findBy(exactText(TEST_CMS_URI)).click();
+    cmsList.findBy(exactText(TEST_CMS_TEXT_URI)).click();
     var warningDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
     closeDialog(warningDialog);
     var removeFileElement = $(".pi-trash");

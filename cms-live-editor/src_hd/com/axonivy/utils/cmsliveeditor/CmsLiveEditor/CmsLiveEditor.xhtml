@@ -115,33 +115,8 @@
                             actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, false)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'PDF'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-pdf cms-file-pdf-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'EXCEL'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-excel cms-file-excel-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'WORD'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-word cms-file-word-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'IMAGE'}"
-                              class="cms-file-item-icon">
-                              <i class="pi pi-image" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'OTHERS'}"
-                              class="cms-file-item-icon">
-                              <i class="pi pi-file-o" />
+                            <h:panelGroup layout="block" class="cms-file-item-icon">
+                              <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
                             </h:panelGroup>
                             <div class="cms-file-item-description">
                               <h:outputText id="cms-file-item-name"
@@ -212,8 +187,8 @@
                           <p:fileUpload id="upload"
                             listener="#{cmsLiveEditorBean.handleFileUpload}"
                             rendered="#{cmsLiveEditorBean.selectedCms.isFile()}"
-                            value="#{language.newUploadedFile}"
-                            process="@this" auto="true"
+                            value="#{language.newUploadedFile}" virusScan="true" 
+                            process="@this" auto="true" accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
                             chooseIcon="pi pi-paperclip change-document-link"
                             update="content-form:cms-edit-value:#{language.index}:cms-file-item content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
                             styleClass="change-document-link-text"
@@ -237,33 +212,8 @@
                             actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, true)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'PDF'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-pdf cms-file-pdf-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'EXCEL'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-excel cms-file-excel-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'WORD'}"
-                              class="cms-file-item-icon">
-                              <i
-                                class="pi pi-file-word cms-file-word-type" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'IMAGE'}"
-                              class="cms-file-item-icon">
-                              <i class="pi pi-image" />
-                            </h:panelGroup>
-                            <h:panelGroup layout="block"
-                              rendered="#{cmsLiveEditorBean.selectedCms.fileType == 'OTHERS'}"
-                              class="cms-file-item-icon">
-                              <i class="pi pi-file-o" />
+                            <h:panelGroup layout="block" class="cms-file-item-icon">
+                              <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
                             </h:panelGroup>
                             <div class="cms-file-item-description">
                               <h:outputText id="cms-file-item-name"
@@ -274,12 +224,12 @@
                                 styleClass="cms-file-item-type" />
                             </div>
                           </p:commandLink>
-                          <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsLiveEditorBean.removeCmsFileInApplicationCMS(language.index)}"
+                          <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsLiveEditorBean.removeCmsFileInApplicationCms(language.index)}"
                             styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item">
                             <i class="pi pi-trash" />
                           </p:commandLink>
                         </h:panelGroup>
-                        <p:messages id="cms-file-content-msg" showDetail="true" closable="true" />
+                        <p:messages id="cms-file-content-msg" styleClass="cms-file-error-message" showDetail="true" />
                       </p:tab>
                     </p:accordionPanel>
                   </h:panelGroup>

@@ -8,19 +8,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FOR
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.DOCX_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.DOC_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.JPEG_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.JPG_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.PDF_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.PNG_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.XLSX_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.XLS_EXTENSION;
-import static com.axonivy.utils.cmsliveeditor.enums.FileType.EXCEL;
-import static com.axonivy.utils.cmsliveeditor.enums.FileType.IMAGE;
-import static com.axonivy.utils.cmsliveeditor.enums.FileType.OTHERS;
-import static com.axonivy.utils.cmsliveeditor.enums.FileType.PDF;
-import static com.axonivy.utils.cmsliveeditor.enums.FileType.WORD;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
@@ -56,6 +44,7 @@ import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
@@ -66,7 +55,7 @@ import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
-import com.axonivy.utils.cmsliveeditor.utils.FileSizeUtils;
+import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -78,6 +67,7 @@ import ch.ivyteam.ivy.application.IApplication;
 import ch.ivyteam.ivy.application.IProcessModel;
 import ch.ivyteam.ivy.application.IProcessModelVersion;
 import ch.ivyteam.ivy.application.app.IApplicationRepository;
+import ch.ivyteam.ivy.cm.ContentManagementSystem;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
 import ch.ivyteam.ivy.cm.ContentObjectValue;
@@ -144,13 +134,18 @@ public class CmsLiveEditorBean implements Serializable {
     return Optional.ofNullable(selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
   }
 
-  public void removeCmsFileInApplicationCMS(int index) {
-    this.selectedCms.getContents().get(index).setNewUploadedFile(null);
-    this.selectedCms.getContents().get(index).setNewFileSize(0);
-    this.selectedCms.getContents().get(index).setNewFileContent(null);
-    this.selectedCms.getContents().get(index).setApplicationFileSize(0);
-    this.selectedCms.getContents().get(index).setApplicationFileContent(null);
-    this.selectedCms.getContents().get(index).setEditing(true);
+  public void removeCmsFileInApplicationCms(int index) {
+    try {
+      var cmsContent = this.selectedCms.getContents().get(index);
+      cmsContent.setNewUploadedFile(null);
+      cmsContent.setNewFileSize(0);
+      cmsContent.setNewFileContent(null);
+      cmsContent.setApplicationFileSize(0);
+      cmsContent.setApplicationFileContent(null);
+      cmsContent.setEditing(true);
+    } catch (Exception e) {
+      Ivy.log().error(e);
+    }
   }
 
   /*
@@ -278,34 +273,54 @@ public class CmsLiveEditorBean implements Serializable {
   private void loadFileContentOfSelectedCms() {
     IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
         .filter(pmv -> pmv.getProjectName().equals(selectedCms.getPmvName())).findFirst().orElseGet(null);
-    if (selectedPmv != null) {
-      ContentObject contentObject = ContentManagement.cms(selectedPmv).get(selectedCms.getUri()).orElseGet(null);
-      loadFileContentOfCmsContent(contentObject);
+    if (selectedPmv == null) {
+      return;
     }
+
+    ContentManagementSystem contentManagementSystem = ContentManagement.cms(selectedPmv);
+    if (contentManagementSystem == null) {
+      return;
+    }
+
+    ContentObject contentObject = contentManagementSystem.get(selectedCms.getUri()).orElseGet(null);
+    if (contentObject == null) {
+      return;
+    }
+
+    loadFileContentOfCmsContent(contentObject);
   }
 
   private void loadFileContentOfCmsContent(ContentObject contentObject) {
     try {
       for (CmsContent cmsContent : selectedCms.getContents()) {
-        ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
-        byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
-        if (bytes != null) {
-          cmsContent.setFileContent(bytes);
-          cmsContent.setFileSize(FileSizeUtils.calculateToKB(bytes.length));
+        if (cmsContent == null) {
+          break;
         }
-
-        // Load file from application CMS
-        IApplication currentApplication = IApplication.current();
-        var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
-        ContentObject currentContentObject = cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root()
-            .child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
-        byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
-        if (bytesOfApplicationCmsFile != null) {
-          cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
-          cmsContent.setApplicationFileSize(FileSizeUtils.calculateToKB(bytesOfApplicationCmsFile.length));
-        }
+        LoadCmsFileFromProjectCms(contentObject, cmsContent);
+        LoadCmsFileFromApplicationCms(cmsContent, IApplication.current());
       }
     } catch (Exception e) {
+      Ivy.log().error(e);
+    }
+  }
+
+  public void LoadCmsFileFromProjectCms(ContentObject contentObject, CmsContent cmsContent) {
+    ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
+    byte[] bytes = ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElseGet(null);
+    if (bytes != null) {
+      cmsContent.setFileContent(bytes);
+      cmsContent.setFileSize(FileUtils.calculateToKB(bytes.length));
+    }
+  }
+
+  public void LoadCmsFileFromApplicationCms(CmsContent cmsContent, IApplication currentApplication) {
+    var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+    ContentObject currentContentObject = cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root()
+        .child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
+    byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
+    if (bytesOfApplicationCmsFile != null) {
+      cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
+      cmsContent.setApplicationFileSize(FileUtils.calculateToKB(bytesOfApplicationCmsFile.length));
     }
   }
 
@@ -377,41 +392,45 @@ public class CmsLiveEditorBean implements Serializable {
     cms.setPmvName(pmvName);
     boolean isFile = StringUtils.isNotBlank(fileExtension);
     if (isFile) {
-      cms.setFile(true);
-      cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
-      FileType fileType = getFileTypeByExtension(fileExtension);
-      cms.setFileType(fileType);
+      convertToCmsFile(contentObject, locales, cms, fileExtension);
+    } else {
+      convertToCmsText(contentObject, locales, cms);
     }
+
+    return cms;
+  }
+
+  private void convertToCmsFile(ContentObject contentObject, List<Locale> locales, Cms cms, String fileExtension) {
+    cms.setFile(true);
+    cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
+    FileType fileType = getFileTypeByExtension(fileExtension);
+    cms.setFileType(fileType);
     for (var i = 0; i < locales.size(); i++) {
       Locale locale = locales.get(i);
-      if (isFile) {
-        String language = locale.getLanguage();
-        String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
-        String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf('/') + 1);
-        cms.addContent(new CmsContent(i, locale, isFile, fileName, projectCmsFileUri));
-      } else {
-        ContentObjectValue value = contentObject.value().get(locale);
-        String projectCmsValueString =
-            ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::string).orElse(EMPTY);
-        String cmsApplicationValue = cmsService.getCmsFromApplication(cms.getUri(), locale);
-        if (StringUtils.isBlank(cmsApplicationValue)) {
-          cmsApplicationValue = projectCmsValueString;
-        }
-        cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
-      }
+      String language = locale.getLanguage();
+      String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
+      String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf(CommonConstants.SLASH_CHARACTER) + 1);
+      cms.addContent(new CmsContent(i, locale, true, fileName, projectCmsFileUri));
     }
-    return cms;
+  }
+
+  private void convertToCmsText(ContentObject contentObject, List<Locale> locales, Cms cms) {
+    for (var i = 0; i < locales.size(); i++) {
+      Locale locale = locales.get(i);
+      ContentObjectValue value = contentObject.value().get(locale);
+      String projectCmsValueString =
+          ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::string).orElse(EMPTY);
+      String cmsApplicationValue = cmsService.getCmsFromApplication(cms.getUri(), locale);
+      if (StringUtils.isBlank(cmsApplicationValue)) {
+        cmsApplicationValue = projectCmsValueString;
+      }
+      cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
+    }
   }
 
   private FileType getFileTypeByExtension(String extension) {
     String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
-    return switch (fileExtension) {
-      case JPEG_EXTENSION, JPG_EXTENSION, PNG_EXTENSION -> IMAGE;
-      case DOC_EXTENSION, DOCX_EXTENSION -> WORD;
-      case XLS_EXTENSION, XLSX_EXTENSION -> EXCEL;
-      case PDF_EXTENSION -> PDF;
-      default -> OTHERS;
-    };
+    return FileType.fromExtension(fileExtension);
   }
 
   private static boolean isActive(IActivity processModelVersion) {
@@ -486,50 +505,34 @@ public class CmsLiveEditorBean implements Serializable {
     int index = (Integer) event.getComponent().getAttributes().get("index");
     CmsContent cmsContent = selectedCms.getContents().get(index);
     UploadedFile file = event.getFile();
-    String fileExtension = getFileExtension(file);
-    boolean isValidFileType = selectedCms.getFileType().getFileExtension().contains(fileExtension);
-    if (!isValidFileType) {
-      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"),
-          Ivy.cms().co("/Labels/InvalidFileTypeMessage"));
-      FacesContext.getCurrentInstance().addMessage("content-form:cms-edit-value:" + index + ":cms-file-content-msg",
-          message);
-    }
-
-    boolean isValidFileSize =
-        file.getSize() <= FileConstants.MAX_VALID_SIZE_MB * FileConstants.KB_IN_MB * FileConstants.BYTE_IN_KB;
+    long maxUploadedFileSize = getMaxUploadedFileSize();
+    boolean isValidFileSize = FileUtils.isValidFileSize(file.getSize(), maxUploadedFileSize);
     if (!isValidFileSize) {
       FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"),
-          Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(FileConstants.MAX_VALID_SIZE_MB)));
-      FacesContext.getCurrentInstance().addMessage("content-form:cms-edit-value:" + index + ":cms-file-content-msg",
-          message);
+          Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)));
+      FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index), message);
     }
 
-    if (isValidFileType && isValidFileSize) {
+    if (isValidFileSize) {
       handleUploadNewFile(file, cmsContent);
     } else {
       handleUploadNewFile(null, cmsContent);
     }
   }
 
-  private String getFileExtension(UploadedFile file) {
-    if (file == null) {
-      return StringUtils.EMPTY;
+  private long getMaxUploadedFileSize() {
+    try {
+      return Long.parseLong(Ivy.var().get("com.axonivy.market.CMSLiveEditor.MaxUploadedFileSize"));
+    } catch (Exception e) {
+      Ivy.log().error(e);
+      return FileConstants.DEFAULT_VALID_SIZE_MB;
     }
-    String extension = StringUtils.EMPTY;
-    String fileName = file.getFileName();
-    if (StringUtils.isNotBlank(fileName)) {
-      int lastDot = fileName.lastIndexOf(".");
-      if (lastDot > 0 && lastDot < fileName.length() - 1) {
-        extension = fileName.substring(lastDot + 1).toLowerCase();
-      }
-    }
-    return extension;
   }
 
   private void handleUploadNewFile(UploadedFile newUploadedFile, CmsContent cmsContent ) {
     if (newUploadedFile != null) {
       cmsContent.setNewFileContent(newUploadedFile.getContent());
-      cmsContent.setNewFileSize(FileSizeUtils.calculateToKB(newUploadedFile.getSize()));
+      cmsContent.setNewFileSize(FileUtils.calculateToKB(newUploadedFile.getSize()));
       cmsContent.setEditing(true);
     } else {
       cmsContent.setNewFileContent(null);

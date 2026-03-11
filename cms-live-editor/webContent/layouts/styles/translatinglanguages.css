@@ -136,7 +136,9 @@ body.dark .cms-warning {
   display: none;
 }
 
-.cms-error, body.dark .cms-error {
+.cms-error, body.dark .cms-error,
+.cms-file-error-message .ui-messages-error.ui-corner-all,
+body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   border: 1px solid #E5151C;
   background: rgba(229, 21, 28, 0.1);
   border-radius: 6px;
@@ -144,10 +146,23 @@ body.dark .cms-warning {
   color: #000000;
 }
 
-.cms-error-title {
+.cms-file-error-message .ui-messages-error span.ui-messages-error-icon {
+  font-weight: 600;
+  color: #E5151C;
+  font-size: 14px;
+  padding: 3px;
+  margin: 0;
+}
+
+.cms-error-title,
+.cms-file-error-message .ui-messages-error-summary {
   font-weight: 600;
   color: #E5151C;
   margin-bottom: 4px;
+}
+
+.cms-file-error-message .ui-messages-error-detail {
+  display: inline-block;
 }
 
 .ui-accordion .ui-accordion-content {

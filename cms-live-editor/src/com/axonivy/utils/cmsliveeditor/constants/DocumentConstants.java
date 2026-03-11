@@ -1,7 +1,6 @@
 package com.axonivy.utils.cmsliveeditor.constants;
 
 public class DocumentConstants {
-  
   public static final String PNG_EXTENSION = ".png";
   public static final String JPEG_EXTENSION = ".jpeg";
   public static final String JPG_EXTENSION = ".jpg";
