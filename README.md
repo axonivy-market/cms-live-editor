@@ -1,4 +1,5 @@
-# CMS live editor component
-A CMS (Content Management System) editor is a user-friendly tool that allows translators to efficiently translate website content using a WYSIWYG (What You See Is What You Get) web editor. This tool enables multiple translators to collaborate and work on translations simultaneously. Users can export all translated content into a zip file, simplifying the process of managing and distributing translated CMS files.
+# CMS live editor
+
+The CMS Live Editor market extension enables live editing of CMS content directly within a running environment. Changes can be made and previewed immediately at runtime without requiring redeployment. This allows business users and translators to update content efficiently while working directly in the target environment. CMS entries can be exported as a ZIP file for deployment. Auto-translation and file handling are supported as well.
 
 Read our [documentation](cms-live-editor-product/README.md).

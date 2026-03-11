@@ -168,6 +168,7 @@ public class CmsLiveEditorBean implements Serializable {
     });
     onAppChange();
     isEditableCms = false;
+    this.resetConfirmText = null;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
