@@ -6,6 +6,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Condition.interactable;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -128,23 +129,30 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testResetAllChanges() {
-    var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
-    $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.sizeGreaterThanOrEqual(1));
-    SelenideElement resetBtn =
-        $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).scrollIntoView(true).click(ClickOptions.usingJavaScript());
-    Selenide.executeJavaScript("arguments[0].click()", resetBtn);
-
-    $(By.id(RESET_CONFIRM_INPUT_ID)).setValue("reset");
-    $(By.id(RESET_BTN_ID)).shouldBe(interactable).click();
+    openFirstCmsAndEdit();
+    updateAndSaveContent();
+    openResetDialog();
+    confirmReset();
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
+  }
+
+  @Test
+  public void testResetAllChangesShouldNotBeTypedResetAutomatically() {
+    SelenideElement selectedCms = openFirstCmsAndEdit();
+    updateAndSaveContent();
+    openResetDialog();
+    $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
+    confirmReset();
+    $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
+    $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
+
+    // reset all change at 2nd time
+    selectedCms.click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    updateAndSaveContent();
+    openResetDialog();
+    $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
   }
 
   @Test
@@ -175,5 +183,32 @@ public class CmsLiveEditorWebTest {
         String.format("/cms-live-editor-test/193BDA54C9726ADF/logInUser.ivp?username=%s&password=%s", username, password);
     open(EngineUrl.createProcessUrl(loginProcessUrl));
     open(EngineUrl.createProcessUrl("/cms-live-editor/18DE86A37D77D574/start.ivp?showEditorCms=true"));
+  }
+
+  private SelenideElement openFirstCmsAndEdit() {
+    var selectedCms = $$(CMS_PATH_URI).first();
+    selectedCms.click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    return selectedCms;
+  }
+
+  private void updateAndSaveContent() {
+    $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+  }
+
+  private SelenideElement openResetDialog() {
+    $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
+    $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.sizeGreaterThanOrEqual(1));
+    SelenideElement resetBtn =
+        $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).scrollIntoView(true).click(ClickOptions.usingJavaScript());
+    Selenide.executeJavaScript("arguments[0].click()", resetBtn);
+    return resetBtn;
+  }
+
+  private void confirmReset() {
+    $(By.id(RESET_CONFIRM_INPUT_ID)).setValue("reset");
+    $(By.id(RESET_BTN_ID)).shouldBe(interactable).click();
   }
 }
