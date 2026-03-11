@@ -1,6 +1,7 @@
 Labels:
   AllProjects: All
   Application: Application
+  AttachDocument: Attach document
   CMS: CMS
   CMSDownload: CMSDownload
   CMSPlaceHolderErrorMessage: Invalid placeholder syntax.
@@ -19,9 +20,9 @@ Labels:
   Error: Error
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
-  Paths: Paths
   Message: Message
   Options: Options
+  Paths: Paths
   Preview: Preview
   ProjectCmsTitle: Project-CMS
   ResetAdvice: Enter <b>reset</b> to confirm

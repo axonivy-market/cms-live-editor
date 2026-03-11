@@ -12,4 +12,4 @@ Variables:
       market:
         CMSLiveEditor:
           # Unit is MB.
-          MaxUploadedFileSize: "1"
+          MaxUploadedFileSize: "50"
