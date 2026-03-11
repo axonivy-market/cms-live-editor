@@ -188,10 +188,10 @@
                             <p:fileUpload id="upload"
                               listener="#{cmsLiveEditorBean.handleFileUpload}"
                               rendered="#{cmsLiveEditorBean.selectedCms.isFile()}"
-                              value="#{language.newUploadedFile}" virusScan="true" 
+                              value="#{language.newUploadedFile}" virusScan="true"
                               process="@this" auto="true" accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
                               chooseIcon="pi pi-paperclip change-document-link"
-                              update="@this content-form:cms-edit-value:#{language.index}:cms-file-item-container"
+                              update="@this content-form:cms-edit-value:#{language.index}:cms-file-item-container content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
                               styleClass="change-document-link-text"
                               label="#{(language.applicationFileSize > 0 or language.fileSize > 0 or language.newFileSize > 0) ? ivy.cms.co('/Labels/ChangeDocument') : ivy.cms.co('/Labels/AttachDocument')}"
                               fileLimit="1" mode="simple"
@@ -323,7 +323,7 @@
       <!-- Dialog for previewing document -->
       <p:dialog widgetVar="preview-document-dialog"
         id="preview-document-dialog" header="#{ivy.cms.co('/Labels/Preview')}" modal="true"
-        maximizable="true" width="80%" height="80%" showEffect="fade"
+        maximizable="true" width="850" height="650" showEffect="fade"
         hideEffect="fade" dynamic="true" fitViewport="true"
         responsive="true">
 

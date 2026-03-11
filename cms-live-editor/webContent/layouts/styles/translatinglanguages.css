@@ -162,7 +162,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .cms-file-error-message .ui-messages-error-detail {
-  display: inline-block;
+  display: block;
 }
 
 .ui-accordion .ui-accordion-content {
@@ -334,6 +334,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   border: 0;
   background: none;
   color: rgba(0, 112, 149, 1);
+  overflow: inherit;
 }
 
 .change-document-link-text .ui-fileupload-filename {

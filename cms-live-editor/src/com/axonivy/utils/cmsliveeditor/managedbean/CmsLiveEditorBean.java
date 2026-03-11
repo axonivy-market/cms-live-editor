@@ -140,9 +140,9 @@ public class CmsLiveEditorBean implements Serializable {
       cmsContent.setNewUploadedFile(null);
       cmsContent.setNewFileSize(0);
       cmsContent.setNewFileContent(null);
+      cmsContent.setEditing(cmsContent.getApplicationFileSize() > 0);
       cmsContent.setApplicationFileSize(0);
       cmsContent.setApplicationFileContent(null);
-      cmsContent.setEditing(true);
     } catch (Exception e) {
       Ivy.log().error(e);
     }
@@ -508,13 +508,28 @@ public class CmsLiveEditorBean implements Serializable {
     UploadedFile file = event.getFile();
     long maxUploadedFileSize = getMaxUploadedFileSize();
     boolean isValidFileSize = FileUtils.isValidFileSize(file.getSize(), maxUploadedFileSize);
-    if (!isValidFileSize) {
-      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"),
-          Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)));
+    String fileExtension = getFileExtension(file);
+    boolean isValidFileType = selectedCms.getFileType().getFileExtension().contains(fileExtension);
+
+    if (!isValidFileSize || !isValidFileType) {
+      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"), "");
       FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index), message);
+      if (!isValidFileSize) {
+        FacesMessage invalidFileSizeMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, "",
+            Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)));
+        FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index),
+            invalidFileSizeMessage);
+      }
+
+      if (!isValidFileType) {
+        FacesMessage invalidFileTypeMessage =
+            new FacesMessage(FacesMessage.SEVERITY_ERROR, "", Ivy.cms().co("/Labels/InvalidFileTypeMessage"));
+        FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index),
+            invalidFileTypeMessage);
+      }
     }
 
-    if (isValidFileSize) {
+    if (isValidFileSize && isValidFileType) {
       handleUploadNewFile(file, cmsContent);
     } else {
       handleUploadNewFile(null, cmsContent);
@@ -528,6 +543,21 @@ public class CmsLiveEditorBean implements Serializable {
       Ivy.log().error(e);
       return FileConstants.DEFAULT_VALID_SIZE_MB;
     }
+  }
+
+  private String getFileExtension(UploadedFile file) {
+    if (file == null) {
+      return StringUtils.EMPTY;
+    }
+    String extension = StringUtils.EMPTY;
+    String fileName = file.getFileName();
+    if (StringUtils.isNotBlank(fileName)) {
+      int lastDot = fileName.lastIndexOf(CommonConstants.DOT_CHARACTER);
+      if (lastDot > 0 && lastDot < fileName.length() - 1) {
+        extension = fileName.substring(lastDot + 1).toLowerCase();
+      }
+    }
+    return extension;
   }
 
   private void handleUploadNewFile(UploadedFile newUploadedFile, CmsContent cmsContent ) {
