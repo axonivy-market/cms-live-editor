@@ -136,9 +136,9 @@ public class CmsLiveEditorWebTest {
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
   }
-  
+
   @Test
-  public void testResetAllChangesShouldBeTypeResetAutomatically() {
+  public void testResetAllChangesShouldNotBeTypedResetAutomatically() {
     SelenideElement selectedCms = openFirstCmsAndEdit();
     updateAndSaveContent();
     openResetDialog();
@@ -184,7 +184,7 @@ public class CmsLiveEditorWebTest {
     open(EngineUrl.createProcessUrl(loginProcessUrl));
     open(EngineUrl.createProcessUrl("/cms-live-editor/18DE86A37D77D574/start.ivp?showEditorCms=true"));
   }
-  
+
   private SelenideElement openFirstCmsAndEdit() {
     var selectedCms = $$(CMS_PATH_URI).first();
     selectedCms.click();
