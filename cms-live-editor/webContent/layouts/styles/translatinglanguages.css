@@ -334,7 +334,11 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   border: 0;
   background: none;
   color: rgba(0, 112, 149, 1);
-  overflow: inherit;
+}
+
+.change-document-link-text .ui-button.ui-widget.ui-state-default.ui-button-text-icon-left input {
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
 }
 
 .change-document-link-text .ui-fileupload-filename {

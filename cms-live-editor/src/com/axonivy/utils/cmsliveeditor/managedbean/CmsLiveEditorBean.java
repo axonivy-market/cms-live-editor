@@ -137,12 +137,15 @@ public class CmsLiveEditorBean implements Serializable {
   public void removeCmsFileInApplicationCms(int index) {
     try {
       var cmsContent = this.selectedCms.getContents().get(index);
-      cmsContent.setNewUploadedFile(null);
-      cmsContent.setNewFileSize(0);
-      cmsContent.setNewFileContent(null);
       cmsContent.setEditing(cmsContent.getApplicationFileSize() > 0);
-      cmsContent.setApplicationFileSize(0);
-      cmsContent.setApplicationFileContent(null);
+      if (cmsContent.getNewFileSize() > 0) {
+        cmsContent.setNewUploadedFile(null);
+        cmsContent.setNewFileSize(0);
+        cmsContent.setNewFileContent(null);
+      } else {
+        cmsContent.setApplicationFileSize(0);
+        cmsContent.setApplicationFileContent(null);
+      }
     } catch (Exception e) {
       Ivy.log().error(e);
     }
@@ -215,6 +218,10 @@ public class CmsLiveEditorBean implements Serializable {
     if (selectedCms.isFile()) {
       selectedCms.getContents().stream().forEach(cmsContent -> {
         cmsContent.setNewUploadedFile(null);
+        cmsContent.setNewFileSize(0);
+        cmsContent.setNewFileContent(null);
+        cmsContent.setEditing(false);
+        LoadCmsFileFromApplicationCms(cmsContent, IApplication.current());
       });
     }
   }
