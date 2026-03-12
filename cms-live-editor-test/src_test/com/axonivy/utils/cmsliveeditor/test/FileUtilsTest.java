@@ -2,8 +2,13 @@ package com.axonivy.utils.cmsliveeditor.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.junit.jupiter.api.Test;
+import org.primefaces.model.file.CommonsUploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmsliveeditor.constants.DocumentConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
@@ -27,6 +32,18 @@ public class FileUtilsTest {
     assertEquals(false, FileUtils.isValidFileSize(twoMBFileSize, 1));
     long oneMBFileSize = 1 * FileConstants.KB_IN_MB * FileConstants.BYTE_IN_KB;
     assertEquals(true, FileUtils.isValidFileSize(oneMBFileSize, 1));
+  }
+
+  @Test()
+  public void testGetMaxUploadedFileSize() {
+    assertEquals(50, FileUtils.getMaxUploadedFileSize());
+  }
+
+  @Test
+  public void testGetFileExtension() {
+    FileItem fileItem = new DiskFileItem("", DocumentConstants.PDF_CONTENT_TYPE, false, "test.pdf", 0, null);
+    UploadedFile file = new CommonsUploadedFile(fileItem, 1L);
+    assertEquals("pdf", FileUtils.getFileExtension(file));
   }
 }
 

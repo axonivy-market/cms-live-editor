@@ -1,5 +1,7 @@
 package com.axonivy.utils.cmsliveeditor.enums;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum FileType {
   PDF(".pdf", "pi pi-file-pdf cms-file-pdf-type"),
   EXCEL(".xls,.xlsx", "pi pi-file-excel cms-file-excel-type"),
@@ -19,20 +21,12 @@ public enum FileType {
     return fileExtension;
   }
 
-  public void setFileExtension(String fileExtension) {
-    this.fileExtension = fileExtension;
-  }
-
   public String getIconClasses() {
     return iconClasses;
   }
 
-  public void setIconClasses(String iconClasses) {
-    this.iconClasses = iconClasses;
-  }
-
   public static FileType fromExtension(String extension) {
-    if (extension == null || extension.isEmpty()) {
+    if (StringUtils.isBlank(extension)) {
       return OTHERS;
     }
 

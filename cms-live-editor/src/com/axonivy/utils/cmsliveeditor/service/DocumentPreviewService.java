@@ -32,6 +32,7 @@ import com.aspose.words.Orientation;
 import com.aspose.words.PageSetup;
 import com.aspose.words.SaveFormat;
 import com.aspose.words.Section;
+import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.axonivy.utils.cmsliveeditor.enums.AsposeProduct;
 
 
@@ -124,12 +125,12 @@ public class DocumentPreviewService {
       return StringUtils.EMPTY;
     }
 
-    String extension = StringUtils.lowerCase(fileName.substring(fileName.lastIndexOf(".")));
+    String extension = StringUtils.lowerCase(fileName.substring(fileName.lastIndexOf(CommonConstants.DOT_CHARACTER)));
     String contentType = switch (extension) {
       case PDF_EXTENSION -> PDF_CONTENT_TYPE;
       case PNG_EXTENSION -> PNG_CONTENT_TYPE;
       case JPEG_EXTENSION -> JPEG_CONTENT_TYPE;
-      case JPG_EXTENSION -> PDF_CONTENT_TYPE;
+      case JPG_EXTENSION -> JPG_EXTENSION;
       default -> StringUtils.EMPTY;
     };
     return contentType;

@@ -33,8 +33,7 @@ public class CmsService {
 
   private ContentObject createOrGetCmsByUri(String uri) {
     ContentManagementSystem contentManagementSystem = getContentManagementSystemOfCurrentApplication();
-    var cmsEntity = contentManagementSystem.get(uri);
-    return cmsEntity.orElseGet(() -> contentManagementSystem.root().child().string(uri));
+    return contentManagementSystem.get(uri).orElseGet(() -> contentManagementSystem.root().child().string(uri));
   }
 
   private boolean isCmsDifferentWithApplication(Cms cms) {
@@ -53,15 +52,13 @@ public class CmsService {
 
   public String getCmsFromApplication(String uri, Locale locale) {
     ContentManagementSystem contentManagementSystem = getContentManagementSystemOfCurrentApplication();
-    var cmsEntity = contentManagementSystem.get(uri);
-    return cmsEntity.map(contentObject -> contentObject.value().get(locale).read().string()).orElse(null);
+    return contentManagementSystem.get(uri).map(contentObject -> contentObject.value().get(locale).read().string()).orElse(null);
   }
 
   public boolean hasCmsFileFromApplication(String uri, Locale locale) {
     try {
       ContentManagementSystem contentManagementSystem = getContentManagementSystemOfCurrentApplication();
-      var cmsEntity = contentManagementSystem.get(uri);
-      return cmsEntity.map(contentObject -> contentObject.value().get(locale)).isPresent();
+      return contentManagementSystem.get(uri).map(contentObject -> contentObject.value().get(locale)).isPresent();
     } catch (Exception e) {
       Ivy.log().error(e);
       return false;

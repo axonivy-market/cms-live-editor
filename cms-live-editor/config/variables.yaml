@@ -9,7 +9,7 @@
 Variables:
   com:
     axonivy:
-      market:
-        CMSLiveEditor:
+      utils:
+        cmsliveeditor:
           # Unit is MB.
           MaxUploadedFileSize: "50"
