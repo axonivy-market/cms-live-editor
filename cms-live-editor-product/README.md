@@ -8,6 +8,7 @@ In Axon Ivy, languages for UIs, notifications, and emails are managed in the CMS
 - User-friendly editor for translating into new languages
 - Support for an unlimited number of languages
 - Simple styling options
+- Allow users to modify CMS files
 - No HTML tags required in translation texts
 
 ## Demo
@@ -40,11 +41,34 @@ The CMS Live Editor is now available as a process start in the dashboard. Users 
 - Example: For the CMS entry *UploadFileExists*, the current edits must still contain `{0}`. Do not remove it, rename it (e.g., to `{1}`), remove the brackets, or add extra placeholders in some locales but not others.
    ![](./images/11-cms-live-editor-placeholder-validation.png)
 
-### 5. Undo changes
+### 5. File Support
+
+The CMS Live Editor also supports handling files stored in the CMS. Files can be uploaded and previewed:
+
+1. It is possible to preview the content of CMS files. Currently supported file types are Word, Excel, PDF, and images.
+![](./images/15-cms-live-editor-preview-content.png)
+![](./images/16-cms-live-editor-preview-dialog.png)
+
+2. You can upload a file of the same type as the existing CMS file by clicking the “Attach/Change Document” link.
+![](./images/17-cms-live-editor-upload-document.png)
+![](./images/18-cms-live-editor-upload-cms-file-success.png)
+
+3. An error message will be displayed if the uploaded file type is different from the project's CMS file type, or if the uploaded file size exceeds the allowed limit. The allowed file size limit is configured in the variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.
+![](./images/19-cms-live-editor-upload-wrong-cms-file.png)
+
+### 6. Undo changes
 - “Undo Change” reverses the changes "made to the currently selected CMS entry.
 - "Reset all" will revert **all** changes made in the currently selected project, i.e., all entries marked with a red dot in the path column. As this can be a disruptive action, a confirmation dialog is displayed and the user must type the word "reset" to enable the "Reset all"-action.
 
-### 6. Download for deployment
+### 7. Download for deployment
 - The **Download for deployment** button allows users to download a ZIP file containing all translated content.
 - This can be used for a permanent engine deployment of the CMS values in the application.
   ![](./images/14-cms-live-editor-undo.png)
+
+## Setup
+
+By default, the maximum file size for CMS uploads is 50 MB. If needed, you can modify this limit by changing the configuration variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.
+
+```
+@variables.yaml@
+```
