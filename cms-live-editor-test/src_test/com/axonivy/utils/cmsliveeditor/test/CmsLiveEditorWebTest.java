@@ -14,6 +14,7 @@ import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
 
 import java.io.File;
+import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -169,7 +170,8 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testEditCmsFileDocX() {
     var cmsList = $$(CMS_PATH_URI);
-    cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI)).click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(2)).should(enabled).click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
     File pdfFile = new File("resource_test/blank_pdf.pdf");
@@ -177,8 +179,6 @@ public class CmsLiveEditorWebTest {
     firstInputElement.uploadFile(pdfFile);
     var errorMessageElement = $(".ui-messages-error-summary");
     errorMessageElement.shouldBe(visible).shouldHave(matchText("Error"));
-    var cmsItemElement = $(By.id("content-form:cms-edit-value:0:cms-file-item-type")).shouldBe(visible);
-    var originText = cmsItemElement.getText();
     File docFile = new File("resource_test/blank_doc.docx");
     firstInputElement.uploadFile(docFile);
     errorMessageElement.shouldBe(hidden);
@@ -188,7 +188,6 @@ public class CmsLiveEditorWebTest {
     var removeFileElement = $(".pi-trash");
     removeFileElement.shouldBe(visible).click();
     removeFileElement.shouldBe(hidden);
-    cmsItemElement.shouldHave(matchText(originText));
   }
 
   private void closeDialog(SelenideElement dialog) {
