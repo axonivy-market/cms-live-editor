@@ -277,7 +277,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   private void loadFileContentOfSelectedCms() {
     IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
-        .filter(pmv -> pmv.getProjectName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
+        .filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
     if (selectedPmv == null) {
       return;
     }
