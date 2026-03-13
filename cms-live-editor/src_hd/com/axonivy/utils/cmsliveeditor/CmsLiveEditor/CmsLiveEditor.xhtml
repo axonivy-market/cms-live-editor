@@ -228,7 +228,7 @@
                               </div>
                             </p:commandLink>
                             <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsLiveEditorBean.removeCmsFileInApplicationCms(language.index)}"
-                              styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item">
+                              styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item-container">
                               <i class="pi pi-trash" />
                             </p:commandLink>
                           </h:panelGroup>

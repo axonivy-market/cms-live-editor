@@ -498,8 +498,8 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void handleFileUpload(FileUploadEvent event) {
-    int index = (Integer) event.getComponent().getAttributes().get("index");
-    CmsContent cmsContent = selectedCms.getContents().get(index);
+    int cmsIndex = (Integer) event.getComponent().getAttributes().get("index");
+    CmsContent cmsContent = selectedCms.getContents().get(cmsIndex);
     UploadedFile file = event.getFile();
     long maxUploadedFileSize = FileUtils.getMaxUploadedFileSize();
     boolean isValidFileSize = FileUtils.isValidFileSize(file.getSize(), maxUploadedFileSize);
@@ -507,20 +507,13 @@ public class CmsLiveEditorBean implements Serializable {
     boolean isValidFileType = selectedCms.getFileType().getFileExtension().contains(fileExtension);
 
     if (!isValidFileSize || !isValidFileType) {
-      FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/Error"), "");
-      FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index), message);
+      addErrorMessage(Ivy.cms().co("/Labels/Error"), StringUtils.EMPTY, cmsIndex);
       if (!isValidFileSize) {
-        FacesMessage invalidFileSizeMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, "",
-            Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)));
-        FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index),
-            invalidFileSizeMessage);
+        addErrorMessage(StringUtils.EMPTY, Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)), cmsIndex);
       }
 
       if (!isValidFileType) {
-        FacesMessage invalidFileTypeMessage =
-            new FacesMessage(FacesMessage.SEVERITY_ERROR, "", Ivy.cms().co("/Labels/InvalidFileTypeMessage"));
-        FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, index),
-            invalidFileTypeMessage);
+        addErrorMessage(StringUtils.EMPTY, Ivy.cms().co("/Labels/InvalidFileTypeMessage"), cmsIndex);
       }
     }
 
@@ -529,6 +522,11 @@ public class CmsLiveEditorBean implements Serializable {
     } else {
       handleUploadNewFile(null, cmsContent);
     }
+  }
+
+  private void addErrorMessage(String summary, String messageDetails, int cmsIndex) {
+    FacesMessage errorMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, summary, messageDetails);
+    FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, cmsIndex), errorMessage);
   }
 
   private void handleUploadNewFile(UploadedFile newUploadedFile, CmsContent cmsContent ) {
