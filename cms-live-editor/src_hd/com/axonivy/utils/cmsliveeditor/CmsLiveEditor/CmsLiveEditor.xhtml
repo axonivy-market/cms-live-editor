@@ -1,6 +1,9 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core"
-  xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-  xmlns:ic="http://ivyteam.ch/jsf/component" xmlns:p="http://primefaces.org/ui">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:ic="http://ivyteam.ch/jsf/component"
+  xmlns:p="http://primefaces.org/ui">
 <h:body>
   <ui:composition template="/layouts/frame-10-full-width.xhtml">
     <ui:define name="title">#{ivy.cms.co('/Labels/CMSLiveEditor/name')}</ui:define>
@@ -8,7 +11,7 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" onkeypress="if (event.keyCode === 13){return false;}">
+      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}">
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -97,11 +100,36 @@
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language">
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
-                        <h:panelGroup styleClass="ui-fluid">
+                        <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor originalContent="#{language.originalContent}"
                             content="#{language.content}" languageIndex="#{language.index}"
                             managedBean="#{cmsLiveEditorBean}" isReadOnly="true"
                             isFormatButtonListVisible="#{language.html}" />
+                        </h:panelGroup>
+                        <h:panelGroup
+                          styleClass="ui-fluid cms-file-item"
+                          layout="block"
+                          rendered="#{cmsLiveEditorBean.selectedCms.isFile() and (language.applicationFileSize > 0 or language.fileSize > 0)}">
+                          <p:commandLink
+                            styleClass="flex w-full cms-file-item-link"
+                            actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, false)}"
+                            update="preview-document-dialog"
+                            oncomplete="PF('preview-document-dialog').show();">
+                            <h:panelGroup layout="block" class="cms-file-item-icon">
+                              <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
+                            </h:panelGroup>
+                            <div class="cms-file-item-description">
+                              <h:outputText id="cms-file-item-name"
+                                value="#{language.fileName}"
+                                styleClass="cms-file-item-name" />
+                              <h:outputText rendered="#{cmsLiveEditorBean.editableCms eq false}"
+                                value="#{cmsLiveEditorBean.selectedCms.fileExtension} - #{language.applicationFileSize > 0 ? language.applicationFileSize : language.fileSize} KB"
+                                styleClass="cms-file-item-type" />
+                              <h:outputText rendered="#{cmsLiveEditorBean.editableCms eq true}"
+                                value="#{cmsLiveEditorBean.selectedCms.fileExtension} - #{language.fileSize} KB"
+                                styleClass="cms-file-item-type" />
+                            </div>
+                          </p:commandLink>
                         </h:panelGroup>
                       </p:tab>
                     </p:accordionPanel>
@@ -140,7 +168,6 @@
                         disabled="#{cmsLiveEditorBean.disableEditableButton}" partialSubmit="true" />
                     </h:panelGroup>
                   </h:panelGroup>
-
                 </h:panelGroup>
               </h:panelGroup>
 
@@ -154,13 +181,59 @@
                   <h:panelGroup styleClass="flex-grow-1 overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
-                      var="language">
+                      var="language" onTabClose="handleTabClose(panel)">
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
-                        <h:panelGroup styleClass="ui-fluid">
+                        <f:facet name="actions">
+                          <h:panelGroup id="upload-pannel">
+                            <p:fileUpload id="upload"
+                              listener="#{cmsLiveEditorBean.handleFileUpload}"
+                              rendered="#{cmsLiveEditorBean.selectedCms.isFile()}"
+                              value="#{language.newUploadedFile}" virusScan="true"
+                              process="@this" auto="true" accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
+                              chooseIcon="pi pi-paperclip change-document-link"
+                              update="@this content-form:cms-edit-value:#{language.index}:cms-file-item-container content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
+                              styleClass="change-document-link-text"
+                              label="#{(language.applicationFileSize > 0 or language.fileSize > 0 or language.newFileSize > 0) ? ivy.cms.co('/Labels/ChangeDocument') : ivy.cms.co('/Labels/AttachDocument')}"
+                              fileLimit="1" mode="simple"
+                              skinSimple="true">
+                              <f:attribute name="index" value="#{language.index}" />
+                            </p:fileUpload>
+                          </h:panelGroup>
+                        </f:facet>
+                        <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor content="#{language.content}"
                             languageIndex="#{language.index}" managedBean="#{cmsLiveEditorBean}"
                             isReadOnly="#{!cmsLiveEditorBean.editableCms}" isFormatButtonListVisible="#{language.html}" />
                         </h:panelGroup>
+                        <h:panelGroup id="cms-file-item-container">
+                          <h:panelGroup id="cms-file-item"
+                            styleClass="ui-fluid cms-file-item"
+                            layout="block"
+                            rendered="#{cmsLiveEditorBean.selectedCms.isFile() and (language.applicationFileSize > 0 or language.fileSize > 0 or language.newFileSize > 0)}">
+                            <p:commandLink id="cms-file-item-link"
+                              styleClass="flex w-full cms-file-item-link"
+                              actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, true)}"
+                              update="preview-document-dialog"
+                              oncomplete="PF('preview-document-dialog').show();">
+                              <h:panelGroup layout="block" class="cms-file-item-icon">
+                                <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
+                              </h:panelGroup>
+                              <div class="cms-file-item-description">
+                                <h:outputText id="cms-file-item-name"
+                                  value="#{language.fileName}"
+                                  styleClass="cms-file-item-name" />
+                                <h:outputText id="cms-file-item-type"
+                                  value="#{cmsLiveEditorBean.selectedCms.fileExtension} - #{language.newFileSize > 0 ? language.newFileSize : (language.applicationFileSize > 0 ? language.applicationFileSize : language.fileSize)} KB"
+                                  styleClass="cms-file-item-type" />
+                              </div>
+                            </p:commandLink>
+                            <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsLiveEditorBean.removeCmsFileInApplicationCms(language.index)}"
+                              styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item-container">
+                              <i class="pi pi-trash" />
+                            </p:commandLink>
+                          </h:panelGroup>
+                        </h:panelGroup>
+                        <p:messages id="cms-file-content-msg" styleClass="cms-file-error-message" showDetail="true" />
                       </p:tab>
                     </p:accordionPanel>
                   </h:panelGroup>
@@ -200,12 +273,10 @@
                         oncomplete="initCmsWarnings(); showSaveSuccess(); restorePathPanelScroll();"
                         partialSubmit="true" />
                     </h:panelGroup>
-
                   </h:panelGroup>
                 </h:panelGroup>
               </h:panelGroup>
             </h:panelGroup>
-
           </h:panelGroup>
         </h:panelGroup>
         <div class="command-btns pt-2">
@@ -249,6 +320,18 @@
         </div>
       </p:dialog>
 
+      <!-- Dialog for previewing document -->
+      <p:dialog widgetVar="preview-document-dialog"
+        id="preview-document-dialog" header="#{ivy.cms.co('/Labels/Preview')}" modal="true"
+        maximizable="true" width="850" height="650" showEffect="fade"
+        hideEffect="fade" dynamic="true" fitViewport="true"
+        responsive="true">
+
+        <div class="ui-g-12">
+          <p:media value="#{data.streamedContent}" width="100%" height="620"
+            cache="false" id="media-content" player="pdf" />
+        </div>
+      </p:dialog>
       <script type="text/javascript">
         window.isHideTaskName = false;
         window.isHideTaskAction = true;

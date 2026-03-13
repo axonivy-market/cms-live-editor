@@ -7,5 +7,29 @@
     "name" : "showEditorCms",
     "type" : "Boolean",
     "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "fileContent",
+    "type" : "byte[]",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "streamedContent",
+    "type" : "org.primefaces.model.StreamedContent",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "fileName",
+    "type" : "String",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "isOnCmsEditColumn",
+    "type" : "Boolean",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "cmsContent",
+    "type" : "com.axonivy.utils.cmsliveeditor.model.CmsContent",
+    "modifiers" : [ "PERSISTENT" ]
+  }, {
+    "name" : "isEditMode",
+    "type" : "Boolean",
+    "modifiers" : [ "PERSISTENT" ]
   } ]
 }

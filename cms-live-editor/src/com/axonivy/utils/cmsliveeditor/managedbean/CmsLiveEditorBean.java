@@ -1,7 +1,14 @@
 package com.axonivy.utils.cmsliveeditor.managedbean;
 
 import static ch.ivyteam.ivy.environment.Ivy.cms;
-import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.*;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_EDITOR_DEMO_PMV_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_EDITOR_PMV_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD;
 import static java.util.stream.Collectors.toList;
 import static javax.faces.application.FacesMessage.SEVERITY_INFO;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -25,7 +32,6 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 
-import ch.ivyteam.ivy.application.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -33,9 +39,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.primefaces.PF;
 import org.primefaces.PrimeFaces;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.StreamedContent;
+import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
@@ -43,16 +53,23 @@ import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
+import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.ivyteam.ivy.application.ActivityState;
+import ch.ivyteam.ivy.application.IActivity;
+import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.IProcessModel;
+import ch.ivyteam.ivy.application.IProcessModelVersion;
 import ch.ivyteam.ivy.application.app.IApplicationRepository;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
 import ch.ivyteam.ivy.cm.ContentObjectValue;
 import ch.ivyteam.ivy.cm.exec.ContentManagement;
+import ch.ivyteam.ivy.environment.Ivy;
 import ch.ivyteam.ivy.security.ISecurityContext;
 
 @ViewScoped
@@ -60,8 +77,11 @@ import ch.ivyteam.ivy.security.ISecurityContext;
 public class CmsLiveEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
+  private static final String CMS_FILE_FORMAT = "%s_%s.%s";
+  private static final String FILE_EXTENSION_FORMAT = ".%s";
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
+
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
   private List<Cms> filteredCMSList;
@@ -91,7 +111,12 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void writeCmsToApplication() {
     isEditableCms = false;
-    cmsService.writeCmsToApplication(savedCmsMap);
+    if (selectedCms.isFile()) {
+      cmsService.writeCmsFileToApplication(selectedCms);
+      clearNewUploadFile();
+    } else {
+      cmsService.writeCmsToApplication(savedCmsMap);
+    }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
@@ -106,6 +131,23 @@ public class CmsLiveEditorBean implements Serializable {
     return Optional.ofNullable(selectedCms).map(Cms::isDifferentWithApplication).orElse(false);
   }
 
+  public void removeCmsFileInApplicationCms(int index) {
+    try {
+      var cmsContent = this.selectedCms.getContents().get(index);
+      cmsContent.setEditing(cmsContent.getApplicationFileSize() > 0);
+      if (cmsContent.getNewFileSize() > 0) {
+        cmsContent.setNewUploadedFile(null);
+        cmsContent.setNewFileSize(0);
+        cmsContent.setNewFileContent(null);
+      } else {
+        cmsContent.setApplicationFileSize(0);
+        cmsContent.setApplicationFileContent(null);
+      }
+    } catch (Exception e) {
+      Ivy.log().error(e);
+    }
+  }
+
   /*
    * 
    * This method is used to reset all values in filteredCMSList where each CMS has the flag isDifferentWithApplication
@@ -116,9 +158,13 @@ public class CmsLiveEditorBean implements Serializable {
   public void resetAllChanges() {
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
-      savedCmsMap.remove(cms.getUri());
-      cmsService.removeApplicationCmsByUri(cms.getUri());
-      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      if (cms.isFile()) {
+        cmsService.removeAllCmsFiles(cms);
+      } else {
+        savedCmsMap.remove(cms.getUri());
+        cmsService.removeApplicationCmsByUri(cms.getUri());
+        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      }
     });
     onAppChange();
     isEditableCms = false;
@@ -134,8 +180,16 @@ public class CmsLiveEditorBean implements Serializable {
   public void undoChange() {
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
-      cmsService.removeApplicationCmsByUri(cms.getUri());
-      cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      if (selectedCms.isFile()) {
+        cmsService.removeAllCmsFiles(selectedCms);
+        selectedCms.getContents().forEach(cmsContent -> {
+          cmsContent.setApplicationFileSize(0);
+          cmsContent.setApplicationFileContent(null);
+        });
+      } else {
+        cmsService.removeApplicationCmsByUri(cms.getUri());
+        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+      }
     });
     onAppChange();
     isEditableCms = false;
@@ -153,7 +207,20 @@ public class CmsLiveEditorBean implements Serializable {
     isEditableCms = false;
     lastSelectedCms = null;
     isInEditMode = false;
+    clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+  }
+
+  private void clearNewUploadFile() {
+    if (selectedCms.isFile()) {
+      selectedCms.getContents().stream().forEach(cmsContent -> {
+        cmsContent.setNewUploadedFile(null);
+        cmsContent.setNewFileSize(0);
+        cmsContent.setNewFileContent(null);
+        cmsContent.setEditing(false);
+        loadCmsFileFromApplicationCms(cmsContent, IApplication.current());
+      });
+    }
   }
 
   public boolean isDisableEditableButton() {
@@ -195,11 +262,61 @@ public class CmsLiveEditorBean implements Serializable {
     if (isEditing()) {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
-    } else if (isInEditMode) {
-      isInEditMode = false;
-      PF.current().ajax().update(CONTENT_FORM);
     } else {
-      PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+      if (selectedCms.isFile()) {
+        loadFileContentOfSelectedCms();
+      }
+      if (isInEditMode) {
+        isInEditMode = false;
+        PF.current().ajax().update(CONTENT_FORM);
+      } else {
+        PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+      }
+    }
+  }
+
+  private void loadFileContentOfSelectedCms() {
+    IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
+        .filter(pmv -> pmv.getProjectName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
+    if (selectedPmv == null) {
+      return;
+    }
+
+    Optional.ofNullable(ContentManagement.cms(selectedPmv)).flatMap(cms -> cms.get(selectedCms.getUri()))
+        .ifPresent(this::loadFileContentOfCmsContent);
+  }
+
+  private void loadFileContentOfCmsContent(ContentObject contentObject) {
+    try {
+      for (CmsContent cmsContent : selectedCms.getContents()) {
+        if (cmsContent == null) {
+          break;
+        }
+        loadCmsFileFromProjectCms(contentObject, cmsContent);
+        loadCmsFileFromApplicationCms(cmsContent, IApplication.current());
+      }
+    } catch (Exception e) {
+      Ivy.log().error(e);
+    }
+  }
+
+  public void loadCmsFileFromProjectCms(ContentObject contentObject, CmsContent cmsContent) {
+    ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
+    byte[] bytes = Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElse(null);
+    if (bytes != null) {
+      cmsContent.setFileContent(bytes);
+      cmsContent.setFileSize(FileUtils.calculateToKB(bytes.length));
+    }
+  }
+
+  public void loadCmsFileFromApplicationCms(CmsContent cmsContent, IApplication currentApplication) {
+    var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+    ContentObject currentContentObject = cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root()
+        .child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
+    byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
+    if (bytesOfApplicationCmsFile != null) {
+      cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
+      cmsContent.setApplicationFileSize(FileUtils.calculateToKB(bytesOfApplicationCmsFile.length));
     }
   }
 
@@ -254,24 +371,46 @@ public class CmsLiveEditorBean implements Serializable {
 
     for (ContentObject child : contentObject.children()) {
       if (child.children().isEmpty()) {
-        // just allow string cms. not file
-        if (StringUtils.isBlank(child.meta().fileExtension())) {
-          var cms = convertToCms(child, locales, pmvName);
-          if (cms.getContents() != null) {
-            var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
-            contents.addCms(cms);
-            pmvCmsMap.putIfAbsent(pmvName, contents);
-          }
+        var cms = convertToCms(child, locales, pmvName, child.meta().fileExtension());
+        if (cms.getContents() != null) {
+          var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
+          contents.addCms(cms);
+          pmvCmsMap.putIfAbsent(pmvName, contents);
         }
       }
       getAllChildren(pmvName, child, locales);
     }
   }
 
-  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName) {
+  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName, String fileExtension) {
     var cms = new Cms();
     cms.setUri(contentObject.uri());
     cms.setPmvName(pmvName);
+    boolean isFile = StringUtils.isNotBlank(fileExtension);
+    if (isFile) {
+      convertToCmsFile(contentObject, locales, cms, fileExtension);
+    } else {
+      convertToCmsText(contentObject, locales, cms);
+    }
+
+    return cms;
+  }
+
+  private void convertToCmsFile(ContentObject contentObject, List<Locale> locales, Cms cms, String fileExtension) {
+    cms.setFile(true);
+    cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
+    FileType fileType = getFileTypeByExtension(fileExtension);
+    cms.setFileType(fileType);
+    for (var i = 0; i < locales.size(); i++) {
+      Locale locale = locales.get(i);
+      String language = locale.getLanguage();
+      String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
+      String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf(CommonConstants.SLASH_CHARACTER) + 1);
+      cms.addContent(new CmsContent(i, locale, true, fileName, projectCmsFileUri));
+    }
+  }
+
+  private void convertToCmsText(ContentObject contentObject, List<Locale> locales, Cms cms) {
     for (var i = 0; i < locales.size(); i++) {
       Locale locale = locales.get(i);
       ContentObjectValue value = contentObject.value().get(locale);
@@ -283,7 +422,11 @@ public class CmsLiveEditorBean implements Serializable {
       }
       cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
     }
-    return cms;
+  }
+
+  private FileType getFileTypeByExtension(String extension) {
+    String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
+    return FileType.fromExtension(fileExtension);
   }
 
   private static boolean isActive(IActivity processModelVersion) {
@@ -347,6 +490,57 @@ public class CmsLiveEditorBean implements Serializable {
         .orElse(StringUtils.EMPTY);
   }
 
+  public boolean isTheSameContent(String originalContent, String content) {
+    Document originValue = Jsoup.parse(originalContent);
+    Document newValue = Jsoup.parse(content);
+
+    return originValue.body().html().equals(newValue.body().html());
+  }
+
+  public void handleFileUpload(FileUploadEvent event) {
+    int cmsIndex = (Integer) event.getComponent().getAttributes().get("index");
+    CmsContent cmsContent = selectedCms.getContents().get(cmsIndex);
+    UploadedFile file = event.getFile();
+    long maxUploadedFileSize = FileUtils.getMaxUploadedFileSize();
+    boolean isValidFileSize = FileUtils.isValidFileSize(file.getSize(), maxUploadedFileSize);
+    String fileExtension = FileUtils.getFileExtension(file);
+    boolean isValidFileType = selectedCms.getFileType().getFileExtension().contains(fileExtension);
+
+    if (!isValidFileSize || !isValidFileType) {
+      addErrorMessage(Ivy.cms().co("/Labels/Error"), StringUtils.EMPTY, cmsIndex);
+      if (!isValidFileSize) {
+        addErrorMessage(StringUtils.EMPTY, Ivy.cms().co("/Labels/InvalidFileSizeMessage", List.of(maxUploadedFileSize)), cmsIndex);
+      }
+
+      if (!isValidFileType) {
+        addErrorMessage(StringUtils.EMPTY, Ivy.cms().co("/Labels/InvalidFileTypeMessage"), cmsIndex);
+      }
+    }
+
+    if (isValidFileSize && isValidFileType) {
+      handleUploadNewFile(file, cmsContent);
+    } else {
+      handleUploadNewFile(null, cmsContent);
+    }
+  }
+
+  private void addErrorMessage(String summary, String messageDetails, int cmsIndex) {
+    FacesMessage errorMessage = new FacesMessage(FacesMessage.SEVERITY_ERROR, summary, messageDetails);
+    FacesContext.getCurrentInstance().addMessage(String.format(ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD, cmsIndex), errorMessage);
+  }
+
+  private void handleUploadNewFile(UploadedFile newUploadedFile, CmsContent cmsContent ) {
+    if (newUploadedFile != null) {
+      cmsContent.setNewFileContent(newUploadedFile.getContent());
+      cmsContent.setNewFileSize(FileUtils.calculateToKB(newUploadedFile.getSize()));
+      cmsContent.setEditing(true);
+    } else {
+      cmsContent.setNewFileContent(null);
+      cmsContent.setNewFileSize(0);
+      cmsContent.setEditing(false);
+    }
+  }
+
   public List<Cms> getFilteredCMSKeys() {
     return filteredCMSList;
   }
@@ -401,12 +595,5 @@ public class CmsLiveEditorBean implements Serializable {
 
   public Set<String> getProjectCms() {
     return this.pmvCmsMap.keySet();
-  }
-
-  public boolean isTheSameContent(String originalContent, String content) {
-    Document originValue = Jsoup.parse(originalContent);
-    Document newValue = Jsoup.parse(content);
-
-    return originValue.body().html().equals(newValue.body().html());
   }
 }
