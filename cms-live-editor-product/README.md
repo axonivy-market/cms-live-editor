@@ -49,11 +49,11 @@ The CMS Live Editor also supports handling files stored in the CMS. Files can be
 ![](./images/15-cms-live-editor-preview-content.png)
 ![](./images/16-cms-live-editor-preview-dialog.png)
 
-3. You can upload a file of the same type as the existing CMS file by clicking the “Attach/Change Document” link.
+2. You can upload a file of the same type as the existing CMS file by clicking the “Attach/Change Document” link.
 ![](./images/17-cms-live-editor-upload-document.png)
 ![](./images/18-cms-live-editor-upload-cms-file-success.png)
 
-4. An error message will be displayed if the uploaded file type is different from the project's CMS file type, or if the uploaded file size exceeds the allowed limit. The allowed file size limit is configured in the variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.
+3. An error message will be displayed if the uploaded file type is different from the project's CMS file type, or if the uploaded file size exceeds the allowed limit. The allowed file size limit is configured in the variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.
 ![](./images/19-cms-live-editor-upload-wrong-cms-file.png)
 
 ### 6. Undo changes
