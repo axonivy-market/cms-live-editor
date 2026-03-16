@@ -19,6 +19,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
@@ -140,6 +141,21 @@ public class CmsLiveEditorWebTest {
   }
 
   @Test
+  public void testSaveWithInvalidPlaceholderAcrossLocalesShouldShowError() {
+    var cmsList = $$(CMS_PATH_URI);
+    cmsList.first().click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    editors.get(0).setValue("File count {0}");
+    editors.get(1).setValue("Date value {1}");
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
+  }
+
+  @Test
   public void testResetAllChanges() {
     openFirstCmsAndEdit();
     updateAndSaveContent();
@@ -165,6 +181,73 @@ public class CmsLiveEditorWebTest {
     updateAndSaveContent();
     openResetDialog();
     $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
+  }
+
+  @Test
+  public void testSaveWithValidPlaceholdersAcrossLocalesShouldSucceed() {
+    var cmsList = $$(CMS_PATH_URI);
+    cmsList.first().click();
+
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    for (SelenideElement editor : editors) {
+      editor.click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys("Files count {0}");
+    }
+    $(By.id(SAVE_BUTTON_ID)).click();
+
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    undoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithChoicePlaceholderShouldSucceed() {
+    var cmsList = $$(CMS_PATH_URI);
+    cmsList.first().click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(1));
+
+    String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
+
+    for (var editor : editors) {
+      editor.click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(content);
+    }
+
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    undoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithReorderedPlaceholdersShouldSucceed() {
+    var cmsList = $$(CMS_PATH_URI);
+    cmsList.first().click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    String[] contents =
+        {"{0} has {1} files", "{1} Dateien gehören zu {0}", "{0} tiene {1} archivos", "{1} dosyalar {0} için"};
+
+    for (int i = 0; i < editors.size(); i++) {
+      var editor = editors.get(i);
+      editor.click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(contents[i % contents.length]);
+    }
+
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    undoCmsChanges();
   }
 
   @Test
@@ -194,6 +277,13 @@ public class CmsLiveEditorWebTest {
     dialog.should(visible);
     dialog.$(".ui-dialog-titlebar-close").click();
     Selenide.sleep(1000);
+  }
+
+  public void undoCmsChanges() {
+    var undoButton = $(By.id("content-form:undo-change-path"));
+    if (undoButton.exists()) {
+      undoButton.shouldBe(enabled).click();
+    }
   }
 
   @Test

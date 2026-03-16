@@ -15,12 +15,15 @@ Labels:
   CmsInformation: CMS Information
   Download: Download for deployment
   Edit: Edit
-  EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
   Message: Message
+  MessageFormatHint: |-
+    This field supports Java MessageFormat syntax.
+    Use numbered placeholders like {0}, {1}, etc., to insert dynamic values.
+    See documentation: https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html
   Options: Options
   Paths: Paths
   Preview: Preview

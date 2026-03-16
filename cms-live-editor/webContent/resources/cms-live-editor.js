@@ -110,11 +110,6 @@ function saveAllEditors() {
     const editor = window.cmsLiveEditors[languageIndex];
     const contents = editor.getContents();
 
-    if (!validateNotEmpty(editor, languageIndex)) {
-      hasAnyError = true;
-      continue;
-    }
-
     const validationResult = validatePlaceholders({
       languageIndex,
       contents,
@@ -153,24 +148,12 @@ function saveAllEditors() {
   return true;
 }
 
-function validateNotEmpty(editor, languageIndex) {
-  const text = removeNonPrintableChars(editor.getText()).trim();
-
-  if (text.length === 0) {
-    editor.noticeOpen("The content must not be empty.");
-    setEditorError(languageIndex, true);
-    return false;
-  }
-
-  return true;
-}
-
 /** Placeholder validation:
 * - If all locales are edited → ensure placeholders are consistent across locales.
 * - If only some locales edited → ensure placeholder numbers match the original of this locale.
 */
 function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
-  const newPlaceholders = extractPlaceholders(contents).sort();
+  const newPlaceholders = extractPlaceholders(contents);
 
   if (allLocalesEdited) {
     if (expectedPlaceholders === null) {
@@ -223,15 +206,36 @@ function getEditorContainer(languageIndex) {
   ) || null;
 }
 
-/** Extracts numbered placeholders from the editing content.
-* A placeholder is defined as format {number}, e.g. {0}, {1}
+/** 
+* Extracts placeholder argument indexes from MessageFormat patterns in the content.
+*
+* Supports placeholders following Java MessageFormat syntax:
+*   {0}
+*   {1,number}
+*   {2,date,short}
+*   {0,choice,0#none|1#one|1<{0} files}
+*
+* Only the argument index (e.g. 0, 1, 2) is returned because locale translations
+* may legally change the formatting style (number/date/choice) while still using
+* the same argument indexes.
+*
+* The returned array contains the indexes in sorted order so they can be compared
+* across locales to ensure placeholder consistency.
 */
 function extractPlaceholders(content) {
   if (!content) {
     return [];
   }
-  const matches = content.match(/\{\d+\}/g);
-  return matches ? matches.slice() : [];
+
+  const regex = /\{(\d+)(?:,[^}]*)?\}/g;
+  const result = [];
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    result.push(Number(match[1]));
+  }
+
+  return result.sort((a, b) => a - b);
 }
 
 /** Compares two placeholder lists for exact equality.
