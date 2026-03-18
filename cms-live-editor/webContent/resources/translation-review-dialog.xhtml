@@ -13,38 +13,24 @@
         styleClass="text-color-secondary" />
     </h:panelGroup>
     <h:panelGroup id="reviewContent" layout="block">
-      <p:dataTable value="#{cmsLiveEditorBean.translatedCms}" var="cms"
+      <p:dataTable class="review-data-table" value="#{cmsLiveEditorBean.translatedCms}" var="cms"
         styleClass="w-full">
-        <p:columnGroup type="header">
-          <p:row>
-            <p:column>
-              <h:outputText value="Path" />
-            </p:column>
-            <p:column>
-              <h:outputText
-                value="#{cmsLiveEditorBean.selectedSourceLanguage != null ? 
-           java.util.Locale.forLanguageTag(cmsLiveEditorBean.selectedSourceLanguage).displayLanguage :
-           ''}" />
-            </p:column>
-            <p:columns value="#{cmsLiveEditorBean.localesExcludeSource}"
-              var="lang">
-              <h:outputText value="#{lang.displayLanguage}" />
-            </p:columns>
-          </p:row>
-        </p:columnGroup>
-        <!-- BODY -->
-        <p:column style="width: 15rem;">
-          <h:outputText value="#{cms.uri}" />
-        </p:column>
-        <p:column style="width: 18rem;">
-          <h:outputText
-            value="#{cmsLiveEditorBean.getSourceContent(cms)}" />
-        </p:column>
-        <p:columns value="#{cmsLiveEditorBean.localesExcludeSource}"
-          var="lang" style="width: 18rem;">
-          <h:outputText
-            value="#{cmsLiveEditorBean.getValueByLocale(cms, lang.toLanguageTag())}" />
-        </p:columns>
+          <p:column headerText="Path" style="width: 15rem;">
+            <h:outputText value="#{cms.uri}" />
+          </p:column>
+
+          <p:column headerText="Source(#{cmsLiveEditorBean.selectedSourceLanguage})" style="width: 18rem;">
+            <h:outputText
+              value="#{cmsLiveEditorBean.getSourceContent(cms)}" />
+          </p:column>
+
+          <p:columns value="#{cmsLiveEditorBean.localesExcludeSource}"
+            var="lang" headerText="#{lang.displayLanguage}"
+            style="width: 18rem;">
+            <h:outputText
+              value="#{cmsLiveEditorBean.getValueByLocale(cms, lang.toLanguageTag())}" />
+          </p:columns>
+
       </p:dataTable>
     </h:panelGroup>
     <f:facet name="footer">
