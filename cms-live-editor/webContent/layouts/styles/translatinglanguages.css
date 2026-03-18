@@ -1,15 +1,14 @@
 #content {
   position: absolute;
-  inset: 0; /* same as top:0; bottom:0; left:0; right:0 */
+  inset: 0;
 }
-/*width for dropdown  */
+
 .ui-menu {
-  width: 300px; /* Adjust the width as needed */
+  width: 300px;
 }
 
 .panel {
   float: left;
-  /* Adjust based on desired layout (horizontal/vertical) */
   padding: 0;
   display: block;
   overflow: auto;
@@ -95,10 +94,6 @@
   overflow: hidden;
   border: 1px solid #E7E7E7;
   border-radius: 5px;
-}
-
-.columns {
-  padding: 0 0 0 0;
 }
 
 .cms-info-icon {
