@@ -71,7 +71,7 @@
                     <p:tooltip for="cms-uri" value="#{entry.uri} (#{entry.pmvName})" position="top" />
                   </p:column>
                   <p:ajax event="rowSelect" process="@this" update="@this" partialSubmit="true"
-                    oncomplete="setRowChange()"/>
+                    oncomplete="setRowChange()" />
                 </p:dataTable>
               </h:panelGroup>
             </h:panelGroup>
