@@ -8,7 +8,7 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full">
+      <h:form id="content-form" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full card">
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -39,9 +39,9 @@
             </div>
           </div>
 
-          <h:panelGroup layout="block" class="column-container flex flex-1" id="column-container">
+          <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
             <h:panelGroup layout="block" id="path-column"
-              styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} columns h-full">
+              styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} columns h-full right-border">
               <div class="column-header flex align-items-center justify-content-between">
                 <span class="path-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Paths')} </span>
                 <h:panelGroup id="reset-all-change-button" layout="block"
@@ -68,7 +68,7 @@
                     <p:tooltip for="cms-uri" value="#{entry.uri} (#{entry.pmvName})" position="top" />
                   </p:column>
                   <p:ajax event="rowSelect" process="@this" update="@this" partialSubmit="true"
-                    oncomplete="setRowChange()" />
+                    oncomplete="setRowChange()"/>
                 </p:dataTable>
               </h:panelGroup>
             </h:panelGroup>
@@ -208,7 +208,7 @@
 
           </h:panelGroup>
         </h:panelGroup>
-        <div class="command-btns pt-2">
+        <div>
           <p:remoteCommand name="stop" global="false" partialSubmit="true" process="@this" update="content-form"
             actionListener="#{cmsLiveEditorBean.downloadFinished}" />
           <p:remoteCommand name="saveAllValue" global="false" partialSubmit="true" process="@this"

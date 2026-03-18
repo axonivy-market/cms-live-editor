@@ -10,7 +10,6 @@
 .panel {
   float: left;
   /* Adjust based on desired layout (horizontal/vertical) */
-  border: 1px solid #EBEBEB;
   padding: 0;
   display: block;
   overflow: auto;
@@ -69,21 +68,15 @@
 
 .column-header {
   background: #FAFAFA;
-  border: 1px solid #E5E7EB;
   padding: 6px 10px;
   font-weight: 600;
   font-size: 12px;
   height: 36px;
+  border-bottom: 2px solid #E7E7E7;
 }
 
-body.dark .column-header {
-  background: #FAFAFA;
-  border: 1px solid #E5E7EB;
-  padding: 6px 10px;
-  font-weight: 600;
-  font-size: 12px;
-  height: 36px;
-  color: #1B1B1B;
+.right-border {
+  border-right: 1px solid #E7E7E7;
 }
 
 .ui-accordion-header {
@@ -100,8 +93,8 @@ body.dark .column-header {
 .column-container {
   margin-top: 16px;
   overflow: hidden;
-  border: 2px solid #EBEBEB;
-  border-radius: 6px;
+  border: 1px solid #E7E7E7;
+  border-radius: 5px;
 }
 
 .columns {
