@@ -33,7 +33,6 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
-import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,9 +98,8 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean isInEditMode;
-  private Locale selectedSourceLanguage;
-  private List<SelectItem> languageList;
-  private List<Cms> translationResults;
+  private String selectedSourceLanguage;
+  private List<Locale> languageList;
 
   @PostConstruct
   private void init() {
@@ -250,7 +248,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void translate(CmsContent content) {
-    String sourceLang = selectedSourceLanguage.getLanguage().toUpperCase();
+    String sourceLang = selectedSourceLanguage.toUpperCase();
     String targetLang = content.getLocale().getLanguage().toUpperCase();
     if (sourceLang.equals(targetLang)) {
       return;
@@ -262,8 +260,9 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void translateAll() {
-    Ivy.log().error(selectedSourceLanguage);
-    translationResults = TranslationService.batchTranslate(cmsList, "EN");
+    String src = Locale.forLanguageTag(selectedSourceLanguage).getLanguage().toUpperCase(Locale.ENGLISH);
+    Ivy.log().info("#translateAll: source=" + src + " (raw=" + selectedSourceLanguage + ")");
+    TranslationService.batchTranslate(filteredCMSList, src);
   }
 
   public void onAppChange() {
@@ -282,12 +281,28 @@ public class CmsLiveEditorBean implements Serializable {
     search();
   }
 
-  public String getValueByLocale(Cms cms, Locale locale) {
-    if (cms == null || cms.getContents() == null || locale == null) {
+  public String getValueByLocale(Cms cms, String localeTag) {
+    if (cms == null || cms.getContents() == null || localeTag == null || localeTag.isBlank()) {
       return "";
     }
-    return cms.getContents().stream().filter(c -> locale.equals(c.getLocale())).map(CmsContent::getContent).filter(Objects::nonNull).findFirst()
-        .orElse("");
+
+    String tag = localeTag.trim().replace('_', '-'); // allow "en_US" too
+
+    return cms.getContents().stream().filter(c -> c.getLocale() != null && tag.equalsIgnoreCase(c.getLocale().toLanguageTag()))
+        .map(CmsContent::getContent).filter(Objects::nonNull).findFirst().orElse("");
+  }
+
+  public List<Locale> getLocalesExcludeSource() {
+    if (languageList == null || selectedSourceLanguage == null) {
+      return List.of();
+    }
+    String selectedTag = selectedSourceLanguage.trim().replace('_', '-');
+    return languageList.stream().filter(l -> l != null && !selectedTag.equalsIgnoreCase(l.toLanguageTag())).toList();
+  }
+
+  public List<Cms> getTranslatedCms() {
+    return filteredCMSList.stream().filter(cms -> cms.getContents() != null && cms.getContents().stream().anyMatch(c -> c.isTranslated()))
+        .toList();
   }
 
   public void rowSelect() {
@@ -575,10 +590,13 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private void initLocales() {
-    languageList = cmsList.stream().flatMap(c -> c.getContents().stream()).map(CmsContent::getLocale).filter(Objects::nonNull).distinct()
-        .sorted(Comparator.comparing(l -> l.getDisplayLanguage(Locale.ENGLISH)))
-        .map(l -> new SelectItem(l, l.getDisplayLanguage(Locale.ENGLISH))).toList();
-    selectedSourceLanguage = (Locale) languageList.getFirst().getValue();
+    languageList = filteredCMSList.stream().flatMap(c -> c.getContents().stream()).map(CmsContent::getLocale).filter(Objects::nonNull)
+        .distinct().sorted(Comparator.comparing(l -> l.getDisplayLanguage(Locale.ENGLISH))).toList();
+
+    if (selectedSourceLanguage == null && !languageList.isEmpty()) {
+      selectedSourceLanguage = languageList.get(0).toLanguageTag();
+      Ivy.log().error("Selected Lang: " + selectedSourceLanguage);
+    }
   }
 
   public List<Cms> getFilteredCMSKeys() {
@@ -637,27 +655,20 @@ public class CmsLiveEditorBean implements Serializable {
     return this.pmvCmsMap.keySet();
   }
 
-  public Locale getSelectedSourceLanguage() {
+  public String getSelectedSourceLanguage() {
     return selectedSourceLanguage;
   }
 
-  public void setSelectedSourceLanguage(Locale selectedSourceLanguage) {
+  public void setSelectedSourceLanguage(String selectedSourceLanguage) {
     this.selectedSourceLanguage = selectedSourceLanguage;
   }
 
-  public List<SelectItem> getLanguageList() {
+  public List<Locale> getLanguageList() {
     return languageList;
   }
 
-  public void setLanguageList(List<SelectItem> languageList) {
+  public void setLanguageList(List<Locale> languageList) {
     this.languageList = languageList;
   }
 
-  public List<Cms> getTranslationResults() {
-    return translationResults;
-  }
-
-  public void setTranslationResults(List<Cms> translationResults) {
-    this.translationResults = translationResults;
-  }
 }

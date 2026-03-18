@@ -8,12 +8,12 @@
   <ui:composition template="/layouts/frame-10-full-width.xhtml">
     <ui:define name="title">#{ivy.cms.co('/Labels/CMSLiveEditor/name')}</ui:define>
     <ui:define name="content">
-      <ui:include src="/resources/cms-settings-dialog.xhtml"/>
-      <ui:include src="/resources/translation-review-dialog.xhtml"/>
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
       <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}">
+        <ui:include src="/resources/cms-settings-dialog.xhtml"/>
+        <ui:include src="/resources/translation-review-dialog.xhtml"/>
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -61,22 +61,26 @@
                   <span> #{ivy.cms.co("/Labels/ResetAllChanges")}
                   </span>
                 </h:panelGroup>
-                <p:commandLink
-                  actionListener="#{cmsLiveEditorBean.translateAll}"
-                  update="translationReviewDialog"
-                  oncomplete="PF('translationReviewDlg').show();"
-                  styleClass="cms-translate-btn" title="Translate All">
+                <div class="header-actions">
+                  <p:commandLink
+                    actionListener="#{cmsLiveEditorBean.translateAll}"
+                    update="translationReviewDialog"
+                    process="@this"
+                    oncomplete="PF('translationReviewDlg').show();"
+                    styleClass="cms-translate-btn" title="Translate All">
+                    <i class="pi pi-language"></i>
+                  </p:commandLink>
 
-                  <i class="pi pi-language"></i>
-                </p:commandLink>
-                <p:commandLink
-                  onclick="PF('cmsSettingsDialog').show(); return false;"
-                  styleClass="cms-settings-btn" title="Settings">
-                  <i class="pi pi-cog"></i>
-                </p:commandLink>
+                  <p:commandLink
+                    onclick="PF('cmsSettingsDialog').show(); return false;"
+                    styleClass="cms-settings-btn" title="Settings">
+                    <i class="pi pi-cog"></i>
+                  </p:commandLink>
+                </div>
+
               </div>
               <h:panelGroup styleClass="panel left w-full">
-                <p:dataTable id="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
+                <p:dataTable id="table-cms-keys" class="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                   selection="#{cmsLiveEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
                   scrollHeight="100%" pageLinks="5" styleClass="cms-path-table"
                   onRowClick="savePathPanelScroll(); showWarningDialog(); return false;">

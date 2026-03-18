@@ -21,10 +21,10 @@
 .left {
   width: 50%
 }
-
-.ui-datatable table thead tr {
+/* 
+.table-cms-keys table thead tr {
   display: none;
-}
+} */
 
 .ui-accordion .ui-accordion-content {
   overflow: visible !important;
@@ -384,12 +384,12 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  color: #6b7280; /* subtle gray */
+  color: #6b7280;
   transition: all 0.2s ease;
 }
 
 .cms-settings-btn:hover {
-  background-color: #f3f4f6; /* light hover */
+  background-color: #f3f4f6;
   color: #111827;
 }
 
@@ -415,4 +415,16 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 .cms-translate-btn i {
   font-size: 0.95rem;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }

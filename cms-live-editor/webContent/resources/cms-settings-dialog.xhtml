@@ -7,20 +7,20 @@
 
   <p:dialog id="cms-settings-dialog" header="Settings"
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
-    resizable="false" width="400">
-
+    resizable="false" width="25rem">
     <h:panelGrid columns="1" styleClass="w-full">
       <h:panelGroup layout="block" styleClass="mb-3">
         <h:outputLabel value="Leading Language"
           styleClass="block mb-1 font-semibold" />
-        <p:selectOneMenu
+        <p:selectOneMenu id="leadingLanguage"
           value="#{cmsLiveEditorBean.selectedSourceLanguage}"
-          converter="pojoConverter" styleClass="w-full" filter="true"
-          filterMatchMode="contains">
-          <f:selectItems value="#{cmsLiveEditorBean.languageList}" />
+          styleClass="w-full" filter="true" filterMatchMode="contains">
+          <f:selectItems value="#{cmsLiveEditorBean.languageList}"
+            var="lang" itemLabel="#{lang.displayLanguage}"
+            itemValue="#{lang.toLanguageTag()}" />
+          <p:ajax event="change" process="@this" update="@none" />
         </p:selectOneMenu>
       </h:panelGroup>
     </h:panelGrid>
   </p:dialog>
-
 </ui:composition>

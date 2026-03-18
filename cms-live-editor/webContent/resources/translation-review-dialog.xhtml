@@ -5,32 +5,77 @@
   xmlns:ic="http://ivyteam.ch/jsf/component"
   xmlns:p="http://primefaces.org/ui">
   <p:dialog header="Translation Review" widgetVar="translationReviewDlg"
-    modal="true" width="800" id="translationReviewDialog">
-    <h:outputText value="Review the changes before applying them." />
-    <p:dataTable value="#{cmsLiveEditorBean.translationResults}"
-      var="cms">
-      <p:column headerText="Path">
+    modal="true" closable="true" resizable="false" width="60rem"
+    height="32rem" id="translationReviewDialog">
+
+    <!-- Description -->
+    <h:panelGroup styleClass="mb-3 block">
+      <h:outputText value="Review the changes before applying them."
+        styleClass="text-color-secondary" />
+    </h:panelGroup>
+
+    <p:dataTable value="#{cmsLiveEditorBean.translatedCms}" var="cms"
+      styleClass="w-full">
+
+      <p:columnGroup type="header">
+        <p:row>
+          <p:column>
+            <h:outputText value="Path" />
+          </p:column>
+
+          <p:column>
+            <h:outputText
+              value="#{cmsLiveEditorBean.selectedSourceLanguage != null ? 
+           java.util.Locale.forLanguageTag(cmsLiveEditorBean.selectedSourceLanguage).displayLanguage :
+           ''}" />
+          </p:column>
+
+          <p:columns value="#{cmsLiveEditorBean.localesExcludeSource}"
+            var="lang">
+            <h:outputText value="#{lang.displayLanguage}" />
+          </p:columns>
+        </p:row>
+      </p:columnGroup>
+
+      <!-- BODY -->
+      <p:column style="width: 15rem;">
         <h:outputText value="#{cms.uri}" />
       </p:column>
-      <p:column
-        headerText="#{cmsLiveEditorBean.selectedSourceLanguage.displayLanguage}">
+
+      <p:column style="width: 18rem;">
         <h:outputText
           value="#{cmsLiveEditorBean.getValueByLocale(cms, cmsLiveEditorBean.selectedSourceLanguage)}" />
       </p:column>
-      <p:columns value="#{cmsLiveEditorBean.languageList}" var="lang">
-        <f:facet name="header">
-          <h:outputText value="#{lang.label}" />
-        </f:facet>
+
+      <p:columns value="#{cmsLiveEditorBean.localesExcludeSource}" var="lang"
+        style="width: 18rem;">
         <h:outputText
-          value="#{cmsLiveEditorBean.getValueByLocale(cms, lang.value)}" />
+          value="#{cmsLiveEditorBean.getValueByLocale(cms, lang.toLanguageTag())}" />
       </p:columns>
+
     </p:dataTable>
+
+    <!-- Footer -->
     <f:facet name="footer">
-      <p:commandButton value="Cancel"
-        onclick="PF('translationReviewDlg').hide(); return false;" />
-      <p:commandButton value="Apply"
-        action="#{cmsLiveEditorBean.applyTranslations}"
-        oncomplete="PF('translationReviewDlg').hide();" />
+      <div class="flex justify-content-between w-full">
+
+        <!-- Left: info -->
+        <h:outputText
+          value="#{cmsLiveEditorBean.filteredCMSKeys.size()} items"
+          styleClass="text-sm text-color-secondary" />
+
+        <!-- Right: actions -->
+        <div class="flex gap-2">
+          <p:commandButton value="Cancel" styleClass="p-button-text"
+            onclick="PF('translationReviewDlg').hide(); return false;" />
+
+          <p:commandButton value="Apply" icon="pi pi-check"
+            action="#{cmsLiveEditorBean.applyTranslations}"
+            oncomplete="PF('translationReviewDlg').hide();" />
+        </div>
+
+      </div>
     </f:facet>
+
   </p:dialog>
 </ui:composition>

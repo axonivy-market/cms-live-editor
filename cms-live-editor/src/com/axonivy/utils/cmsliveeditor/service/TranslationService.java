@@ -1,6 +1,5 @@
 package com.axonivy.utils.cmsliveeditor.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.axonivy.utils.cmsliveeditor.model.Cms;
@@ -23,94 +22,65 @@ public class TranslationService {
 
   }
 
-  public static List<Cms> batchTranslate(List<Cms> entries, String sourceLang) {
-    Ivy.log().error("String: " + sourceLang);
-    List<Cms> results = new ArrayList<>();
+  public static void batchTranslate(List<Cms> entries, String sourceLang) {
+    if (entries == null || entries.isEmpty() || sourceLang == null || sourceLang.isBlank()) {
+      return;
+    }
 
-    SourceLanguage sourceLanguageEnum = SourceLanguage.valueOf(sourceLang.toUpperCase());
+    String src = sourceLang.trim().toLowerCase(); // e.g. "en"
+    Options options = new Options();
 
-    Options baseOptions = new Options();
-    baseOptions.setSourceLang(sourceLanguageEnum);
+    try {
+      options.setSourceLang(SourceLanguage.valueOf(src.toUpperCase()));
+    } catch (Exception e) {
+      Ivy.log().warn("Unsupported source language: " + sourceLang, e);
+      return;
+    }
+
     for (Cms cms : entries) {
-      Cms cmsCopy = deepCopyCms(cms);
-      if (cmsCopy.getContents() == null || cmsCopy.getContents().isEmpty() || cmsCopy.isFile()) {
-        results.add(cmsCopy);
+      if (cms == null || cms.isFile() || cms.getContents() == null || cms.getContents().isEmpty()) {
+        Ivy.log().error("Skip --");
         continue;
       }
 
-      // 1. Find source text
-      String sourceText = null;
-      for (CmsContent content : cmsCopy.getContents()) {
-        if (sourceLang.equals(content.getLocale().getLanguage())) {
-          sourceText = content.getContent();
-          break;
-        }
-      }
+      // find source text
+      String sourceText = cms.getContents().stream().filter(c -> c.getLocale() != null && src.equalsIgnoreCase(c.getLocale().getLanguage()))
+          .map(CmsContent::getContent).filter(t -> t != null && !t.isBlank()).findFirst().orElse(null);
 
-      if (sourceText == null || sourceText.isBlank()) {
-        results.add(cmsCopy);
+      if (sourceText == null) {
+        Ivy.log().error("sourceText == null");
         continue;
       }
 
-      // 2. Translate each target
-      for (CmsContent content : cmsCopy.getContents()) {
-
-        if (sourceLang.equals(content.getLocale().getLanguage())) {
+      for (CmsContent content : cms.getContents()) {
+        if (content == null || content.getLocale() == null) {
+          Ivy.log().error("content == null || content.getLocale() == null");
           continue;
         }
 
-        if (content.getContent() != null && !content.getContent().isBlank()) {
+        String target = content.getLocale().getLanguage().toUpperCase();
+
+        // skip source language
+        if (src.equalsIgnoreCase(content.getLocale().getLanguage())) {
+          Ivy.log().error("src.equalsIgnoreCase(content.getLocale().getLanguage())");
           continue;
         }
+
+        // only translate empty content
+//        if (content.getContent() != null && !content.getContent().isBlank()) {
+//          Ivy.log().error("content.getContent() != null && !content.getContent().isBlank()");
+//          continue;
+//        }
 
         try {
-          String langCode = content.getLocale().getLanguage().toUpperCase();
-
-          TargetLanguage targetLang = TargetLanguage.valueOf(langCode);
-
-          Options options = new Options();
-          options.setSourceLang(sourceLanguageEnum);
-          options.setTargetLang(targetLang);
-
+          options.setTargetLang(TargetLanguage.valueOf(target));
           String translated = DeepLTranslationService.translate(sourceText, options);
-
           content.setContent(translated);
-
+          content.setTranslated(true);
         } catch (Exception e) {
-          System.err.println("Translate failed: " + sourceText);
+          Ivy.log().warn("Translate failed for target=" + target + ", source=" + src, e);
         }
       }
-
-      results.add(cmsCopy);
     }
-
-    return results;
-  }
-
-  private static Cms deepCopyCms(Cms original) {
-
-    Cms copy = new Cms();
-    copy.setUri(original.getUri());
-    copy.setPmvName(original.getPmvName());
-    copy.setDifferentWithApplication(original.isDifferentWithApplication());
-    copy.setFile(original.isFile());
-    copy.setFileName(original.getFileName());
-    copy.setFileExtension(original.getFileExtension());
-    copy.setFileType(original.getFileType());
-
-    if (original.getContents() != null) {
-      List<CmsContent> contentCopies = new ArrayList<>();
-
-      for (CmsContent c : original.getContents()) {
-        CmsContent cc = new CmsContent();
-        cc.setLocale(c.getLocale());
-        cc.setContent(c.getContent());
-        contentCopies.add(cc);
-      }
-
-      copy.setContents(contentCopies);
-    }
-
-    return copy;
   }
 }
