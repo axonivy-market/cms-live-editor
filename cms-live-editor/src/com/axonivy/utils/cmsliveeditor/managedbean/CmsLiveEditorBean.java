@@ -265,6 +265,43 @@ public class CmsLiveEditorBean implements Serializable {
     TranslationService.batchTranslate(filteredCMSList, src);
   }
 
+  public void applyTranslations() {
+    if (filteredCMSList == null) {
+      return;
+    }
+    for (Cms cms : filteredCMSList) {
+      if (cms == null || cms.getContents() == null || cms.isFile()) {
+        continue;
+      }
+      for (CmsContent c : cms.getContents()) {
+        if (c == null || !c.isTranslated()) {
+          continue;
+        }
+        String translated = c.getTranslatedContent();
+        if (translated == null || translated.isBlank()) {
+          continue;
+        }
+        c.saveContent(translated);
+        c.setTranslated(false);
+        c.setTranslatedContent(null);
+      }
+    }
+    
+    PF.current().ajax().update(CONTENT_FORM);
+  }
+
+  public void cancelTranslations() {
+    if (filteredCMSList == null) {
+      return;
+    }
+    filteredCMSList.stream().filter(Objects::nonNull)
+        .flatMap(cms -> cms.getContents() != null ? cms.getContents().stream() : java.util.stream.Stream.empty()).filter(Objects::nonNull)
+        .forEach(c -> {
+          c.setTranslated(false);
+          c.setTranslatedContent(null);
+        });
+  }
+
   public void onAppChange() {
     if (isEditing()) {
       isEditableCms = true;
@@ -289,6 +326,12 @@ public class CmsLiveEditorBean implements Serializable {
     String tag = localeTag.trim().replace('_', '-'); // allow "en_US" too
 
     return cms.getContents().stream().filter(c -> c.getLocale() != null && tag.equalsIgnoreCase(c.getLocale().toLanguageTag()))
+        .map(CmsContent::getTranslatedContent).filter(Objects::nonNull).findFirst().orElse("");
+  }
+
+  public String getSourceContent(Cms cms) {
+    return cms.getContents().stream()
+        .filter(c -> c.getLocale() != null && selectedSourceLanguage.equalsIgnoreCase(c.getLocale().toLanguageTag()))
         .map(CmsContent::getContent).filter(Objects::nonNull).findFirst().orElse("");
   }
 
@@ -301,8 +344,15 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public List<Cms> getTranslatedCms() {
-    return filteredCMSList.stream().filter(cms -> cms.getContents() != null && cms.getContents().stream().anyMatch(c -> c.isTranslated()))
-        .toList();
+    List<Cms> translated =
+        filteredCMSList.stream().filter(cms -> cms.getContents() != null && cms.getContents().stream().anyMatch(c -> c.isTranslated()))
+            .toList();
+    if (translated.size() > 0) {
+      Ivy.log().info("Translated CMS count: " + translated.getFirst().getContents());
+    }
+
+//    Ivy.log().error(translated.get(0).getContents().get());
+    return translated;
   }
 
   public void rowSelect() {

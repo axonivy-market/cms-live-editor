@@ -75,7 +75,7 @@ public class TranslationService {
         try {
           options.setTargetLang(TargetLanguage.valueOf(target));
           String translated = DeepLTranslationService.translate(sourceText, options);
-          content.setContent(translated);
+          content.setTranslatedContent(translated);
           content.setTranslated(true);
         } catch (Exception e) {
           Ivy.log().warn("Translate failed for target=" + target + ", source=" + src, e);

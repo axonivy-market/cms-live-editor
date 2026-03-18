@@ -64,10 +64,10 @@
                 <div class="header-actions">
                   <p:commandLink
                     actionListener="#{cmsLiveEditorBean.translateAll}"
-                    update="translationReviewDialog"
-                    process="@this"
-                    oncomplete="PF('translationReviewDlg').show();"
-                    styleClass="cms-translate-btn" title="Translate All">
+                    update=":content-form:reviewContent"
+                    oncomplete="PF('translationReviewDialog').show();"
+                    process="@this" styleClass="cms-translate-btn"
+                    title="Translate All">
                     <i class="pi pi-language"></i>
                   </p:commandLink>
 
