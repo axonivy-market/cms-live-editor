@@ -81,8 +81,8 @@
                 styleClass="#{cmsLiveEditorBean.editableCms ? 'col-6' : 'col-9'} flex flex-column p-0">
                 <div class="column-header flex align-items-center justify-content-between">
                   <div class="flex align-items-center gap-2">
-                    <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span> <i
-                      class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/CmsInformation')}" />
+                    <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')}</span>
+                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/CmsInformation')}" />
                   </div>
 
                   <p:commandLink id="undo-change-path" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
@@ -173,12 +173,14 @@
 
               <h:panelGroup layout="block" id="editable-column" rendered="#{cmsLiveEditorBean.editableCms}"
                 styleClass="col-6 flex flex-column editable-column p-0 left-border h-full">
-                <div class="column-header font-semibold text-lg cms-title">
-                  <span>#{ivy.cms.co('/Labels/Edit')}</span> <i class="pi pi-info-circle cms-info-icon"
-                    title="#{ivy.cms.co('/Labels/EditCmsInformation')}" />
+                <div class="column-header flex align-items-center">
+                  <div class="flex align-items-center gap-2">
+                    <span class="font-semibold text-lg cms-title">#{ivy.cms.co('/Labels/Edit')}</span>
+                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/EditCmsInformation')}" />
+                  </div>
                 </div>
-                <h:panelGroup styleClass="panel end w-full flex flex-column flex-grow-1" layout="block">
-                  <h:panelGroup styleClass="flex-grow-1 overflow-auto cms-scroll-wrapper" layout="block">
+                <h:panelGroup styleClass="panel end w-full flex flex-column h-full justify-content-between" layout="block">
+                  <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language" onTabClose="handleTabClose(panel)">
