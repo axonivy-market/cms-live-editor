@@ -1,3 +1,7 @@
+#content {
+  position: absolute;
+  inset: 0; /* same as top:0; bottom:0; left:0; right:0 */
+}
 /*width for dropdown  */
 .ui-menu {
   width: 300px; /* Adjust the width as needed */
@@ -8,7 +12,6 @@
   /* Adjust based on desired layout (horizontal/vertical) */
   border: 1px solid #EBEBEB;
   padding: 0;
-  height: 85vh;
   display: block;
   overflow: auto;
 }
