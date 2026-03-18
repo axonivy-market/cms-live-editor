@@ -3,9 +3,136 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
+window.cmsToolbarExpandedByEditorId = window.cmsToolbarExpandedByEditorId || {};
 
-const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
-const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
+const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
+const FULL_TOOLBAR = [
+  ["font", "fontSize", "formatBlock"],
+  ["paragraphStyle", "blockquote"],
+  ["bold", "underline", "italic", "strike", "subscript", "superscript"],
+  ["fontColor", "hiliteColor", "textStyle"],
+  ["removeFormat"],
+  ["outdent", "indent"],
+  ["align", "list", "lineHeight", "horizontalRule"],
+  ["table", "link"],
+  ["fullScreen"],
+  ["undo", "redo"],
+  ["toggleView"],
+];
+const MINIMAL_TOOLBAR = [["toggleView", "fullScreen"]];
+
+function getEditorIdFromCore(core) {
+  return core?.context?.element?.originElement?.id || null;
+}
+
+function getToolbarExpandedState(core) {
+  const editorId = getEditorIdFromCore(core);
+  if (!editorId) {
+    return false;
+  }
+  return Boolean(globalThis.cmsToolbarExpandedByEditorId[editorId]);
+}
+
+function setToolbarExpandedState(core, isExpanded) {
+  const editorId = getEditorIdFromCore(core);
+  if (!editorId) {
+    return;
+  }
+  globalThis.cmsToolbarExpandedByEditorId[editorId] = isExpanded;
+}
+
+const TOGGLE_VIEW_CONFIG = {
+  collapsed: {
+    title: "Switch to HTML mode",
+    icon: '<i class="fa-brands fa-html5"></i>',
+  },
+  expanded: {
+    title: "Change to raw text mode",
+    icon: '<i class="fa-solid fa-spell-check"></i>',
+  },
+};
+
+function getToggleViewTitle(isExpanded) {
+  return isExpanded ? TOGGLE_VIEW_CONFIG.expanded.title : TOGGLE_VIEW_CONFIG.collapsed.title;
+}
+
+function getToggleViewIcon(isExpanded) {
+  return isExpanded ? TOGGLE_VIEW_CONFIG.expanded.icon : TOGGLE_VIEW_CONFIG.collapsed.icon;
+}
+
+function updateToggleViewButton(core, isExpanded) {
+  const button = core.context?.toggleToolbar?.targetElement;
+  if (!button) {
+    return;
+  }
+  const title = getToggleViewTitle(isExpanded);
+  button.setAttribute("title", title);
+  button.setAttribute("aria-label", title);
+  const tooltipText = button.parentElement?.querySelector(".se-tooltip-text");
+  if (tooltipText) {
+    tooltipText.textContent = title;
+  }
+  button.innerHTML = getToggleViewIcon(isExpanded);
+}
+
+function getEditorFromCore(core) {
+  const editorId = getEditorIdFromCore(core);
+  if (!editorId) {
+    return null;
+  }
+  const entry = Object.entries(globalThis.cmsLiveEditorIds).find(([, id]) => id === editorId);
+  if (!entry) {
+    return null;
+  }
+  const languageIndex = entry[0];
+  return globalThis.cmsLiveEditors[languageIndex] || null;
+}
+
+function toggleToolbar(core, button, isExpanded) {
+  const editor = getEditorFromCore(core);
+  if (!editor) {
+    return;
+  }
+  toggleViewModePlugin.title = getToggleViewTitle(isExpanded);
+  toggleViewModePlugin.innerHTML = getToggleViewIcon(isExpanded);
+  if (isExpanded) {
+    editor.setOptions({
+      buttonList: FULL_TOOLBAR,
+    });
+  } else {
+    editor.setOptions({
+      buttonList: MINIMAL_TOOLBAR,
+    });
+  }
+}
+
+const toggleViewModePlugin = {
+  name: "toggleView",
+  display: "command",
+  title: getToggleViewTitle(false),
+  innerHTML: getToggleViewIcon(false),
+
+  add: function (core, targetElement) {
+    const isExpanded = getToolbarExpandedState(core);
+    core.context.toggleToolbar = {
+      isExpanded,
+      targetElement,
+    };
+    updateToggleViewButton(core, isExpanded);
+  },
+
+  action: function () {
+    const ctx = this.context.toggleToolbar;
+    if (!ctx) {
+      return;
+    }
+    ctx.isExpanded = !ctx.isExpanded;
+    setToolbarExpandedState(this, ctx.isExpanded);
+    updateToggleViewButton(this, ctx.isExpanded);
+    toggleToolbar(this, null, ctx.isExpanded);
+  },
+};
 
 function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   const textarea = document.getElementById(editorId);
@@ -13,34 +140,21 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
     return;
   }
 
+  globalThis.cmsToolbarExpandedByEditorId[editorId] = Boolean(isFormatButtonListVisible);
+
   let buttonList;
   if (isFormatButtonListVisible) {
-    buttonList = [
-      ['font', 'fontSize', 'formatBlock'],
-      ['paragraphStyle', 'blockquote'],
-      ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-      ['fontColor', 'hiliteColor', 'textStyle'],
-      ['removeFormat'],
-      ['outdent', 'indent'],
-      ['align', 'list', 'lineHeight', 'horizontalRule'],
-      ['table', 'link'],
-      ['fullScreen'],
-      ['undo', 'redo']
-    ];
+    buttonList = FULL_TOOLBAR;
   } else {
-    buttonList = [
-      ['font'],
-      ['bold', 'underline', 'italic'],
-      ['fontColor', 'align', 'list'],
-      ['fullScreen']
-    ];
+    buttonList = MINIMAL_TOOLBAR;
   }
 
   const editor = SUNEDITOR.create(textarea, {
     buttonList,
+    plugins: [toggleViewModePlugin],
     attributesWhitelist: {
-      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
-    }
+      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
+    },
   });
   const initialContent = editor.getContents();
   window.cmsLiveEditors[languageIndex] = editor;
@@ -52,26 +166,26 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = '';
+    window.cmsInitialContents[languageIndex] = "";
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-function markDirtyIfChanged() {
-  const currentContent = editor.getContents();
-  const originalContents = window.cmsInitialContents[languageIndex] || '';
+  function markDirtyIfChanged() {
+    const currentContent = editor.getContents();
+    const originalContents = window.cmsInitialContents[languageIndex] || "";
 
-  if (currentContent === originalContents) {
-    // Back to original -> not dirty anymore
-    window.cmsDirtyEditors.delete(languageIndex);
-    setEditorError(languageIndex, false);
-  } else {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: 'languageIndex', value: languageIndex },
-      { name: 'content', value: currentContent }
-    ]);
+    if (currentContent === originalContents) {
+      // Back to original -> not dirty anymore
+      window.cmsDirtyEditors.delete(languageIndex);
+      setEditorError(languageIndex, false);
+    } else {
+      window.cmsDirtyEditors.add(languageIndex);
+      setValueChanged([
+        { name: "languageIndex", value: languageIndex },
+        { name: "content", value: currentContent },
+      ]);
+    }
   }
-}
 
   function debounce(fn, delay) {
     let timer;
