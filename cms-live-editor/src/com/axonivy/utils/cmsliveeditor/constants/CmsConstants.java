@@ -27,5 +27,6 @@ public class CmsConstants {
   public static final String RESET_BTN_ID = "content-form:resetBtn";
   public static final String ORANGE_DOT_CLASS = ".orange-dot";
   public static final String SUN_EDITOR_EDITABLE_SELECTOR = ".sun-editor-editable";
+  public static final String ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD = "content-form:cms-edit-value:%d:cms-file-content-msg";
 
 }

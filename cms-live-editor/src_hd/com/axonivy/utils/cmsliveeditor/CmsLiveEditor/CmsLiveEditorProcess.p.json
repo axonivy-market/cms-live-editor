@@ -52,5 +52,73 @@
       "visual" : {
         "at" : { "x" : 224, "y" : 160 }
       }
+    }, {
+      "id" : "f6",
+      "type" : "HtmlDialogMethodStart",
+      "name" : "previewDocument(cmsContent)",
+      "config" : {
+        "signature" : "previewDocument",
+        "input" : {
+          "params" : [
+            { "name" : "cmsContent", "type" : "com.axonivy.utils.cmsliveeditor.model.CmsContent", "desc" : "" },
+            { "name" : "isEditMode", "type" : "Boolean", "desc" : "" },
+            { "name" : "isOnCmsEditColumn", "type" : "Boolean", "desc" : "" }
+          ],
+          "map" : {
+            "out.cmsContent" : "param.cmsContent",
+            "out.isEditMode" : "param.isEditMode",
+            "out.isOnCmsEditColumn" : "param.isOnCmsEditColumn"
+          }
+        },
+        "guid" : "19C26E8A1CE66F75"
+      },
+      "visual" : {
+        "at" : { "x" : 96, "y" : 240 }
+      },
+      "connect" : [
+        { "id" : "f8", "to" : "f9" }
+      ]
+    }, {
+      "id" : "f7",
+      "type" : "HtmlDialogEnd",
+      "visual" : {
+        "at" : { "x" : 432, "y" : 240 },
+        "labelOffset" : { "x" : 10, "y" : 30 }
+      }
+    }, {
+      "id" : "f9",
+      "type" : "Script",
+      "name" : "Convert To StreamContent",
+      "config" : {
+        "output" : {
+          "code" : [
+            "import com.axonivy.utils.cmsliveeditor.service.DocumentPreviewService;",
+            "",
+            "in.fileContent = in.cmsContent.fileContent;",
+            "in.fileName = in.cmsContent.fileName;",
+            "",
+            "if (in.isOnCmsEditColumn) {",
+            "  if (in.cmsContent.newFileSize > 0) {",
+            "    in.fileContent = in.cmsContent.newFileContent;",
+            "  } else if (in.cmsContent.applicationFileSize > 0) {",
+            "    in.fileContent = in.cmsContent.applicationFileContent;",
+            "  }",
+            "} else {",
+            "  if (in.cmsContent.applicationFileSize > 0 && !in.isEditMode) {",
+            "    in.fileContent = in.cmsContent.applicationFileContent;",
+            "  }",
+            "}",
+            "",
+            "in.streamedContent = DocumentPreviewService.getInstance().convertToStreamContent(in.fileName, in.fileContent);"
+          ]
+        }
+      },
+      "visual" : {
+        "at" : { "x" : 264, "y" : 240 },
+        "size" : { "width" : 144, "height" : 62 }
+      },
+      "connect" : [
+        { "id" : "f10", "to" : "f7", "color" : "default" }
+      ]
     } ]
 }

@@ -1,6 +1,7 @@
 Labels:
   AllProjects: All
   Application: Application
+  AttachDocument: Attach document
   CMS: CMS
   CMSDownload: CMSDownload
   CMSPlaceHolderErrorMessage: Invalid placeholder syntax.
@@ -8,6 +9,7 @@ Labels:
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
   Cancel: Cancel
+  ChangeDocument: Change document
   ChangesSaved: Changes saved
   CmsDownloaded: Project CMS saved <br /> to ZIP file
   CmsInformation: CMS Information
@@ -16,9 +18,12 @@ Labels:
   EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
-  Paths: Paths
+  InvalidFileSizeMessage: The file size must not be larger than {0} MB.
+  InvalidFileTypeMessage: The file type is invalid.
   Message: Message
   Options: Options
+  Paths: Paths
+  Preview: Preview
   ProjectCmsTitle: Project-CMS
   ResetAdvice: Enter <b>reset</b> to confirm
   ResetAll: Reset all

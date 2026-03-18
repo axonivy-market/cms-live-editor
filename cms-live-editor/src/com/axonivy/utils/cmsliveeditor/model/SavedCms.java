@@ -15,6 +15,8 @@ public class SavedCms implements Serializable {
   private String originalContent;
 
   private String newContent;
+  
+  private byte[] newFileContent;
 
   public SavedCms() {
     super();
@@ -60,9 +62,16 @@ public class SavedCms implements Serializable {
     this.newContent = newContent;
   }
 
+  public byte[] getNewFileContent() {
+    return newFileContent;
+  }
+
+  public void setNewFileContent(byte[] newFileContent) {
+    this.newFileContent = newFileContent;
+  }
+
   @Override
   public String toString() {
     return String.format("[%s] [%s] [%s] [%s]", uri, locale, originalContent, newContent);
   }
-
 }

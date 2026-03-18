@@ -3,18 +3,23 @@ package com.axonivy.utils.cmsliveeditor.test;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.*;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Condition.interactable;
+import static com.codeborne.selenide.Condition.matchText;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
-import static com.codeborne.selenide.Condition.matchText;
+
+import java.io.File;
+import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
@@ -27,6 +32,9 @@ public class CmsLiveEditorWebTest {
 
   private String testCmsUri = "/TestContent";
   private String testCmsValue = "Test Content";
+  private static final String TEST_CMS_FILE_DOCX_URI= "/Test/TestFileDocX";
+  private static final String TEST_CMS_TEXT_URI = "/Test/TestContent";
+  private static final String PRIMEFACES_MESSAGE_DIALOG = "primefacesmessagedlg";
 
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
@@ -58,12 +66,18 @@ public class CmsLiveEditorWebTest {
     assertCmsTableRowCountGte(2);
   }
 
+  @Test
+  public void testFilterByCmsFileShouldDisplayOneRow() {
+    sendKeysToSearchInput(TEST_CMS_FILE_DOCX_URI);
+    assertCmsTableRowCountGte(1);
+  }
+
   private void assertCmsTableRowCountGte(int size) {
     $$(CMS_PATH_URI).shouldHave(sizeGreaterThanOrEqual(size));
   }
 
   private void sendKeysToSearchInput(String keysToSend) {
-    $(By.id(SEARCH_INPUT_ID)).sendKeys(keysToSend);
+    $(By.id(SEARCH_INPUT_ID)).shouldBe(visible).sendKeys(keysToSend);
   }
 
   @Test
@@ -80,10 +94,8 @@ public class CmsLiveEditorWebTest {
     Selenide.sleep(1000);
     otherCms.click();
 
-    var errorDialog = $(By.id("primefacesmessagedlg"));
-    errorDialog.should(visible);
-    errorDialog.$(".ui-dialog-titlebar-close").click();
-    Selenide.sleep(1000);
+    var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    closeDialog(errorDialog);
 
     // assert check save before search items
     sendKeysToSearchInput("Lorem ifsum");
@@ -124,7 +136,7 @@ public class CmsLiveEditorWebTest {
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherCms.click();
-    $(By.id("primefacesmessagedlg")).should(hidden);
+    $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
   }
 
   @Test
@@ -153,6 +165,35 @@ public class CmsLiveEditorWebTest {
     updateAndSaveContent();
     openResetDialog();
     $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
+  }
+
+  @Test
+  public void testEditCmsFileDocX() {
+    var cmsList = $$(CMS_PATH_URI);
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(2)).should(enabled).click();
+    $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    File pdfFile = new File("resource_test/blank_pdf.pdf");
+    var firstInputElement = $(By.id("content-form:cms-edit-value:0:upload_input"));
+    firstInputElement.uploadFile(pdfFile);
+    var errorMessageElement = $(".ui-messages-error-summary");
+    errorMessageElement.shouldBe(visible).shouldHave(matchText("Error"));
+    File docFile = new File("resource_test/blank_doc.docx");
+    firstInputElement.uploadFile(docFile);
+    errorMessageElement.shouldBe(hidden);
+    cmsList.findBy(exactText(TEST_CMS_TEXT_URI)).click();
+    var warningDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    closeDialog(warningDialog);
+    var removeFileElement = $(".pi-trash");
+    removeFileElement.shouldBe(visible).click();
+    removeFileElement.shouldBe(hidden);
+  }
+
+  private void closeDialog(SelenideElement dialog) {
+    dialog.should(visible);
+    dialog.$(".ui-dialog-titlebar-close").click();
+    Selenide.sleep(1000);
   }
 
   @Test
