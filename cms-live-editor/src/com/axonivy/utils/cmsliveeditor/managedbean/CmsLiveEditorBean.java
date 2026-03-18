@@ -17,10 +17,12 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,6 +33,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +54,7 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
+import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
@@ -95,6 +99,9 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean isInEditMode;
+  private Locale selectedSourceLanguage;
+  private List<SelectItem> languageList;
+  private List<Cms> translationResults;
 
   @PostConstruct
   private void init() {
@@ -107,6 +114,7 @@ public class CmsLiveEditorBean implements Serializable {
           .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
     }
     onAppChange();
+    initLocales();
   }
 
   public void writeCmsToApplication() {
@@ -241,6 +249,23 @@ public class CmsLiveEditorBean implements Serializable {
     PF.current().ajax().update(CONTENT_FORM);
   }
 
+  public void translate(CmsContent content) {
+    String sourceLang = selectedSourceLanguage.getLanguage().toUpperCase();
+    String targetLang = content.getLocale().getLanguage().toUpperCase();
+    if (sourceLang.equals(targetLang)) {
+      return;
+    }
+    String newValue = TranslationService.translate(content.getContent(), sourceLang, targetLang);
+    content.setContent(newValue);
+    PrimeFaces.current().ajax().addCallbackParam("langIndex", content.getIndex());
+    PrimeFaces.current().ajax().addCallbackParam("newContent", newValue);
+  }
+
+  public void translateAll() {
+    Ivy.log().error(selectedSourceLanguage);
+    translationResults = TranslationService.batchTranslate(cmsList, "EN");
+  }
+
   public void onAppChange() {
     if (isEditing()) {
       isEditableCms = true;
@@ -255,6 +280,14 @@ public class CmsLiveEditorBean implements Serializable {
           .map(PmvCms::getCmsList).flatMap(List::stream).toList();
     }
     search();
+  }
+
+  public String getValueByLocale(Cms cms, Locale locale) {
+    if (cms == null || cms.getContents() == null || locale == null) {
+      return "";
+    }
+    return cms.getContents().stream().filter(c -> locale.equals(c.getLocale())).map(CmsContent::getContent).filter(Objects::nonNull).findFirst()
+        .orElse("");
   }
 
   public void rowSelect() {
@@ -541,6 +574,13 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
+  private void initLocales() {
+    languageList = cmsList.stream().flatMap(c -> c.getContents().stream()).map(CmsContent::getLocale).filter(Objects::nonNull).distinct()
+        .sorted(Comparator.comparing(l -> l.getDisplayLanguage(Locale.ENGLISH)))
+        .map(l -> new SelectItem(l, l.getDisplayLanguage(Locale.ENGLISH))).toList();
+    selectedSourceLanguage = (Locale) languageList.getFirst().getValue();
+  }
+
   public List<Cms> getFilteredCMSKeys() {
     return filteredCMSList;
   }
@@ -595,5 +635,29 @@ public class CmsLiveEditorBean implements Serializable {
 
   public Set<String> getProjectCms() {
     return this.pmvCmsMap.keySet();
+  }
+
+  public Locale getSelectedSourceLanguage() {
+    return selectedSourceLanguage;
+  }
+
+  public void setSelectedSourceLanguage(Locale selectedSourceLanguage) {
+    this.selectedSourceLanguage = selectedSourceLanguage;
+  }
+
+  public List<SelectItem> getLanguageList() {
+    return languageList;
+  }
+
+  public void setLanguageList(List<SelectItem> languageList) {
+    this.languageList = languageList;
+  }
+
+  public List<Cms> getTranslationResults() {
+    return translationResults;
+  }
+
+  public void setTranslationResults(List<Cms> translationResults) {
+    this.translationResults = translationResults;
   }
 }

@@ -63,6 +63,10 @@ public class CmsContent implements Serializable {
     this.isHtml = false;
   }
 
+  public CmsContent() {
+    this.isHtml = false;
+  }
+
   public int getIndex() {
     return index;
   }

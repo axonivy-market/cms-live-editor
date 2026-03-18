@@ -1,0 +1,26 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:ic="http://ivyteam.ch/jsf/component"
+  xmlns:p="http://primefaces.org/ui">
+
+  <p:dialog id="cms-settings-dialog" header="Settings"
+    widgetVar="cmsSettingsDialog" modal="true" closable="true"
+    resizable="false" width="400">
+
+    <h:panelGrid columns="1" styleClass="w-full">
+      <h:panelGroup layout="block" styleClass="mb-3">
+        <h:outputLabel value="Leading Language"
+          styleClass="block mb-1 font-semibold" />
+        <p:selectOneMenu
+          value="#{cmsLiveEditorBean.selectedSourceLanguage}"
+          converter="pojoConverter" styleClass="w-full" filter="true"
+          filterMatchMode="contains">
+          <f:selectItems value="#{cmsLiveEditorBean.languageList}" />
+        </p:selectOneMenu>
+      </h:panelGroup>
+    </h:panelGrid>
+  </p:dialog>
+
+</ui:composition>

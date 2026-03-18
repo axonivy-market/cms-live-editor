@@ -8,6 +8,8 @@
   <ui:composition template="/layouts/frame-10-full-width.xhtml">
     <ui:define name="title">#{ivy.cms.co('/Labels/CMSLiveEditor/name')}</ui:define>
     <ui:define name="content">
+      <ui:include src="/resources/cms-settings-dialog.xhtml"/>
+      <ui:include src="/resources/translation-review-dialog.xhtml"/>
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
@@ -45,17 +47,34 @@
           <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
             <h:panelGroup layout="block" id="path-column"
               styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} columns">
-              <div class="column-header flex align-items-center justify-content-between">
-                <span class="path-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Paths')} </span>
-                <h:panelGroup id="reset-all-change-button" layout="block"
+              <div
+                class="column-header flex align-items-center justify-content-between">
+                <span class="path-label font-semibold text-lg">
+                  #{ivy.cms.co('/Labels/Paths')} </span>
+                <h:panelGroup id="reset-all-change-button"
+                  layout="block"
                   rendered="#{cmsLiveEditorBean.isRenderResetAllChange()}"
                   class="flex align-items-center gap-2 cursor-pointer reset-all-change-button">
-                  <f:passThroughAttribute name="onclick" value="PF('resetConfirmDlg').show();" />
+                  <f:passThroughAttribute name="onclick"
+                    value="PF('resetConfirmDlg').show();" />
                   <i class="pi pi-refresh" />
-                  <span> #{ivy.cms.co("/Labels/ResetAllChanges")} </span>
+                  <span> #{ivy.cms.co("/Labels/ResetAllChanges")}
+                  </span>
                 </h:panelGroup>
-              </div>
+                <p:commandLink
+                  actionListener="#{cmsLiveEditorBean.translateAll}"
+                  update="translationReviewDialog"
+                  oncomplete="PF('translationReviewDlg').show();"
+                  styleClass="cms-translate-btn" title="Translate All">
 
+                  <i class="pi pi-language"></i>
+                </p:commandLink>
+                <p:commandLink
+                  onclick="PF('cmsSettingsDialog').show(); return false;"
+                  styleClass="cms-settings-btn" title="Settings">
+                  <i class="pi pi-cog"></i>
+                </p:commandLink>
+              </div>
               <h:panelGroup styleClass="panel left w-full">
                 <p:dataTable id="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                   selection="#{cmsLiveEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
@@ -198,9 +217,17 @@
                               skinSimple="true">
                               <f:attribute name="index" value="#{language.index}" />
                             </p:fileUpload>
+                            <p:commandLink
+                              actionListener="#{cmsLiveEditorBean.translate(language)}"
+                              process="@this" update="@none"
+                              oncomplete="updateEditorContent(xhr, status, args)"
+                              styleClass="cms-translate-btn"
+                              title="Translate">
+                              <i class="pi pi-language"></i>
+                            </p:commandLink>
                           </h:panelGroup>
                         </f:facet>
-                        <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
+                        <h:panelGroup id="editor-wrapper" styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor content="#{language.content}"
                             languageIndex="#{language.index}" managedBean="#{cmsLiveEditorBean}"
                             isReadOnly="#{!cmsLiveEditorBean.editableCms}" isFormatButtonListVisible="#{language.html}" />

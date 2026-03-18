@@ -376,3 +376,43 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   background: hsla(var(--ivy-primary-color-h), var(--ivy-primary-color-s),
     var(--ivy-primary-color-l), 0.2);
 }
+
+.cms-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #6b7280; /* subtle gray */
+  transition: all 0.2s ease;
+}
+
+.cms-settings-btn:hover {
+  background-color: #f3f4f6; /* light hover */
+  color: #111827;
+}
+
+.cms-settings-btn i {
+  font-size: 1.1rem;
+}
+
+.cms-translate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.cms-translate-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.cms-translate-btn i {
+  font-size: 0.95rem;
+}
