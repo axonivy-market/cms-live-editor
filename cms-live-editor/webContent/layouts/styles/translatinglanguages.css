@@ -78,6 +78,10 @@
   border-right: 1px solid #E7E7E7;
 }
 
+.left-border {
+  border-left: 1px solid #E7E7E7;
+}
+
 .ui-accordion-header {
   border-top-right-radius: unset !important;
   border-top-left-radius: unset !important;
