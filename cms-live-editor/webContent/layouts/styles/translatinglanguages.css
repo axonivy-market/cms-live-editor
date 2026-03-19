@@ -1,14 +1,15 @@
-/*width for dropdown  */
+#content {
+  position: absolute;
+  inset: 0;
+}
+
 .ui-menu {
-  width: 300px; /* Adjust the width as needed */
+  width: 300px;
 }
 
 .panel {
   float: left;
-  /* Adjust based on desired layout (horizontal/vertical) */
-  border: 1px solid #EBEBEB;
   padding: 0;
-  height: 85vh;
   display: block;
   overflow: auto;
 }
@@ -66,21 +67,23 @@
 
 .column-header {
   background: #FAFAFA;
-  border: 1px solid #E5E7EB;
   padding: 6px 10px;
   font-weight: 600;
   font-size: 12px;
   height: 36px;
+  border-bottom: 2px solid #E7E7E7;
 }
 
 body.dark .column-header {
-  background: #FAFAFA;
-  border: 1px solid #E5E7EB;
-  padding: 6px 10px;
-  font-weight: 600;
-  font-size: 12px;
-  height: 36px;
   color: #1B1B1B;
+}
+
+.right-border {
+  border-right: 1px solid #E7E7E7;
+}
+
+.left-border {
+  border-left: 1px solid #E7E7E7;
 }
 
 .ui-accordion-header {
@@ -97,12 +100,8 @@ body.dark .column-header {
 .column-container {
   margin-top: 16px;
   overflow: hidden;
-  border: 2px solid #EBEBEB;
-  border-radius: 6px;
-}
-
-.columns {
-  padding: 0 0 0 0;
+  border: 1px solid #E7E7E7;
+  border-radius: 5px;
 }
 
 .cms-info-icon {
@@ -183,15 +182,16 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .save-success-bar {
+  display: none;
   background-color: #EDF9F0;
   color: #32894B;
   border: 1px solid #B4E7C2;
   opacity: 0;
-  visibility: hidden;
   transition: opacity 0.4s ease;
 }
 
 .save-success-bar.show {
+  display: flex;
   opacity: 1;
   visibility: visible;
 }
