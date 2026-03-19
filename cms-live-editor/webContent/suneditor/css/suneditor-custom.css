@@ -36,7 +36,7 @@
 }
 
 .sun-editor .se-btn-tray {
-  padding: 0px;
+  padding: 0;
 }
 
 .sun-editor.cms-editor-error .sun-editor-editable {
@@ -48,9 +48,4 @@
 .sun-editor.cms-editor-error .sun-editor-editable * {
   color: #E5151C !important;
   font-weight: 500;
-}
-
-.se-btn-module .se-btn-module-border {
-  margin-left: 0px;
-  margin-right:0px;
 }
