@@ -34,12 +34,12 @@ function getToolbarExpandedState(core) {
   return Boolean(globalThis.cmsToolbarExpandedByEditorId[editorId]);
 }
 
-function setToolbarExpandedState(core, isExpanded) {
+function setToolbarExpandedState(core, isHtmlMode) {
   const editorId = getEditorIdFromCore(core);
   if (!editorId) {
     return;
   }
-  globalThis.cmsToolbarExpandedByEditorId[editorId] = isExpanded;
+  globalThis.cmsToolbarExpandedByEditorId[editorId] = isHtmlMode;
 }
 
 const TOGGLE_VIEW_CONFIG = {
@@ -53,27 +53,27 @@ const TOGGLE_VIEW_CONFIG = {
   },
 };
 
-function getToggleViewTitle(isExpanded) {
-  return isExpanded ? TOGGLE_VIEW_CONFIG.expanded.title : TOGGLE_VIEW_CONFIG.collapsed.title;
+function getToggleViewTitle(isHtmlMode) {
+  return isHtmlMode ? TOGGLE_VIEW_CONFIG.expanded.title : TOGGLE_VIEW_CONFIG.collapsed.title;
 }
 
-function getToggleViewIcon(isExpanded) {
-  return isExpanded ? TOGGLE_VIEW_CONFIG.expanded.icon : TOGGLE_VIEW_CONFIG.collapsed.icon;
+function getToggleViewIcon(isHtmlMode) {
+  return isHtmlMode ? TOGGLE_VIEW_CONFIG.expanded.icon : TOGGLE_VIEW_CONFIG.collapsed.icon;
 }
 
-function updateToggleViewButton(core, isExpanded) {
+function updateToggleViewButton(core, isHtmlMode) {
   const button = core.context?.toggleToolbar?.targetElement;
   if (!button) {
     return;
   }
-  const title = getToggleViewTitle(isExpanded);
+  const title = getToggleViewTitle(isHtmlMode);
   button.setAttribute("title", title);
   button.setAttribute("aria-label", title);
   const tooltipText = button.parentElement?.querySelector(".se-tooltip-text");
   if (tooltipText) {
     tooltipText.textContent = title;
   }
-  button.innerHTML = getToggleViewIcon(isExpanded);
+  button.innerHTML = getToggleViewIcon(isHtmlMode);
 }
 
 function getEditorFromCore(core) {
@@ -89,22 +89,59 @@ function getEditorFromCore(core) {
   return globalThis.cmsLiveEditors[languageIndex] || null;
 }
 
-function toggleToolbar(core, button, isExpanded) {
+function isEditorInFullScreen(editor) {
+  return Boolean(editor?.core?._variable?.isFullScreen);
+}
+
+function restoreFullScreenIfNeeded(editor, wasFullScreen) {
+  if (!wasFullScreen) {
+    return;
+  }
+  const core = editor?.core;
+  if (!core || !core._variable || core._variable.isFullScreen) {
+    return;
+  }
+
+  const fullScreenButton = core.context?.tool?.fullScreen;
+  core.toggleFullScreen(fullScreenButton || null);
+}
+
+function applyButtonList(editor, buttonList) {
+  if (typeof editor?.setToolbarButtons === "function") {
+    editor.setToolbarButtons(buttonList);
+    return;
+  }
+
+  editor.setOptions({
+    buttonList,
+  });
+}
+
+function refreshToggleViewTargetButton(core, isHtmlMode) {
+  const toggleButton = core.context?.element?._buttonTray?.querySelector('[data-command="toggleView"]');
+  if (!toggleButton || !core.context?.toggleToolbar) {
+    return;
+  }
+
+  core.context.toggleToolbar.targetElement = toggleButton;
+  updateToggleViewButton(core, isHtmlMode);
+}
+
+function toggleToolbar(core, isHtmlMode) {
   const editor = getEditorFromCore(core);
   if (!editor) {
     return;
   }
-  toggleViewModePlugin.title = getToggleViewTitle(isExpanded);
-  toggleViewModePlugin.innerHTML = getToggleViewIcon(isExpanded);
-  if (isExpanded) {
-    editor.setOptions({
-      buttonList: FULL_TOOLBAR,
-    });
+  const wasFullScreen = isEditorInFullScreen(editor);
+  toggleViewModePlugin.title = getToggleViewTitle(isHtmlMode);
+  toggleViewModePlugin.innerHTML = getToggleViewIcon(isHtmlMode);
+  if (isHtmlMode) {
+    applyButtonList(editor, FULL_TOOLBAR);
   } else {
-    editor.setOptions({
-      buttonList: MINIMAL_TOOLBAR,
-    });
+    applyButtonList(editor, MINIMAL_TOOLBAR);
   }
+  refreshToggleViewTargetButton(core, isHtmlMode);
+  restoreFullScreenIfNeeded(editor, wasFullScreen);
 }
 
 const toggleViewModePlugin = {
@@ -114,12 +151,12 @@ const toggleViewModePlugin = {
   innerHTML: getToggleViewIcon(false),
 
   add: function (core, targetElement) {
-    const isExpanded = getToolbarExpandedState(core);
+    const isHtmlMode = getToolbarExpandedState(core);
     core.context.toggleToolbar = {
-      isExpanded,
+      isHtmlMode,
       targetElement,
     };
-    updateToggleViewButton(core, isExpanded);
+    updateToggleViewButton(core, isHtmlMode);
   },
 
   action: function () {
@@ -127,10 +164,10 @@ const toggleViewModePlugin = {
     if (!ctx) {
       return;
     }
-    ctx.isExpanded = !ctx.isExpanded;
-    setToolbarExpandedState(this, ctx.isExpanded);
-    updateToggleViewButton(this, ctx.isExpanded);
-    toggleToolbar(this, null, ctx.isExpanded);
+    ctx.isHtmlMode = !ctx.isHtmlMode;
+    setToolbarExpandedState(this, ctx.isHtmlMode);
+    updateToggleViewButton(this, ctx.isHtmlMode);
+    toggleToolbar(this, ctx.isHtmlMode);
   },
 };
 
@@ -156,7 +193,6 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
       all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
     },
   });
-  const initialContent = editor.getContents();
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
