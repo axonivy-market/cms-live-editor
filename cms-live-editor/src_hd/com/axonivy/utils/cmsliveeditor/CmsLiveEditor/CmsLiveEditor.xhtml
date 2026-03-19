@@ -21,7 +21,21 @@
           <div class="mb-3">
             <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
           </div>
-
+          <div class="header-actions">
+            <p:commandLink
+              actionListener="#{cmsLiveEditorBean.translateAll}"
+              process="table-cms-keys"
+              update=":content-form:reviewContent"
+              oncomplete="PF('translationReviewDialog').show();"
+              styleClass="cms-translate-btn" title="Translate All">
+              <i class="pi pi-language"></i>
+            </p:commandLink>
+            <p:commandLink
+              onclick="PF('cmsSettingsDialog').show(); return false;"
+              styleClass="cms-settings-btn" title="Settings">
+              <i class="pi pi-cog"></i>
+            </p:commandLink>
+          </div>
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">
               <p:selectOneMenu id="app" value="#{cmsLiveEditorBean.selectedProjectName}" class="w-full">
@@ -59,22 +73,6 @@
                   <span> #{ivy.cms.co("/Labels/ResetAllChanges")}
                   </span>
                 </h:panelGroup>
-                <div class="header-actions">
-                  <p:commandLink
-                    actionListener="#{cmsLiveEditorBean.translateAll}"
-                    process="table-cms-keys"
-                    update=":content-form:reviewContent"
-                    oncomplete="PF('translationReviewDialog').show();"
-                    styleClass="cms-translate-btn" title="Translate All">
-                    <i class="pi pi-language"></i>
-                  </p:commandLink>
-                  <p:commandLink
-                    onclick="PF('cmsSettingsDialog').show(); return false;"
-                    styleClass="cms-settings-btn" title="Settings">
-                    <i class="pi pi-cog"></i>
-                  </p:commandLink>
-                </div>
-
               </div>
               <p:dataTable id="table-cms-keys"
                 value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"

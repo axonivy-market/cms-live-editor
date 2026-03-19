@@ -275,10 +275,14 @@ public class CmsLiveEditorBean implements Serializable {
       if (target == null || !target.isTranslated()) {
         continue;
       }
-      target.saveContent(target.getTranslatedContent());
+      handleCmsContentSave(cms, target.getTranslatedContent(), target);
       target.setTranslated(false);
       target.setTranslatedContent(null);
+      cms.setDifferentWithApplication(true);
     }
+    cmsService.writeCmsToApplication(savedCmsMap);
+    onAppChange();
+    selectedCmsEntries = new ArrayList<>();
     PF.current().ajax().update(CONTENT_FORM);
   }
 
@@ -531,14 +535,14 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void save(int languageIndex, String content) {
     selectedCms.getContents().stream().filter(value -> value.getIndex() == languageIndex).findAny()
-        .ifPresent(cmsContent -> handleCmsContentSave(content, cmsContent));
+        .ifPresent(cmsContent -> handleCmsContentSave(selectedCms, content, cmsContent));
   }
 
-  private void handleCmsContentSave(String newContent, CmsContent cmsContent) {
+  private void handleCmsContentSave(Cms cms, String newContent, CmsContent cmsContent) {
     cmsContent.saveContent(newContent);
     var locale = cmsContent.getLocale();
     SavedCms savedCms =
-        new SavedCms(selectedCms.getUri(), locale.toString(), cmsContent.getOriginalContent(), cmsContent.getContent());
+        new SavedCms(cms.getUri(), locale.toString(), cmsContent.getOriginalContent(), cmsContent.getContent());
     saveCms(savedCms);
   }
 
