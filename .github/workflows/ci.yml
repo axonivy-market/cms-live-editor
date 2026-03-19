@@ -14,4 +14,4 @@ permissions:
 
 jobs:
   build:
-    uses: axonivy-market/github-workflows/.github/workflows/ci.yml@vnqhoan-axonivy-patch-1
+    uses: axonivy-market/github-workflows/.github/workflows/ci.yml@nqhoan-axonivy-patch-1
