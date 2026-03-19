@@ -227,11 +227,11 @@ function extractPlaceholders(content) {
     return [];
   }
 
-  const regex = /\{(\d+)(?:,[^}]*)?\}/g;
+  const javaMessageFormatRegex = /\{(\d+)(?:,[^}]*)?\}/g;
   const result = [];
   let match;
 
-  while ((match = regex.exec(content)) !== null) {
+  while ((match = javaMessageFormatRegex.exec(content)) !== null) {
     result.push(Number(match[1]));
   }
 

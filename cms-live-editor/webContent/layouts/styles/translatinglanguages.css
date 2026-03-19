@@ -376,3 +376,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   background: hsla(var(--ivy-primary-color-h), var(--ivy-primary-color-s),
     var(--ivy-primary-color-l), 0.2);
 }
+
+.cms-tooltip {
+  max-width: 420px;
+  line-height: 1.4;
+}

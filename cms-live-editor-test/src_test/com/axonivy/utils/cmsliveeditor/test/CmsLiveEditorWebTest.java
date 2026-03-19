@@ -142,9 +142,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testSaveWithInvalidPlaceholderAcrossLocalesShouldShowError() {
-    var cmsList = $$(CMS_PATH_URI);
-    cmsList.first().click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
@@ -185,10 +183,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testSaveWithValidPlaceholdersAcrossLocalesShouldSucceed() {
-    var cmsList = $$(CMS_PATH_URI);
-    cmsList.first().click();
-
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
@@ -206,14 +201,12 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testSaveWithChoicePlaceholderShouldSucceed() {
-    var cmsList = $$(CMS_PATH_URI);
-    cmsList.first().click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(1));
 
-    String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
+    String content = "There {0,choice,0#are no files|1#is one file|1&lt;{0} files}";
 
     for (var editor : editors) {
       editor.click();
@@ -228,9 +221,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testSaveWithReorderedPlaceholdersShouldSucceed() {
-    var cmsList = $$(CMS_PATH_URI);
-    cmsList.first().click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(2));

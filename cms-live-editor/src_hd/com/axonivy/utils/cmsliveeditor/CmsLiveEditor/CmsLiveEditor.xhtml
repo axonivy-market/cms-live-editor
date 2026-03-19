@@ -176,7 +176,11 @@
                 <div class="column-header flex align-items-center">
                   <div class="flex align-items-center gap-2">
                     <span class="font-semibold text-lg cms-title">#{ivy.cms.co('/Labels/Edit')}</span>
-                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/MessageFormatHint')}" />
+                    <p:outputPanel id="message-format-info" styleClass="cms-info-icon">
+                      <i class="pi pi-info-circle"></i>
+                    </p:outputPanel>
+                    <p:tooltip for="message-format-info" value="#{ivy.cms.co('/Labels/MessageFormatHint')}"
+                      escape="false" position="right" showDelay="200" styleClass="cms-tooltip" autoHide="false" />
                   </div>
                 </div>
                 <h:panelGroup styleClass="panel end w-full flex flex-column h-full justify-content-between" layout="block">
