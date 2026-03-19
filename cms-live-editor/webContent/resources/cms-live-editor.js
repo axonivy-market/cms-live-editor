@@ -43,22 +43,22 @@ function setToolbarExpandedState(core, isHtmlMode) {
 }
 
 const TOGGLE_VIEW_CONFIG = {
-  collapsed: {
+  html: {
     title: "Switch to HTML mode",
     icon: '<i class="fa-brands fa-html5"></i>',
   },
-  expanded: {
-    title: "Change to raw text mode",
+  text: {
+    title: "Switch to text mode",
     icon: '<i class="fa-solid fa-spell-check"></i>',
   },
 };
 
 function getToggleViewTitle(isHtmlMode) {
-  return isHtmlMode ? TOGGLE_VIEW_CONFIG.expanded.title : TOGGLE_VIEW_CONFIG.collapsed.title;
+  return isHtmlMode ? TOGGLE_VIEW_CONFIG.text.title : TOGGLE_VIEW_CONFIG.html.title;
 }
 
 function getToggleViewIcon(isHtmlMode) {
-  return isHtmlMode ? TOGGLE_VIEW_CONFIG.expanded.icon : TOGGLE_VIEW_CONFIG.collapsed.icon;
+  return isHtmlMode ? TOGGLE_VIEW_CONFIG.text.icon : TOGGLE_VIEW_CONFIG.html.icon;
 }
 
 function updateToggleViewButton(core, isHtmlMode) {
@@ -165,6 +165,9 @@ const toggleViewModePlugin = {
       return;
     }
     ctx.isHtmlMode = !ctx.isHtmlMode;
+    if (ctx.isHtmlMode && typeof showHtmlModeWarningDialog === "function") {
+      showHtmlModeWarningDialog();
+    }
     setToolbarExpandedState(this, ctx.isHtmlMode);
     updateToggleViewButton(this, ctx.isHtmlMode);
     toggleToolbar(this, ctx.isHtmlMode);
