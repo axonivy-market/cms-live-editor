@@ -263,45 +263,27 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void translateAll() {
-    Ivy.log().error(selectedCmsEntries.size());
     String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage().toUpperCase(Locale.ENGLISH);
     String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage().toUpperCase(Locale.ENGLISH);
-    Ivy.log().error("Translate entries: " + selectedCmsEntries.size());
     TranslationService.batchTranslate(selectedCmsEntries, src, target);
   }
 
   public void applyTranslations() {
-    if (selectedTargetLocale == null || selectedTargetLocale.isBlank()) {
-      return;
-    }
-
     String tag = selectedTargetLocale.trim().replace('_', '-');
     for (Cms cms : getTranslatedCms()) {
-      if (cms == null || cms.getContents() == null || cms.isFile()) {
-        continue;
-      }
       CmsContent target = getCmsContentByLocale(cms, tag);
       if (target == null || !target.isTranslated()) {
         continue;
       }
-      String translated = target.getTranslatedContent();
-      if (translated == null || translated.isBlank()) {
-        continue;
-      }
-
-      target.saveContent(translated);
+      target.saveContent(target.getTranslatedContent());
       target.setTranslated(false);
       target.setTranslatedContent(null);
     }
-
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void cancelTranslations() {
     for (Cms cms : getTranslatedCms()) {
-      if (cms == null || cms.getContents() == null) {
-        continue;
-      }
       cms.getContents().stream().filter(Objects::nonNull).forEach(c -> {
         c.setTranslated(false);
         c.setTranslatedContent(null);
@@ -352,13 +334,9 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public List<Cms> getTranslatedCms() {
-    List<Cms> translated = selectedCmsEntries.stream()
+    return selectedCmsEntries.stream()
         .filter(cms -> cms.getContents() != null && cms.getContents().stream().anyMatch(c -> StringUtils.isNotBlank(c.getTranslatedContent())))
         .toList();
-    if (translated.size() > 0) {
-      Ivy.log().info("Translated CMS count: " + translated.getFirst().getContents());
-    }
-    return translated;
   }
 
   public void rowSelect() {
@@ -382,7 +360,6 @@ public class CmsLiveEditorBean implements Serializable {
   public void onRowSelect(SelectEvent<Cms> event) {
     this.selectedCms = event.getObject();
     rowSelect();
-    Ivy.log().error("Selected entry: " + selectedCmsEntries.size());
   }
 
   private void loadFileContentOfSelectedCms() {
@@ -438,10 +415,6 @@ public class CmsLiveEditorBean implements Serializable {
       save(currentCmsValue.getLanguageIndex(), currentCmsValue.getContents());
     }
   }
-//
-//  public void checkIsEditingAndShowMessage() {
-//    isEditing();
-//  }
 
   private boolean isEditing() {
     if (lastSelectedCms == null) {

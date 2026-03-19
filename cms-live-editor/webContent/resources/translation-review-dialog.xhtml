@@ -32,17 +32,13 @@
         <p:column
           headerText="Target (#{cmsLiveEditorBean.selectedTargetLocale})"
           style="width: 20rem;">
-          <!-- container as JSF panelGroup to keep Facelets happy -->
           <h:panelGroup layout="block">
-            <!-- If the CMS is a file, show a friendly message -->
             <h:panelGroup rendered="#{cms.file}" layout="block"
               style="color: var(--text-color-secondary); font-style: italic; display:flex; align-items:center; gap:0.5rem;">
               <i class="pi pi-file" />
               <h:outputText
                 value="This can't be translated since it's a file" />
             </h:panelGroup>
-
-            <!-- Non-file: show old -> new translation preview -->
             <h:panelGroup rendered="#{not cms.file}" layout="block"
               style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
               <h:outputText
@@ -57,8 +53,6 @@
             </h:panelGroup>
           </h:panelGroup>
         </p:column>
-
-        <!-- Hide select column when CMS is a file -->
         <p:column headerText="Select"
           style="width: 5rem; text-align:center;"
           rendered="#{not cms.file}">
@@ -83,9 +77,10 @@
             oncomplete="PF('translationReviewDialog').hide();" />
           <p:commandButton value="Translate" icon="pi pi-check"
             styleClass="p-button-primary"
+            update="content-form:cms-values"
             action="#{cmsLiveEditorBean.applyTranslations}"
             process=":content-form:reviewContent"
-            oncomplete="PF('translationReviewDialog').hide();" />
+            oncomplete="PF('translationReviewDialog').hide(); restorePathPanelScroll();" />
         </div>
       </div>
     </f:facet>
