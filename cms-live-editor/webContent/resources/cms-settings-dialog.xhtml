@@ -8,19 +8,46 @@
   <p:dialog id="cms-settings-dialog" header="Settings"
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
     resizable="false" width="25rem">
+
     <h:panelGrid columns="1" styleClass="w-full">
+
       <h:panelGroup layout="block" styleClass="mb-3">
-        <h:outputLabel value="Leading Language"
+        <h:outputLabel value="Translations"
           styleClass="block mb-1 font-semibold" />
-        <p:selectOneMenu id="leadingLanguage"
-          value="#{cmsLiveEditorBean.selectedSourceLanguage}"
-          styleClass="w-full" filter="true" filterMatchMode="contains">
-          <f:selectItems value="#{cmsLiveEditorBean.languageList}"
-            var="lang" itemLabel="#{lang.displayLanguage}"
-            itemValue="#{lang.toLanguageTag()}" />
-          <p:ajax event="change" process="@this" update="@none" />
-        </p:selectOneMenu>
+        <h:panelGroup layout="block" styleClass="mb-3">
+          <h:outputLabel value="Source Language" />
+          <p:selectOneMenu id="leadingLocale"
+            value="#{cmsLiveEditorBean.selectedSourceLocale}"
+            styleClass="w-full" filter="true" filterMatchMode="contains">
+            <f:selectItems value="#{cmsLiveEditorBean.languageList}"
+              var="loc" itemLabel="#{loc.displayLanguage}"
+              itemValue="#{loc.toLanguageTag()}" />
+            <p:ajax event="change" process="@this" update="targetLocale" />
+          </p:selectOneMenu>
+        </h:panelGroup>
+
+        <!-- Target locale (single select) -->
+        <h:panelGroup layout="block" styleClass="mb-2">
+          <h:outputLabel value="Target Language" />
+          <p:selectOneMenu id="targetLocale"
+            value="#{cmsLiveEditorBean.selectedTargetLocale}"
+            styleClass="w-full" filter="true" filterMatchMode="contains">
+            <f:selectItems
+              value="#{cmsLiveEditorBean.localesExcludeSource}"
+              var="loc" itemLabel="#{loc.displayLanguage}"
+              itemValue="#{loc.toLanguageTag()}" />
+            <p:ajax event="change" process="@this" update="@none" />
+          </p:selectOneMenu>
+        </h:panelGroup>
       </h:panelGroup>
+
+      <!-- Save only -->
+      <div class="flex justify-content-center">
+        <p:commandButton value="Save" icon="pi pi-save"
+          onclick="PF('cmsSettingsDialog').hide();" process="@form"
+          update="@none" oncomplete="PF('cmsSettingsDialog').hide();" />
+      </div>
+
     </h:panelGrid>
   </p:dialog>
 </ui:composition>

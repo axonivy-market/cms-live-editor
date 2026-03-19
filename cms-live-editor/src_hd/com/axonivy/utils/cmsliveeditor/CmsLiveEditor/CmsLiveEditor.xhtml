@@ -64,10 +64,10 @@
                 <div class="header-actions">
                   <p:commandLink
                     actionListener="#{cmsLiveEditorBean.translateAll}"
+                    process="table-cms-keys"
                     update=":content-form:reviewContent"
                     oncomplete="PF('translationReviewDialog').show();"
-                    process="@this" styleClass="cms-translate-btn"
-                    title="Translate All">
+                    styleClass="cms-translate-btn" title="Translate All">
                     <i class="pi pi-language"></i>
                   </p:commandLink>
 
@@ -79,24 +79,41 @@
                 </div>
 
               </div>
-              <h:panelGroup styleClass="panel left w-full">
-                <p:dataTable id="table-cms-keys" class="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
-                  selection="#{cmsLiveEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
-                  scrollHeight="100%" pageLinks="5" styleClass="cms-path-table"
-                  onRowClick="savePathPanelScroll(); showWarningDialog(); return false;">
-                  <p:column>
-                    <div class="path-row">
-                      <h:outputText id="cms-uri" class="cms-uri" value="#{entry.uri}" />
-                      <h:panelGroup rendered="#{entry.differentWithApplication}">
-                        <span class="orange-dot" />
-                      </h:panelGroup>
-                    </div>
-                    <p:tooltip for="cms-uri" value="#{entry.uri} (#{entry.pmvName})" position="top" />
-                  </p:column>
-                  <p:ajax event="rowSelect" process="@this" update="@this" partialSubmit="true"
-                    oncomplete="setRowChange()" />
-                </p:dataTable>
-              </h:panelGroup>
+              <p:dataTable id="table-cms-keys"
+                value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
+                rowKey="#{entry.uri}"
+                selection="#{cmsLiveEditorBean.selectedCmsEntries}"
+                selectionMode="multiple" rowSelectMode="new"
+                widgetVar="tableCmsKeysWidget" scrollHeight="100%"
+                styleClass="cms-path-table"
+                onRowClick="savePathPanelScroll();">
+
+                <p:column>
+                  <div class="path-row">
+                    <h:outputText class="cms-uri" value="#{entry.uri}" />
+                    <h:panelGroup
+                      rendered="#{entry.differentWithApplication}">
+                      <span class="orange-dot" />
+                    </h:panelGroup>
+                  </div>
+                  <p:tooltip value="#{entry.uri} (#{entry.pmvName})"
+                    position="top" />
+                </p:column>
+
+                <!-- MUST process the table so old selection is cleared server-side -->
+                <p:ajax event="rowSelect"
+                  listener="#{cmsLiveEditorBean.onRowSelect}"
+                  process="table-cms-keys"
+                  update=":content-form:cms-columns table-cms-keys"
+                  partialSubmit="true" onstart="savePathPanelScroll();"
+                  oncomplete="setRowChange()" />
+
+                <p:ajax event="rowUnselect" process="table-cms-keys"
+                  update="@none" partialSubmit="true" />
+                <p:ajax event="toggleSelect" process="table-cms-keys"
+                  update="@none" partialSubmit="true" />
+
+              </p:dataTable>
             </h:panelGroup>
 
             <h:panelGroup layout="block" id="cms-columns" styleClass="col-8 columns flex">
@@ -221,7 +238,7 @@
                               skinSimple="true">
                               <f:attribute name="index" value="#{language.index}" />
                             </p:fileUpload>
-                            <p:commandLink
+                            <p:commandLink rendered="#{cmsLiveEditorBean.isRenderTranslateButton(language)}"
                               actionListener="#{cmsLiveEditorBean.translate(language)}"
                               process="@this" update="@none"
                               oncomplete="updateEditorContent(xhr, status, args)"

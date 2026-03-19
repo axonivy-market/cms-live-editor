@@ -354,7 +354,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .cms-file-item .remove-document-icon {
-  position : absolute;
+  position: absolute;
   color: rgba(229, 21, 28, 1);
   top: 16px;
   right: 14px;
@@ -427,4 +427,12 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.review-data-table .p-column-title {
+  font-weight: 600;
+}
+
+.review-data-table td {
+  vertical-align: middle;
 }

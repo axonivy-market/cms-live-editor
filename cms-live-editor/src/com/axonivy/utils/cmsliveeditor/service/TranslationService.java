@@ -22,8 +22,8 @@ public class TranslationService {
 
   }
 
-  public static void batchTranslate(List<Cms> entries, String sourceLang) {
-    if (entries == null || entries.isEmpty() || sourceLang == null || sourceLang.isBlank()) {
+  public static void batchTranslate(List<Cms> entries, String sourceLang, String targetLang) {
+    if (entries == null || entries.isEmpty() || sourceLang == null || sourceLang.isBlank() || targetLang == null || targetLang.isBlank()) {
       return;
     }
 
@@ -54,29 +54,25 @@ public class TranslationService {
 
       for (CmsContent content : cms.getContents()) {
         if (content == null || content.getLocale() == null) {
-          Ivy.log().error("content == null || content.getLocale() == null");
           continue;
         }
 
-        String target = content.getLocale().getLanguage().toUpperCase();
+        String target = content.getLocale().getLanguage();
+
+        // ✅ Only process the requested targetLang
+        if (targetLang == null || !targetLang.equalsIgnoreCase(target)) {
+          continue;
+        }
 
         // skip source language
-        if (src.equalsIgnoreCase(content.getLocale().getLanguage())) {
-          Ivy.log().error("src.equalsIgnoreCase(content.getLocale().getLanguage())");
+        if (src.equalsIgnoreCase(target)) {
           continue;
         }
 
-        // only translate empty content
-//        if (content.getContent() != null && !content.getContent().isBlank()) {
-//          Ivy.log().error("content.getContent() != null && !content.getContent().isBlank()");
-//          continue;
-//        }
-
         try {
-          options.setTargetLang(TargetLanguage.valueOf(target));
+          options.setTargetLang(TargetLanguage.valueOf(target.toUpperCase()));
           String translated = DeepLTranslationService.translate(sourceText, options);
           content.setTranslatedContent(translated);
-          content.setTranslated(true);
         } catch (Exception e) {
           Ivy.log().warn("Translate failed for target=" + target + ", source=" + src, e);
         }
