@@ -1,14 +1,26 @@
 package com.axonivy.utils.cmsliveeditor.test;
 
-import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.*;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_CONTAINER_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_SAVE_CONTAINER_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.DOWNLOAD_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.EDIT_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.ORANGE_DOT_CLASS;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_ALL_CHANGES_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_BTN_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_CONFIRM_INPUT_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_SUCCESS_BAR_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SEARCH_INPUT_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.interactable;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -212,6 +224,42 @@ public class CmsLiveEditorWebTest {
     loginAndStartProcess("normalUser", "123456");
     var exception = $(By.cssSelector(".exception-content"));
     exception.shouldBe(visible).shouldHave(matchText("Access denied. Need role CMS_ADMIN"));
+  }
+
+  @Test
+  public void testOpenTranslateDialogAndApplyTranslations() {
+    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+
+    SelenideElement table = $$(By.cssSelector("[id$=':table-translation-review']")).first();
+    table.shouldBe(visible, Duration.ofSeconds(5));
+    SelenideElement checkbox = table.$$("[type='checkbox']").filter(visible).first();
+    checkbox.shouldBe(enabled, Duration.ofSeconds(5)).click();
+
+    $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
+    table.shouldNotBe(visible, Duration.ofSeconds(5));
+    $$(By.cssSelector("[id$=':cms-values'] .ui-accordion-content")).shouldHave(sizeGreaterThanOrEqual(1));
+  }
+
+  @Test
+  public void testOpenSettingsDialogAndSave() {
+    $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+    SelenideElement settingsDialog = $$(By.cssSelector("[id$=':cms-settings-dialog']")).first();
+    settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
+    SelenideElement saveButton = settingsDialog.$(".pi-save").parent();
+    saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
+    settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testTranslateButtonInEditSection() {
+    var cmsList = $$(CMS_PATH_URI);
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    SelenideElement translateBtn = $$(By.cssSelector("[id$=':cms-edit-value'] .cms-translate-btn")).filter(visible).first();
+    translateBtn.shouldBe(enabled, Duration.ofSeconds(5)).click();
+    $(SUN_EDITOR_EDITABLE_SELECTOR).shouldNotBe(empty, Duration.ofSeconds(10));
   }
 
   /**
