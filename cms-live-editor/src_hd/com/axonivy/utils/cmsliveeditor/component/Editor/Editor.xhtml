@@ -35,12 +35,21 @@
 
   <!-- EDIT MODE -->
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
+    <!-- Rich Text Editor (visual editor) -->
     <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
-      autoResize="false" />
+      autoResize="false" 
+      style="#{cc.attrs.isFormatButtonListVisible ? 'display:block' : 'display:none'}"
+      disabled="#{not cc.attrs.isFormatButtonListVisible}" />
+    
+    <!-- Raw Text Editor -->
+    <p:inputTextarea id="raw-content-editor" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
+      autoResize="false" 
+      style="#{not cc.attrs.isFormatButtonListVisible ? 'display:block' : 'display:none'}"
+      disabled="#{cc.attrs.isFormatButtonListVisible}" />
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
-    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible}, #{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id');"
+    onstart="initSunEditor(#{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id');"
     global="false" process="@none" update="@none" immediate="true" />
 
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"

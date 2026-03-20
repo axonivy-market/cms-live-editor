@@ -3,6 +3,8 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
+window.cmsSunEditorCores = {}; // Store SunEditor core instances
+window.cmsToggleButtonMap = {}; // Map toggle buttons to editor IDs
 
 const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
 const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
@@ -26,21 +28,81 @@ const toggleViewModePlugin = {
   title: "Switch to text mode",
   innerHTML: '<i class="fa-solid fa-spell-check"></i>',
 
+  add: function (core) {
+    const context = core.context;
+    context.toggleView = { isTextMode: false };
+
+    let button = document.createElement("button");
+    button.className = "se-btn";
+    button.title = this.title;
+    button.innerHTML = this.innerHTML;
+    // debugger;
+    // Get the editor element
+    const editorId = core.context.element.topArea.id;
+
+    // Create a unique ID for this button
+    const buttonId = "toggle-btn-" + editorId;
+    button.id = buttonId;
+    button.type = "button";
+
+    // Store the mapping: button ID -> editor ID
+    window.cmsToggleButtonMap[buttonId] = editorId;
+
+    // Also set the data attribute for inspection
+    button.dataset.editorId = editorId;
+    button.setAttribute("data-editor-id", editorId);
+    button.setAttribute("aria-label", "Toggle editor for " + editorId);
+
+    console.log("Toggle button initialized:", {
+      buttonId: buttonId,
+      editorId: editorId,
+      buttonElement: button.id,
+    });
+
+    // Use capture phase to intercept click before SunEditor processes it
+    button.addEventListener(
+      "click",
+      function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log("Toggle button clicked - buttonId:", buttonId, "editorId:", editorId);
+
+        // Find the SunEditor wrapper - it's the parent SPAN with class 'ui-inputwrapper-filled'
+        let container = editorElement.parentElement;
+        while (container && !container.classList.contains("ui-inputwrapper-filled")) {
+          container = container.parentElement;
+        }
+
+        if (container) {
+          console.log("Successfully hiding SunEditor container");
+          container.style.display = "none";
+        } else {
+          console.log("Could not find SunEditor wrapper, hiding textarea");
+          editorElement.style.display = "none";
+        }
+
+        return false;
+      },
+      true,
+    ); // Use capture phase
+
+    return button;
+  },
+
   action: function () {
-    console.log("Toggle view mode clicked");
+    // This method is called by SunEditor but we handle clicks in the button's event listener
+    console.log(this.context.element.topArea.id);
   },
 };
 
-function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
+function initSunEditor(languageIndex, editorId) {
   const textarea = document.getElementById(editorId);
   if (!textarea) {
     return;
   }
-
-  globalThis.cmsToolbarExpandedByEditorId[editorId] = Boolean(isFormatButtonListVisible);
-
   const editor = SUNEDITOR.create(textarea, {
-    FULL_TOOLBAR,
+    buttonList: FULL_TOOLBAR,
     plugins: [toggleViewModePlugin],
     attributesWhitelist: {
       all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
@@ -48,6 +110,10 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   });
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
+
+  // Register the editor core with its ID for the toggle button
+  window.cmsSunEditorCores[editorId] = editor.core;
+  console.log("Editor registered - ID:", editorId, "- ready for toggle button");
 
   // Store original content and placeholder pattern for later comparison
   try {
@@ -59,22 +125,22 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-function markDirtyIfChanged() {
-  const currentContent = editor.getContents();
-  const originalContents = window.cmsInitialContents[languageIndex] || "";
+  function markDirtyIfChanged() {
+    const currentContent = editor.getContents();
+    const originalContents = window.cmsInitialContents[languageIndex] || "";
 
-  if (currentContent === originalContents) {
-    // Back to original -> not dirty anymore
-    window.cmsDirtyEditors.delete(languageIndex);
-    setEditorError(languageIndex, false);
-  } else {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: "languageIndex", value: languageIndex },
-      { name: "content", value: currentContent },
-    ]);
+    if (currentContent === originalContents) {
+      // Back to original -> not dirty anymore
+      window.cmsDirtyEditors.delete(languageIndex);
+      setEditorError(languageIndex, false);
+    } else {
+      window.cmsDirtyEditors.add(languageIndex);
+      setValueChanged([
+        { name: "languageIndex", value: languageIndex },
+        { name: "content", value: currentContent },
+      ]);
+    }
   }
-}
 
   function debounce(fn, delay) {
     let timer;
