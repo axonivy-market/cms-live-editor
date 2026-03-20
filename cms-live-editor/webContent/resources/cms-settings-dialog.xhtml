@@ -33,7 +33,7 @@
             value="#{cmsLiveEditorBean.selectedTargetLocale}"
             styleClass="w-full" filter="true" filterMatchMode="contains">
             <f:selectItems
-              value="#{cmsLiveEditorBean.localesExcludeSource}"
+              value="#{cmsLiveEditorBean.targetLocales}"
               var="loc" itemLabel="#{loc.displayLanguage}"
               itemValue="#{loc.toLanguageTag()}" />
             <p:ajax event="change" process="@this" update="@none" />
@@ -46,7 +46,7 @@
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
           actionListener="#{cmsLiveEditorBean.saveSettings()}"
           onclick="PF('cmsSettingsDialog').hide();" process="@form"
-          update="@none" oncomplete="PF('cmsSettingsDialog').hide();" />
+          update="content-form" oncomplete="PF('cmsSettingsDialog').hide();" />
       </h:panelGroup>
 
     </h:panelGrid>
