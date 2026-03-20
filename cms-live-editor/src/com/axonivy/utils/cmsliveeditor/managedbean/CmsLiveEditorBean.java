@@ -47,6 +47,7 @@ import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
+import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
@@ -54,6 +55,7 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
+import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
@@ -631,14 +633,22 @@ public class CmsLiveEditorBean implements Serializable {
   private void initLocales() {
     languageList = filteredCMSList.stream().flatMap(c -> c.getContents().stream()).map(CmsContent::getLocale).filter(Objects::nonNull)
         .distinct().sorted(Comparator.comparing(l -> l.getDisplayLanguage(Locale.ENGLISH))).toList();
-    if (selectedSourceLocale == null && !languageList.isEmpty()) {
+
+    selectedSourceLocale = IvyUserService.getUserProperty(UserConstants.SOURCE_LANG);
+    selectedTargetLocale = IvyUserService.getUserProperty(UserConstants.TARGET_LANG);
+
+    if (selectedSourceLocale == null && !languageList.isEmpty() && selectedSourceLocale == null) {
       selectedSourceLocale = languageList.get(0).toLanguageTag();
     }
     selectedCmsEntries = new ArrayList<>();
     List<Locale> targets = getLocalesExcludeSource();
-    if (!targets.isEmpty()) {
+    if (!targets.isEmpty() && selectedTargetLocale == null) {
       selectedTargetLocale = targets.get(0).toLanguageTag();
     }
+  }
+
+  public void saveSettings() {
+    IvyUserService.updateUserProperty(selectedSourceLocale, selectedTargetLocale);
   }
 
   public List<Cms> getFilteredCMSKeys() {

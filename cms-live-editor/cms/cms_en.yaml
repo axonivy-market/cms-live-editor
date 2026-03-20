@@ -18,22 +18,33 @@ Labels:
   EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
+  FileCannotBeTranslated: This CMS can't be translated since it is file type
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
   Message: Message
   Options: Options
+  Path: Path
   Paths: Paths
   Preview: Preview
-  ProjectCmsTitle: Project-CMS
+  ProjectCmsTitle: Translate
   ResetAdvice: Enter <b>reset</b> to confirm
   ResetAll: Reset all
   ResetAllChangeConfirmation: Are you sure you want to reset all changes?
   ResetAllChanges: Reset all changes
   Save: Save
   Search: Search for paths or CMS content
+  Select: Select
   SelectedCMS: Selected CMS
+  Settings: Settings
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
+  Source: Source
+  SourceLanguage: Source Language
+  Target: Target
+  TargetLanguage: Target Language
+  Translate: Translate
+  TranslateMultiple: Translate Multiple Entries
+  Translations: Translations
   UndoChanges: Undo changes
   Warning: Warning
 Processes:
