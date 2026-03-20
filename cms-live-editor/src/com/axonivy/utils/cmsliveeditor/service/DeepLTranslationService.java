@@ -9,13 +9,16 @@ import deepl.translate.Options;
 public class DeepLTranslationService {
 
   private static final String PROCESS_PATH = "deepl/translate";
+  private static final String TEXT = "text";
+  private static final String OPTIONS = "options";
+  private static final String TRANSLATION = "translation";
 
   public static String translate(String text, Options translateOptions) {
     try {
       SubProcessCallStartParamCaller call =
-          SubProcessCall.withPath(PROCESS_PATH).withStartName("text").withParam("text", text).withParam("options", translateOptions);
+          SubProcessCall.withPath(PROCESS_PATH).withStartName(TEXT).withParam(TEXT, text).withParam(OPTIONS, translateOptions);
       SubProcessCallResult result = call.call();
-      return (String) result.get("translation");
+      return (String) result.get(TRANSLATION);
     } catch (Exception e) {
       Ivy.log().error("#translate DeepL translation failed", e);
       return text;

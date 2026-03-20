@@ -249,7 +249,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void translate(CmsContent content) {
     String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage().toUpperCase(Locale.ENGLISH);
-    String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage().toUpperCase(Locale.ENGLISH);
+    String target = content.getLocale().getLanguage().toUpperCase(Locale.ENGLISH);
     String newValue = TranslationService.translate(content.getContent(), src, target);
     content.setContent(newValue);
     PrimeFaces.current().ajax().addCallbackParam("langIndex", content.getIndex());
@@ -257,8 +257,8 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void translateAll() {
-    String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage().toUpperCase(Locale.ENGLISH);
-    String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage().toUpperCase(Locale.ENGLISH);
+    String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage();
+    String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage();
     TranslationService.batchTranslate(selectedCmsEntries, src, target);
   }
 
@@ -268,7 +268,7 @@ public class CmsLiveEditorBean implements Serializable {
       if (target == null || !target.isTranslated()) {
         continue;
       }
-      handleCmsContentSave(cms, target.getTranslatedContent(), target);
+      handleCmsContentSave(cms.getUri(), target.getTranslatedContent(), target);
       target.setTranslated(false);
       target.setTranslatedContent(null);
     }
@@ -478,14 +478,14 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void save(int languageIndex, String content) {
     selectedCms.getContents().stream().filter(value -> value.getIndex() == languageIndex).findAny()
-        .ifPresent(cmsContent -> handleCmsContentSave(selectedCms, content, cmsContent));
+        .ifPresent(cmsContent -> handleCmsContentSave(selectedCms.getUri(), content, cmsContent));
   }
 
-  private void handleCmsContentSave(Cms cms, String newContent, CmsContent cmsContent) {
+  private void handleCmsContentSave(String uri, String newContent, CmsContent cmsContent) {
     cmsContent.saveContent(newContent);
     var locale = cmsContent.getLocale();
     SavedCms savedCms =
-        new SavedCms(cms.getUri(), locale.toString(), cmsContent.getOriginalContent(), cmsContent.getContent());
+        new SavedCms(uri, locale.toString(), cmsContent.getOriginalContent(), cmsContent.getContent());
     saveCms(savedCms);
   }
 

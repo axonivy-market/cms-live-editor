@@ -23,17 +23,19 @@
           </div>
           <div class="header-actions">
             <p:commandLink
+              onclick="PF('cmsSettingsDialog').show(); return false;"
+              styleClass="cms-settings-btn"
+              title="#{ivy.cms.co('/Labels/Settings')}">
+              <i class="pi pi-cog"></i>
+            </p:commandLink>
+            <p:commandLink
               actionListener="#{cmsLiveEditorBean.translateAll}"
               process="table-cms-keys"
               update=":content-form:reviewContent"
               oncomplete="PF('translationReviewDialog').show();"
-              styleClass="cms-translate-btn" title="#{ivy.cms.co('/Labels/TranslateMultiple')}">
+              styleClass="cms-translate-btn"
+              title="#{ivy.cms.co('/Labels/TranslateMultiple')}">
               <i class="pi pi-language"></i>
-            </p:commandLink>
-            <p:commandLink
-              onclick="PF('cmsSettingsDialog').show(); return false;"
-              styleClass="cms-settings-btn" title="#{ivy.cms.co('/Labels/Settings')}">
-              <i class="pi pi-cog"></i>
             </p:commandLink>
           </div>
           <div class="flex flex-column gap-2">

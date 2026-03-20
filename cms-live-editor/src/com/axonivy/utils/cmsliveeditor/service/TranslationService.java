@@ -1,9 +1,13 @@
 package com.axonivy.utils.cmsliveeditor.service;
 
 import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.deepl.api.v2.client.SourceLanguage;
 import com.deepl.api.v2.client.TargetLanguage;
 
@@ -12,9 +16,9 @@ import deepl.translate.Options;
 
 public class TranslationService {
 
-  public static String translate(String text, String sourceLang, String targetLang) {
+  public static String translate(String text, String srcLang, String targetLang) {
     TargetLanguage targetLanguageEnum = TargetLanguage.valueOf(targetLang);
-    SourceLanguage sourceLanguageEnum = SourceLanguage.valueOf(sourceLang);
+    SourceLanguage sourceLanguageEnum = SourceLanguage.valueOf(srcLang);
     Options translateOptions = new Options();
     translateOptions.setTargetLang(targetLanguageEnum);
     translateOptions.setSourceLang(sourceLanguageEnum);
@@ -22,61 +26,61 @@ public class TranslationService {
 
   }
 
-  public static void batchTranslate(List<Cms> entries, String sourceLang, String targetLang) {
-    if (entries == null || entries.isEmpty() || sourceLang == null || sourceLang.isBlank() || targetLang == null || targetLang.isBlank()) {
+  public static void batchTranslate(List<Cms> entries, String srcLang, String targetLang) {
+    if (entries == null || entries.isEmpty() || StringUtils.isAnyBlank(srcLang, targetLang)) {
       return;
     }
 
-    String src = sourceLang.trim().toLowerCase(); // e.g. "en"
     Options options = new Options();
 
     try {
-      options.setSourceLang(SourceLanguage.valueOf(src.toUpperCase()));
+      options.setSourceLang(SourceLanguage.valueOf(srcLang.toUpperCase(Locale.ENGLISH)));
     } catch (Exception e) {
-      Ivy.log().warn("Unsupported source language: " + sourceLang, e);
+      Ivy.log().warn("Unsupported source language: " + srcLang, e);
       return;
     }
 
     for (Cms cms : entries) {
       if (cms == null || cms.isFile() || cms.getContents() == null || cms.getContents().isEmpty()) {
-        Ivy.log().error("Skip --");
+        Ivy.log().debug("Skipping CMS (null/file/empty): " + (cms == null ? "null" : cms.getUri()));
         continue;
       }
 
-      // find source text
-      String sourceText = cms.getContents().stream().filter(c -> c.getLocale() != null && src.equalsIgnoreCase(c.getLocale().getLanguage()))
-          .map(CmsContent::getContent).filter(t -> t != null && !t.isBlank()).findFirst().orElse(null);
+      // find source text (first non-blank content matching source language)
+      String sourceText = CmsContentUtils.getContentByLocale(cms, srcLang);
 
-      if (sourceText == null) {
-        Ivy.log().error("sourceText == null");
+      if (StringUtils.isBlank(sourceText)) {
+        Ivy.log().debug("No source text found for CMS: " + cms.getUri() + " sourceLang=" + srcLang);
         continue;
       }
 
-      for (CmsContent content : cms.getContents()) {
-        if (content == null || content.getLocale() == null) {
-          continue;
-        }
+      // translate once per targetLang for this CMS
+      String translatedForTarget = null;
+      String targetLower = targetLang.trim().toLowerCase(Locale.ENGLISH);
 
-        String target = content.getLocale().getLanguage();
-
-        // ✅ Only process the requested targetLang
-        if (targetLang == null || !targetLang.equalsIgnoreCase(target)) {
-          continue;
-        }
-
-        // skip source language
-        if (src.equalsIgnoreCase(target)) {
-          continue;
-        }
-
-        try {
-          options.setTargetLang(TargetLanguage.valueOf(target.toUpperCase()));
-          String translated = DeepLTranslationService.translate(sourceText, options);
-          content.setTranslatedContent(translated);
-        } catch (Exception e) {
-          Ivy.log().warn("Translate failed for target=" + target + ", source=" + src, e);
-        }
+      // if target equals source, skip
+      if (srcLang.equalsIgnoreCase(targetLower)) {
+        Ivy.log().debug("Skipping translate because source == target for CMS: " + cms.getUri());
+        continue;
       }
+
+      try {
+        options.setTargetLang(TargetLanguage.valueOf(targetLower.toUpperCase(Locale.ENGLISH)));
+        translatedForTarget = DeepLTranslationService.translate(sourceText, options);
+      } catch (Exception e) {
+        Ivy.log().warn("Translate failed for CMS: " + cms.getUri() + " target=" + targetLower + ", source=" + srcLang, e);
+        translatedForTarget = null;
+        continue;
+      }
+
+      if (translatedForTarget == null) {
+        continue;
+      }
+      CmsContent oldContent = CmsContentUtils.getCmsContentByLocale(cms, targetLang);
+      if (oldContent == null) {
+        continue;
+      }
+      oldContent.setTranslatedContent(translatedForTarget);
     }
   }
 }
