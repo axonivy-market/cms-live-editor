@@ -212,14 +212,14 @@ public class CmsLiveEditorWebTest {
     String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
 
     for (var editor : editors) {
-      editor.click();
+      editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
-      Selenide.sleep(200);
       editor.sendKeys(content);
       editor.pressTab();
     }
-
+    Selenide.sleep(200);
+    
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     undoCmsChanges();
