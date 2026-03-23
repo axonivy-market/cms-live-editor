@@ -50,7 +50,7 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   try {
     const initialContents = editor.getContents();
     window.cmsInitialContents[languageIndex] = initialContents;
-    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
+    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents);
   } catch (e) {
     window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
@@ -227,15 +227,20 @@ function extractPlaceholders(content) {
     return [];
   }
 
-  const javaMessageFormatRegex = /\{(\d+)(?:,[^}]*)?\}/g;
+  const javaMessageFormatRegex = /\{(\d+)(?:,([^,}]+)(?:,([^}]+))?)?\}/g;
+
   const result = [];
   let match;
 
   while ((match = javaMessageFormatRegex.exec(content)) !== null) {
-    result.push(Number(match[1]));
+    result.push({
+      index: Number(match[1]),
+      format: match[2] ? match[2].trim() : null,
+      style: match[3] ? match[3].trim() : null
+    });
   }
 
-  return result.sort((a, b) => a - b);
+  return result.sort((a, b) => a.index - b.index);
 }
 
 /** Compares two placeholder lists for exact equality.
@@ -247,11 +252,51 @@ function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
     return false;
   }
+
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
+    if (a[i].index !== b[i].index) }
       return false;
     }
+
+    const formatA = a[i].format || null;
+    const formatB = b[i].format || null;
+
+    if (formatA === 'choice' || formatB === 'choice') {
+      if (formatA !== formatB) {
+        return false;
+      }
+
+      if (!areChoiceStylesEquivalent(a[i].style, b[i].style)) {
+        return false;
+      }
+    }
   }
+
+  return true;
+}
+
+function areChoiceStylesEquivalent(styleA, styleB) {
+  if (!styleA || !styleB) {
+    return styleA === styleB;
+  }
+
+  const normalize = (style) =>
+    style
+      .split('|')
+      .map(s => s.trim())
+      .sort();
+
+  const aParts = normalize(styleA);
+  const bParts = normalize(styleB);
+
+  if (aParts.length !== bParts.length) {
+   return false;
+  }
+
+  for (let i = 0; i < aParts.length; i++) {
+    if (aParts[i] !== bParts[i]) return false;
+  }
+
   return true;
 }
 
