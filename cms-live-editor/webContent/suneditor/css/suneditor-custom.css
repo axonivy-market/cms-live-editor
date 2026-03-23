@@ -17,6 +17,10 @@
   outline: unset;
 }
 
+.se-toolbar.sun-editor-common {
+  padding-bottom: 0.7rem;
+}
+
 .sun-editor {
   border: unset;
 }
@@ -29,6 +33,10 @@
 
 .sun-editor .se-resizing-bar {
   display: none;
+}
+
+.sun-editor .se-btn-tray {
+  padding: 0;
 }
 
 .sun-editor.cms-editor-error .sun-editor-editable {
