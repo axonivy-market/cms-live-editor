@@ -189,12 +189,15 @@ public class CmsLiveEditorWebTest {
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
     for (SelenideElement editor : editors) {
-      editor.click();
+      editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
       editor.sendKeys("Files count {0}");
+      editor.pressTab();
     }
-    $(By.id(SAVE_BUTTON_ID)).click();
+    Selenide.sleep(300);
 
+    $(By.id(SAVE_BUTTON_ID)).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     undoCmsChanges();
   }
