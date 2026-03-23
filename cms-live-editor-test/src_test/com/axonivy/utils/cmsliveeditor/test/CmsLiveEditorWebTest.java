@@ -206,12 +206,15 @@ public class CmsLiveEditorWebTest {
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(1));
 
-    String content = "There {0,choice,0#are no files|1#is one file|1&lt;{0} files}";
+    String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
 
     for (var editor : editors) {
       editor.click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      Selenide.sleep(200);
       editor.sendKeys(content);
+      editor.pressTab();
     }
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();

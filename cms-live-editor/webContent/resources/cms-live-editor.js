@@ -254,7 +254,7 @@ function arePlaceholderListsEqual(a, b) {
   }
 
   for (let i = 0; i < a.length; i++) {
-    if (a[i].index !== b[i].index) }
+    if (a[i].index !== b[i].index) {
       return false;
     }
 
