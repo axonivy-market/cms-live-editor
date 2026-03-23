@@ -149,7 +149,7 @@ public class CmsLiveEditorWebTest {
     cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).hover();
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).scrollTo().hover();
     $(By.id(CMS_WARNING_SAVE_CONTAINER_ID)).shouldBe(visible);
   }
 
