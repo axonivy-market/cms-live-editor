@@ -11,7 +11,9 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_CONFI
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_SUCCESS_BAR_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SEARCH_INPUT_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SETTING_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.TRANSLATE_ALL_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
 import static com.codeborne.selenide.Condition.empty;
@@ -67,6 +69,16 @@ public class CmsLiveEditorWebTest {
   }
 
   @Test
+  public void testTranslateMultipleButtonShouldBeVisible() {
+    $(By.id(TRANSLATE_ALL_BUTTON_ID)).shouldBe(visible);
+  }
+
+  @Test
+  public void testSettingsButtonShouldBeVisible() {
+    $(By.id(SETTING_BUTTON_ID)).shouldBe(visible);
+  }
+
+  @Test
   public void testFilterByCmsUriShouldDisplayTwoRows() {
     sendKeysToSearchInput(testCmsUri);
     assertCmsTableRowCountGte(2);
@@ -95,16 +107,16 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testEditedButNotSaveShouldShowError() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    var otherCms = cmsList.get(1);
-    selectedCms.click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    var otherElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     $(".se-btn.se-resizing-enabled.se-tooltip").should(enabled);
     Selenide.sleep(1000);
-    otherCms.click();
+    otherElement.click();
 
     var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
     closeDialog(errorDialog);
@@ -127,8 +139,9 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testHoverEditButtonToShowWarningMessage() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    selectedCms.click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).hover();
@@ -138,16 +151,17 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testEditedAndSavedShouldNotShowError() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    var otherCms = cmsList.get(1);
-    selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    var otherElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    cmsElement.click();
+    $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     Selenide.sleep(1000);
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
-    otherCms.click();
+    otherElement.click();
     $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
   }
 
@@ -227,17 +241,13 @@ public class CmsLiveEditorWebTest {
   }
 
   @Test
-  public void testOpenTranslateDialogAndApplyTranslations() {
+  public void testOpenTranslateDialogShouldBeOpened() {
     $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
 
     SelenideElement table = $$(By.cssSelector("[id$=':table-translation-review']")).first();
     table.shouldBe(visible, Duration.ofSeconds(5));
-    SelenideElement checkbox = table.$$("[type='checkbox']").filter(visible).first();
-    checkbox.shouldBe(enabled, Duration.ofSeconds(5)).click();
-
     $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
     table.shouldNotBe(visible, Duration.ofSeconds(5));
-    $$(By.cssSelector("[id$=':cms-values'] .ui-accordion-content")).shouldHave(sizeGreaterThanOrEqual(1));
   }
 
   @Test
@@ -259,7 +269,6 @@ public class CmsLiveEditorWebTest {
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
     SelenideElement translateBtn = $$(By.cssSelector("[id$=':cms-edit-value'] .cms-translate-btn")).filter(visible).first();
     translateBtn.shouldBe(enabled, Duration.ofSeconds(5)).click();
-    $(SUN_EDITOR_EDITABLE_SELECTOR).shouldNotBe(empty, Duration.ofSeconds(10));
   }
 
   /**

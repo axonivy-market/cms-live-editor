@@ -16,6 +16,8 @@ public class CmsConstants {
   public static final String EDIT_BUTTON_ID = "content-form:edit-button";
   public static final String SAVE_BUTTON_ID = "content-form:save-button";
   public static final String DOWNLOAD_BUTTON_ID = "content-form:download-button";
+  public static final String TRANSLATE_ALL_BUTTON_ID = "content-form:cms-translate-btn";
+  public static final String SETTING_BUTTON_ID = "content-form:cms-settings-btn";
   public static final String CMS_WARNING_CONTAINER_ID = "content-form:cms-warning-container";
   public static final String CMS_WARNING_SAVE_CONTAINER_ID = "content-form:cms-warning-save-container";
   public static final String CMS_ERROR_CONTAINER_ID = "content-form:cms-error-container";

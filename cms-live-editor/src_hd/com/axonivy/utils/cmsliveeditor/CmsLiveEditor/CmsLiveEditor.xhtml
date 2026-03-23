@@ -22,13 +22,13 @@
             <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
           </div>
           <div class="header-actions">
-            <p:commandLink
+            <p:commandLink id="cms-settings-btn"
               onclick="PF('cmsSettingsDialog').show(); return false;"
               styleClass="cms-settings-btn"
               title="#{ivy.cms.co('/Labels/Settings')}">
               <i class="pi pi-cog"></i>
             </p:commandLink>
-            <p:commandLink
+            <p:commandLink id="cms-translate-btn"
               actionListener="#{cmsLiveEditorBean.translateAll}"
               process="table-cms-keys"
               update=":content-form:reviewContent"
@@ -87,7 +87,7 @@
 
                 <p:column>
                   <div class="path-row">
-                    <h:outputText class="cms-uri" value="#{entry.uri}" />
+                    <h:outputText class="cms-uri" id="cms-uri" value="#{entry.uri}" />
                     <h:panelGroup
                       rendered="#{entry.differentWithApplication}">
                       <span class="orange-dot" />
