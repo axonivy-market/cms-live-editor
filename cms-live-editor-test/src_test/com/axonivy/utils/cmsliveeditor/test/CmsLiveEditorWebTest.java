@@ -215,13 +215,16 @@ public class CmsLiveEditorWebTest {
       editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
+      Selenide.sleep(300);
       editor.sendKeys(content);
       editor.pressTab();
     }
-    Selenide.sleep(200);
-    
+
+    Selenide.Wait().until(driver -> (Boolean) Selenide.executeJavaScript("return window.cmsDirtyEditors && "
+        + "window.cmsDirtyEditors.size === Object.keys(window.cmsLiveEditors).length;"));
+
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(5));
     undoCmsChanges();
   }
 
