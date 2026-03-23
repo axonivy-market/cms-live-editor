@@ -382,6 +382,8 @@
         window.isHideTaskAction = true;
         window.isHideCaseInfo = true;
         window.isWorkingOnATask = false;
+        
+        //<![CDATA[
         document.addEventListener('keydown', function(e) {
           const table = document.querySelector('[id$="table-cms-keys"]');
           if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
