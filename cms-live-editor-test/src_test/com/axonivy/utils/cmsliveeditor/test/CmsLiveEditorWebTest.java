@@ -38,6 +38,7 @@ import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -52,6 +53,9 @@ public class CmsLiveEditorWebTest {
 
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
+  private static final String TRANSLATED_CMS_REVIEW_DIALOG = "[id$=':table-translation-review']";
+  private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
+  private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
 
   /**
    * Dear Bug Hunter,
@@ -60,6 +64,7 @@ public class CmsLiveEditorWebTest {
    */
   @BeforeEach
   void startProcess() {
+    Configuration.browserSize = "1366x2000";
     loginAndStartProcess("cmsAdmin", "123456");
   }
 
@@ -244,7 +249,7 @@ public class CmsLiveEditorWebTest {
   public void testOpenTranslateDialogShouldBeOpened() {
     $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
 
-    SelenideElement table = $$(By.cssSelector("[id$=':table-translation-review']")).first();
+    SelenideElement table = $$(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG)).first();
     table.shouldBe(visible, Duration.ofSeconds(5));
     $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
     table.shouldNotBe(visible, Duration.ofSeconds(5));
@@ -253,7 +258,7 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testOpenSettingsDialogAndSave() {
     $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
-    SelenideElement settingsDialog = $$(By.cssSelector("[id$=':cms-settings-dialog']")).first();
+    SelenideElement settingsDialog = $$(By.cssSelector(CMS_SETTINGS_DIALOG)).first();
     settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
     SelenideElement saveButton = settingsDialog.$(".pi-save").parent();
     saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
@@ -267,7 +272,7 @@ public class CmsLiveEditorWebTest {
     cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    SelenideElement translateBtn = $$(By.cssSelector("[id$=':cms-edit-value'] .cms-translate-btn")).filter(visible).first();
+    SelenideElement translateBtn = $$(By.cssSelector(EDITOR_TRANSLATE_BTN)).filter(visible).first();
     translateBtn.shouldBe(enabled, Duration.ofSeconds(5)).click();
   }
 
