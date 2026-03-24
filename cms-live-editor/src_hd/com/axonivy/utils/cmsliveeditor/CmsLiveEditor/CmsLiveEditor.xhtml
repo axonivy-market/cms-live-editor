@@ -106,7 +106,7 @@
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor originalContent="#{language.originalContent}"
                             content="#{language.content}" languageIndex="#{language.index}"
                             managedBean="#{cmsLiveEditorBean}" isReadOnly="true"
-                            isFormatButtonListVisible="#{language.html}" />
+                            isHtmlFormat="#{language.html}" />
                         </h:panelGroup>
                         <h:panelGroup
                           styleClass="ui-fluid cms-file-item"
@@ -207,7 +207,7 @@
                         <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor content="#{language.content}"
                             languageIndex="#{language.index}" managedBean="#{cmsLiveEditorBean}"
-                            isReadOnly="#{!cmsLiveEditorBean.editableCms}" isFormatButtonListVisible="#{language.isHtmlContent}" />
+                            isReadOnly="#{!cmsLiveEditorBean.editableCms}" isHtmlFormat="#{language.isHtmlContent}" />
                         </h:panelGroup>
                         <h:panelGroup id="cms-file-item-container">
                           <h:panelGroup id="cms-file-item"
