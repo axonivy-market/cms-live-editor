@@ -45,7 +45,7 @@
     <f:facet name="footer">
       <div class="flex justify-content-center">
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
-          id="cms-setting-save-btn" styleClass="w-full border-round-lg"
+          id="cms-setting-save-btn" styleClass="w-full border-round-lg cms-setting-save-btn"
           actionListener="#{cmsLiveEditorBean.saveSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />

@@ -453,32 +453,68 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   width: auto !important;
 }
 
-.review-data-table {
+/* .review-data-table {
   overflow-x: visible !important;
-}
+} */
 
+/* Wrapper for the table */
 .review-table-wrapper {
-  width: 98%;
+  padding: 20px;
   border-radius: 8px;
-  background-color: text-color-secondary;
 }
 
+/* Table with consistent border and rounded corners */
 .review-data-table {
-  width: 100%;
-  background-color: text-color-secondary !important;
-  border: 1px black;
+  background-color: #F8F8F8 !important; /* Light gray for the table */
+  border: 2px solid #EBEBEB; /* Solid border around the entire table */
+  border-radius: 8px; /* Rounded corners */
+  overflow: hidden; /* Prevent internal elements from breaking borders */
 }
 
-.review-data-table .ui-datatable-table {
-  background-color: text-color-secondary !important;
-  border-radius: 6px;
+/* Scrollable header */
+.review-data-table .ui-datatable-scrollable-header {
+  background-color: #F8F8F8 !important; /* Header consistent background */
+  border-bottom: 2px solid #EBEBEB; /* Seamless border between header and body */
+  border-top-left-radius: 8px; /* Add rounded corner for top left */
+  border-top-right-radius: 8px; /* Add rounded corner for top right */
+  overflow: hidden; /* Prevent visual artifacts at corners */
 }
+
+/* Scrollable body */
+.review-data-table .ui-datatable-scrollable-body {
+  background-color: #F8F8F8 !important; /* Body consistent background */
+  border-color: #EBEBEB !important;
+}
+
+/* Scrollable footer */
+.review-data-table .ui-datatable-scrollable-footer {
+  background-color: #F8F8F8 !important; /* Footer consistent background */
+  border-top: none; /* Prevent double border overlap */
+  border-bottom-left-radius: 8px; /* Add rounded corner for bottom left */
+  border-bottom-right-radius: 8px; /* Add rounded corner for bottom right */
+  overflow: hidden;
+}
+
+/* Header row styling */
+.review-data-table .ui-datatable-thead {
+  background-color: #F8F8F8 !important; /* Ensure consistent gray header */
+  border-color: #EBEBEB !important;
+}
+
+/* Rows */
 .review-data-table .ui-datatable-data > tr {
-  background-color: text-color-secondary !important;
+  background-color: #F8F8F8 !important; /* Row background */
 }
 
+/* Alternating rows for stripe effect */
 .review-data-table .ui-datatable-data > tr:nth-child(even) {
-  background-color: text-color-secondary !important;
+  background-color: #F8F8F8 !important; /* Even rows maintain the same */
+}
+
+/* Remove artifacts when using scrollbars */
+.review-data-table .ui-datatable-scrollable-view {
+  border-radius: 8px; /* Ensure outer container respects rounded corners */
+  overflow: hidden; /* Eliminate gaps at edges */
 }
 
 .equal-width {
@@ -492,4 +528,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 .review-checkbox .ui-chkbox-box.ui-state-active .ui-chkbox-icon {
   color: #007095 !important;
+}
+
+.cms-setting-save-btn {
+  margin : 0px !important;
 }

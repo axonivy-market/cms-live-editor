@@ -55,6 +55,7 @@ public class CmsLiveEditorWebTest {
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String TRANSLATED_CMS_REVIEW_DIALOG = "[id$=':table-translation-review']";
   private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
+  private static final String CMS_SETTINGS_SAVE_BUTTON = "[id$='content-form:cms-setting-save-btn']";
   private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
 
   /**
@@ -260,7 +261,7 @@ public class CmsLiveEditorWebTest {
     $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
     SelenideElement settingsDialog = $$(By.cssSelector(CMS_SETTINGS_DIALOG)).first();
     settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
-    SelenideElement saveButton = settingsDialog.$("#cms-setting-save-btn").parent();
+    SelenideElement saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));
     saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
     settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
   }

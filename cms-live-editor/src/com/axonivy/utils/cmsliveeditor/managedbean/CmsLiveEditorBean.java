@@ -400,6 +400,10 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
+  public void checkIsEditingAndShowMessage() {
+    isEditing();
+  }
+
   private boolean isEditing() {
     if (lastSelectedCms == null) {
       return false;
@@ -630,7 +634,6 @@ public class CmsLiveEditorBean implements Serializable {
   public void setSelectedProjectName(String selectedProjectName) {
     this.selectedProjectName = selectedProjectName;
   }
-
   public boolean isEditableCms() {
     return isEditableCms;
   }
