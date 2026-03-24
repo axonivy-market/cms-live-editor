@@ -38,6 +38,11 @@ Labels:
       <p>
         <code>There {0,choice,0#are no files|1#is one file|1&lt;are {0,number,integer} files}.</code><br>
         → chooses the correct text based on the value:
+        <ul>
+        <li>If 0 → “are no files”</li>
+        <li>If 1 → “is one file”</li>
+        <li>If >1 → “are X files” with X formatted as integer.</li>
+        </ul>
       </p>
   Options: Options
   Paths: Paths
