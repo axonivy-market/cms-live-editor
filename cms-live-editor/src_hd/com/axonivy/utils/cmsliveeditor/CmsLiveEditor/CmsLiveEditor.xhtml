@@ -17,26 +17,30 @@
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
         <h:panelGroup styleClass="flex flex-column h-full" layout="block">
-          <!-- Title -->
-          <div class="mb-3">
-            <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
-          </div>
-          <div class="header-actions">
-            <p:commandLink id="cms-settings-btn"
-              onclick="PF('cmsSettingsDialog').show(); return false;"
-              styleClass="cms-settings-btn"
-              title="#{ivy.cms.co('/Labels/Settings')}">
-              <i class="pi pi-cog"></i>
-            </p:commandLink>
-            <p:commandLink id="cms-translate-btn"
-              actionListener="#{cmsLiveEditorBean.translateAll}"
-              process="table-cms-keys"
-              update=":content-form:reviewContent"
-              oncomplete="PF('translationReviewDialog').show();"
-              styleClass="cms-translate-btn"
-              title="#{ivy.cms.co('/Labels/TranslateMultiple')}">
-              <i class="pi pi-language"></i>
-            </p:commandLink>
+          <div
+            class="flex align-items-center justify-content-between mb-1">
+            <div class="mb-3">
+              <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
+            </div>
+            <div class="header-actions">
+              <p:commandLink id="cms-settings-btn"
+                onclick="PF('cmsSettingsDialog').show(); return false;"
+                styleClass="cms-settings-btn">
+                <i class="pi pi-cog"></i>
+                <p:tooltip for="cms-settings-btn"
+                  value="#{ivy.cms.co('/Labels/Settings')}" />
+              </p:commandLink>
+              <p:commandLink id="cms-translate-btn"
+                actionListener="#{cmsLiveEditorBean.translateAll}"
+                process="table-cms-keys"
+                update=":content-form:reviewContent"
+                oncomplete="PF('translationReviewDialog').show();"
+                styleClass="cms-translate-btn">
+                <i class="pi pi-language"></i>
+                <p:tooltip for="cms-translate-btn"
+                  value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
+              </p:commandLink>
+            </div>
           </div>
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">

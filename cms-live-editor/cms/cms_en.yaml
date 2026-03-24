@@ -26,8 +26,8 @@ Labels:
   Path: Path
   Paths: Paths
   Preview: Preview
-  ProjectCmsTitle: Translate
   ResetAdvice: Enter <b>reset</b> to confirm
+  ProjectCmsTitle: Project-CMS
   ResetAll: Reset all
   ResetAllChangeConfirmation: Are you sure you want to reset all changes?
   ResetAllChanges: Reset all changes
@@ -38,12 +38,13 @@ Labels:
   Settings: Settings
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
-  Source: Source
+  Source: source
   SourceLanguage: Source Language
-  Target: Target
+  Target: target
   TargetLanguage: Target Language
   Translate: Translate
   TranslateMultiple: Translate Multiple Entries
+  TranslationWizard: Translation Wizard
   Translations: Translations
   UndoChanges: Undo changes
   Warning: Warning

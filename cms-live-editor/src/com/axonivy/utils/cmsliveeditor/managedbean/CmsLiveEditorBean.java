@@ -299,6 +299,10 @@ public class CmsLiveEditorBean implements Serializable {
     return !cms.isFile() && !cms.getLocale().getLanguage().equals(selectedSourceLocale);
   }
 
+  public String getDisplayLocaleByCode(String locale) {
+    return Locale.forLanguageTag(locale).getDisplayLanguage();
+  }
+
   public void onAppChange() {
     if (isEditing()) {
       isEditableCms = true;

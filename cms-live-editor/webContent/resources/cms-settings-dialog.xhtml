@@ -8,16 +8,16 @@
   <p:dialog id="cms-settings-dialog"
     header="#{ivy.cms.co('/Labels/Settings')}"
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
-    resizable="false" width="25rem">
+    resizable="false" styleClass="border-round-xl w-25rem">
 
-    <h:panelGrid columns="1" styleClass="w-full">
-
-      <h:panelGroup layout="block" styleClass="mb-3">
-        <h:outputLabel value="#{ivy.cms.co('/Labels/Translations')}"
-          styleClass="block mb-1 font-semibold" for="" />
-        <h:panelGroup layout="block" styleClass="mb-3">
-          <h:outputLabel value="#{ivy.cms.co('/Labels/SourceLanguage')}"
-            for="leadingLocale" />
+    <div class="px-4 pb-4 pt-1">
+      <div class="mb-3 mt-1">
+        <div class="text-lg font-semibold mb-3">
+          #{ivy.cms.co('/Labels/Translations')}</div>
+        <div class="mb-3">
+          <label for="leadingLocale"
+            class="block text-sm mb-2 text-color-secondary">
+            #{ivy.cms.co('/Labels/SourceLanguage')} </label>
           <p:selectOneMenu id="leadingLocale"
             value="#{cmsLiveEditorBean.selectedSourceLocale}"
             styleClass="w-full" filter="true" filterMatchMode="contains">
@@ -26,11 +26,11 @@
               itemValue="#{loc.toLanguageTag()}" />
             <p:ajax event="change" process="@this" update="targetLocale" />
           </p:selectOneMenu>
-        </h:panelGroup>
-
-        <h:panelGroup layout="block" styleClass="mb-2">
-          <h:outputLabel value="#{ivy.cms.co('/Labels/TargetLanguage')}"
-            for="targetLocale" />
+        </div>
+        <div class="mb-4">
+          <label for="targetLocale"
+            class="block text-sm mb-2 text-color-secondary">
+            #{ivy.cms.co('/Labels/TargetLanguage')} </label>
           <p:selectOneMenu id="targetLocale"
             value="#{cmsLiveEditorBean.selectedTargetLocale}"
             styleClass="w-full" filter="true" filterMatchMode="contains">
@@ -39,20 +39,15 @@
               itemValue="#{loc.toLanguageTag()}" />
             <p:ajax event="change" process="@this" update="@none" />
           </p:selectOneMenu>
-        </h:panelGroup>
-      </h:panelGroup>
-
-      <!-- Save only -->
-      <h:panelGroup layout="block"
-        styleClass="flex justify-content-center">
+        </div>
+      </div>
+      <div class="flex justify-content-center">
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
-          icon="pi pi-save"
+          styleClass="w-full border-round-lg"
           actionListener="#{cmsLiveEditorBean.saveSettings()}"
-          onclick="PF('cmsSettingsDialog').hide();" process="@form"
-          update="content-form"
+          process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
-      </h:panelGroup>
-
-    </h:panelGrid>
+      </div>
+    </div>
   </p:dialog>
 </ui:composition>

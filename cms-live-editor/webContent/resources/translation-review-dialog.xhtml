@@ -8,75 +8,71 @@
 
   <p:dialog header="#{ivy.cms.co('/Labels/TranslationWizard')}"
     closeOnEscape="false" widgetVar="translationReviewDialog"
-    modal="true" closable="false" resizable="true" width="60rem"
-    height="32rem" id="translationReviewDialog">
+    styleClass="disable-scroll" modal="true" closable="true"
+    resizable="true" width="75%" height="32rem"
+    id="translationReviewDialog">
 
-    <h:panelGroup id="reviewContent" layout="block">
-
-      <p:dataTable id="table-translation-review"
-        value="#{cmsLiveEditorBean.selectedCmsEntries}" var="cms"
-        styleClass="w-full p-datatable-sm review-data-table"
-        stripedRows="true">
-        <c:set var="targetContent"
+    <h:panelGroup id="reviewContent" layout="block"
+      styleClass="flex justify-content-center">
+      <div class="review-table-wrapper">
+        <p:dataTable id="table-translation-review"
+          value="#{cmsLiveEditorBean.selectedCmsEntries}" var="cms"
+          styleClass="p-datatable-sm review-data-table"
+          scrollHeight="24rem" scrollable="true" stripedRows="true">
+          <c:set var="targetContent"
             value="#{cmsLiveEditorBean.getTargetCmsContent(cms)}" />
-        <!-- Path -->
-        <p:column headerText="#{ivy.cms.co('/Labels/Path')}"
-          style="width: 18rem;">
-          <h:outputText value="#{cms.uri}"
-            style="word-break: break-all;" />
-        </p:column>
+          <!-- Path -->
+          <p:column headerText="#{ivy.cms.co('/Labels/Path')}">
+            <h:outputText value="#{cms.uri}"
+              style="word-break: break-all;" />
+          </p:column>
 
-        <!-- Source -->
-        <p:column
-          headerText="#{ivy.cms.co('/Labels/Source')} (#{cmsLiveEditorBean.selectedSourceLocale})"
-          style="width: 18rem;">
-          <h:outputText
-            value="#{cmsLiveEditorBean.getSourceCmsContent(cms).content}" />
-        </p:column>
+          <!-- Source -->
+          <p:column
+            headerText="#{cmsLiveEditorBean.getDisplayLocaleByCode(cmsLiveEditorBean.selectedSourceLocale)} (#{ivy.cms.co('/Labels/Source')})">
+            <h:outputText
+              value="#{cmsLiveEditorBean.getSourceCmsContent(cms).content}" />
+          </p:column>
 
-        <!-- Target -->
-        <p:column
-          headerText="#{ivy.cms.co('/Labels/Target')} (#{cmsLiveEditorBean.selectedTargetLocale})"
-          style="width: 20rem;">
-          <h:panelGroup layout="block">
-            <!-- If entry is a file, show message -->
-            <h:panelGroup rendered="#{cms.file}" layout="block"
-              style="color: var(--text-color-secondary); font-style: italic; display:flex; align-items:center; gap:0.5rem;">
-              <i class="pi pi-file" />
-              <h:outputText
-                value="#{ivy.cms.co('/Labels/FileCannotBeTranslated')}" />
+          <!-- Target -->
+          <p:column
+            headerText="#{cmsLiveEditorBean.getDisplayLocaleByCode(cmsLiveEditorBean.selectedTargetLocale)} (#{ivy.cms.co('/Labels/Target')})">
+            <h:panelGroup layout="block">
+              <!-- If entry is a file, show message -->
+              <h:panelGroup rendered="#{cms.file}" layout="block"
+                styleClass="flex align-items-center gap-2 text-color-secondary font-italic">
+                <i class="pi pi-file" />
+                <h:outputText
+                  value="#{ivy.cms.co('/Labels/FileCannotBeTranslated')}" />
+              </h:panelGroup>
+
+              <!-- Non-file: old -> new preview -->
+              <h:panelGroup rendered="#{not cms.file}" layout="block"
+                styleClass="flex align-items-center gap-2 flex-wrap">
+                <h:outputText value="#{targetContent.content}"
+                  styleClass="line-through text-color-secondary"
+                  title="#{targetContent.content}" />
+                <h:outputText value="→"
+                  style="color: var(--text-color-secondary);" />
+                <h:outputText value="#{targetContent.translatedContent}"
+                  title="#{targetContent.translatedContent}" />
+              </h:panelGroup>
             </h:panelGroup>
+          </p:column>
 
-            <!-- Non-file: old -> new preview -->
-            <h:panelGroup rendered="#{not cms.file}" layout="block"
-              style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-              <h:outputText
-                value="#{targetContent.content}"
-                style="text-decoration: line-through; color: var(--text-color-secondary);"
-                title="#{targetContent.content}" />
-              <h:outputText value="→"
-                style="color: var(--text-color-secondary);" />
-              <h:outputText
-                value="#{targetContent.translatedContent}"
-                title="#{targetContent.translatedContent}" />
+          <!-- Select (hidden for file entries) -->
+          <p:column headerText="#{ivy.cms.co('/Labels/Select')}"
+            width="3rem">
+            <h:panelGroup layout="block" rendered="#{not cms.file}"
+              styleClass="flex justify-content-center">
+              <p:selectBooleanCheckbox
+                value="#{targetContent.translated}">
+                <p:ajax process="@this" update="@none" />
+              </p:selectBooleanCheckbox>
             </h:panelGroup>
-          </h:panelGroup>
-        </p:column>
-
-        <!-- Select (hidden for file entries) -->
-        <p:column headerText="#{ivy.cms.co('/Labels/Select')}"
-          style="width: 5rem; text-align:center;"
-          rendered="#{not cms.file}">
-          <h:panelGroup layout="block"
-            style="display:flex; justify-content:center;">
-            <p:selectBooleanCheckbox
-              value="#{targetContent.translated}"
-              disabled="#{empty targetContent.translatedContent}">
-              <p:ajax process="@this" update="@none" />
-            </p:selectBooleanCheckbox>
-          </h:panelGroup>
-        </p:column>
-      </p:dataTable>
+          </p:column>
+        </p:dataTable>
+      </div>
     </h:panelGroup>
 
     <!-- Footer -->
@@ -85,11 +81,10 @@
         styleClass="flex justify-content-end w-full">
         <h:panelGroup layout="block" styleClass="flex gap-2">
           <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
-            styleClass="p-button-text"
+            styleClass="w-full mt-3 ui-button-outlined ui-button-secondary cms-review-cancel-button"
             actionListener="#{cmsLiveEditorBean.cancelTranslations}"
             update=":content-form:reviewContent"
             oncomplete="PF('translationReviewDialog').hide();" />
-
           <p:commandButton value="#{ivy.cms.co('/Labels/Translate')}"
             icon="pi pi-check" styleClass="p-button-primary"
             update=":content-form:cms-values"

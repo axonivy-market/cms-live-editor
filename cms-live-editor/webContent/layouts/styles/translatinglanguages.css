@@ -177,7 +177,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   background-color: #007095 !important;
 }
 
-.cms-edit-button, .cms-cancel-button {
+.cms-edit-button, .cms-cancel-button, .cms-review-cancel-button {
   background-color: #F3F3F3 !important;
 }
 
@@ -220,7 +220,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 /* OVERALL BUTTON OVERRIDE */
 /* Common button layout */
 .cms-download-btn, .cms-edit-button, .cms-cancel-button,
-  .cms-save-button {
+  .cms-save-button, .cms-review-cancel-button {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -230,8 +230,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
   .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
   .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
-  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading
-  {
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading,
+  .cms-review-cancel-button {
   position: relative !important;
   top: 0 !important;
   margin-top: -0.5px !important;
@@ -245,8 +245,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
-  .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text
-  {
+  .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text,
+  .cms-review-cancel-button span.ui-button-text {
   padding: 0.5rem 1rem !important;
 }
 
@@ -258,7 +258,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   padding: unset !important;
 }
 
-.cancel-confirm, .cms-edit-button, .cms-cancel-button {
+.cancel-confirm, .cms-edit-button, .cms-cancel-button,
+  .cms-review-cancel-button {
   border: 0.5px solid #EBEBEB !important;
   border-radius: 5px !important;
   color: #1B1B1B !important;
@@ -330,13 +331,15 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   color: rgba(0, 112, 149, 1);
 }
 
-.change-document-link-text .ui-button.ui-widget.ui-state-default.ui-button-text-icon-left {
+.change-document-link-text .ui-button.ui-widget.ui-state-default.ui-button-text-icon-left
+  {
   border: 0;
   background: none;
   color: rgba(0, 112, 149, 1);
 }
 
-.change-document-link-text .ui-button.ui-widget.ui-state-default.ui-button-text-icon-left input {
+.change-document-link-text .ui-button.ui-widget.ui-state-default.ui-button-text-icon-left input
+  {
   width: -webkit-fill-available;
   height: -webkit-fill-available;
 }
@@ -394,7 +397,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .cms-settings-btn i {
-  font-size: 1.1rem;
+  color: ivy-primary-color;
 }
 
 .cms-translate-btn {
@@ -414,7 +417,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .cms-translate-btn i {
-  font-size: 0.95rem;
+  color: ivy-primary-color-h;
 }
 
 .column-header {
@@ -429,10 +432,46 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   gap: 0.5rem;
 }
 
+.disable-scroll .ui-dialog-content {
+  overflow: hidden !important;
+}
+
 .review-data-table .p-column-title {
   font-weight: 600;
 }
 
 .review-data-table td {
   vertical-align: middle;
+}
+
+.review-data-table .ui-datatable-table {
+  width: auto !important;
+}
+
+.review-data-table {
+  overflow-x: visible !important;
+}
+
+.review-table-wrapper {
+  width: 95%;
+  border-radius: 8px;
+  background-color: text-color-secondary;
+}
+
+.review-data-table {
+  width: 100%;
+  background-color: text-color-secondary !important;
+  border: 1px black;
+}
+
+.review-data-table .ui-datatable-table {
+  background-color: text-color-secondary !important;
+  border-radius: 6px;
+}
+.review-data-table .ui-datatable-data > tr {
+  background-color: text-color-secondary !important; /* Make rows light grey */
+}
+
+.review-data-table .ui-datatable-data > tr:nth-child(even) {
+  background-color: text-color-secondary !important; /* Subtle striped effect */
 }
