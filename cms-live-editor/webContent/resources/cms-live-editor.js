@@ -28,9 +28,10 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   const editor = SUNEDITOR.create(textarea, {
     buttonList: isHtml ? FULL_TOOLBAR : [],
     attributesWhitelist: {
-      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
   });
+  restricActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
@@ -40,13 +41,13 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = "";
+    window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
   function markDirtyIfChanged() {
     const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || "";
+    const originalContents = window.cmsInitialContents[languageIndex] || '';
 
     if (currentContent === originalContents) {
       // Back to original -> not dirty anymore
@@ -55,8 +56,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     } else {
       window.cmsDirtyEditors.add(languageIndex);
       setValueChanged([
-        { name: "languageIndex", value: languageIndex },
-        { name: "content", value: currentContent },
+        { name: 'languageIndex', value: languageIndex },
+        { name: 'content', value: currentContent },
       ]);
     }
   }
@@ -77,6 +78,28 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   // Handle quick CMS switching (click outside editor)
   editor.onBlur = () => {
     markDirtyIfChanged();
+  };
+
+}
+function restricActionForNonHtml(isHtmlContent, editor) {
+  if (isHtmlContent) {
+    return;
+  }
+  editor.onCommand = function () {
+    return false;
+  };
+
+  const allowedCtrlKeys = new Set(['c', 'v', 'x']);
+  editor.onKeyDown = function (e) {
+    if (e.ctrlKey || e.metaKey) {
+      if (allowedCtrlKeys.has(e.key.toLowerCase())) return true;
+      e.preventDefault();
+      return false;
+    }
+  };
+
+  editor.onPaste = function (e, cleanData) {
+    return cleanData;
   };
 }
 
