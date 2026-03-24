@@ -105,8 +105,8 @@ function initSunEditor(languageIndex, editorId) {
     buttonList: FULL_TOOLBAR,
     plugins: [toggleViewModePlugin],
     attributesWhitelist: {
-      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
-    },
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
+    }
   });
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
@@ -121,26 +121,26 @@ function initSunEditor(languageIndex, editorId) {
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = "";
+    window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-  function markDirtyIfChanged() {
-    const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || "";
+function markDirtyIfChanged() {
+  const currentContent = editor.getContents();
+  const originalContents = window.cmsInitialContents[languageIndex] || '';
 
-    if (currentContent === originalContents) {
-      // Back to original -> not dirty anymore
-      window.cmsDirtyEditors.delete(languageIndex);
-      setEditorError(languageIndex, false);
-    } else {
-      window.cmsDirtyEditors.add(languageIndex);
-      setValueChanged([
-        { name: "languageIndex", value: languageIndex },
-        { name: "content", value: currentContent },
-      ]);
-    }
+  if (currentContent === originalContents) {
+    // Back to original -> not dirty anymore
+    window.cmsDirtyEditors.delete(languageIndex);
+    setEditorError(languageIndex, false);
+  } else {
+    window.cmsDirtyEditors.add(languageIndex);
+    setValueChanged([
+      { name: 'languageIndex', value: languageIndex },
+      { name: 'content', value: currentContent }
+    ]);
   }
+}
 
   function debounce(fn, delay) {
     let timer;
