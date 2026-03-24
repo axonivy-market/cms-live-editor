@@ -215,12 +215,12 @@ function getEditorContainer(languageIndex) {
 *   {2,date,short}
 *   {0,choice,0#none|1#one|1<{0} files}
 *
-* Only the argument index (e.g. 0, 1, 2) is returned because locale translations
-* may legally change the formatting style (number/date/choice) while still using
-* the same argument indexes.
+* We extract:
+*   index  → argument index (required)
+*   format → e.g. number, date, choice (optional)
+*   style  → format-specific style (optional)
 *
-* The returned array contains the indexes in sorted order so they can be compared
-* across locales to ensure placeholder consistency.
+* The returned array is sorted by index.
 */
 function extractPlaceholders(content) {
   if (!content) {
@@ -229,24 +229,25 @@ function extractPlaceholders(content) {
 
   const javaMessageFormatRegex = /\{(\d+)(?:,([^,}]+)(?:,([^}]+))?)?\}/g;
 
-  const result = [];
+  const placeholders = [];
   let match;
 
   while ((match = javaMessageFormatRegex.exec(content)) !== null) {
-    result.push({
+    placeholders.push({
       index: Number(match[1]),
       format: match[2] ? match[2].trim() : null,
       style: match[3] ? match[3].trim() : null
     });
   }
 
-  return result.sort((a, b) => a.index - b.index);
+  return placeholders.sort((a, b) => a.index - b.index);
 }
 
-/** Compares two placeholder lists for exact equality.
+/** Compares two placeholder lists
 * The lists must:
 * - Have the same length
-* - Contain the same elements
+* - Same indexes (order matters because lists are sorted)
+* - Format/style differences are ignored "choice"
 */
 function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
@@ -266,7 +267,7 @@ function arePlaceholderListsEqual(a, b) {
         return false;
       }
 
-      if (!areChoiceStylesEquivalent(a[i].style, b[i].style)) {
+      if (!areChoiceStylesEqual(a[i].style, b[i].style)) {
         return false;
       }
     }
@@ -275,26 +276,42 @@ function arePlaceholderListsEqual(a, b) {
   return true;
 }
 
-function areChoiceStylesEquivalent(styleA, styleB) {
-  if (!styleA || !styleB) {
-    return styleA === styleB;
+/** Compare two ChoiceFormat styles.
+*
+* Example:
+*   "0#none|1#one" === "1#one | 0#none"
+*
+* Rules:
+* - Order-insensitive
+* - Whitespace-insensitive
+* - Exact string match per segment
+*/
+function areChoiceStylesEqual(styleA, styleB) {
+  if (styleA === styleB) {
+    return true;
   }
 
-  const normalize = (style) =>
+  if (!styleA || !styleB) {
+    return false;
+  }
+
+  const splitAndSortChoiceSegments = (style) =>
     style
       .split('|')
       .map(s => s.trim())
       .sort();
 
-  const aParts = normalize(styleA);
-  const bParts = normalize(styleB);
+  const aParts = splitAndSortChoiceSegments(styleA);
+  const bParts = splitAndSortChoiceSegments(styleB);
 
   if (aParts.length !== bParts.length) {
    return false;
   }
 
   for (let i = 0; i < aParts.length; i++) {
-    if (aParts[i] !== bParts[i]) return false;
+    if (aParts[i] !== bParts[i]) {
+      return false;
+    }
   }
 
   return true;
