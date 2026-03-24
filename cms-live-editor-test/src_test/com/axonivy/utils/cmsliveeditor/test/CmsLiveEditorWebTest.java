@@ -25,6 +25,7 @@ import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -188,18 +189,9 @@ public class CmsLiveEditorWebTest {
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
-    for (SelenideElement editor : editors) {
-      editor.shouldBe(visible).click();
-      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-      editor.sendKeys(Keys.DELETE);
-      editor.sendKeys("Files count {0}");
-      editor.pressTab();
-    }
+    fillContentsToEditor(editors, "Files count {0}");
     Selenide.sleep(300);
-
-    $(By.id(SAVE_BUTTON_ID)).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    undoCmsChanges();
+    saveAndUndoCmsChanges();
   }
 
   @Test
@@ -207,22 +199,11 @@ public class CmsLiveEditorWebTest {
     openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
-    editors.shouldHave(sizeGreaterThanOrEqual(1));
+    Selenide.sleep(300);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
 
-    String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
-
-    for (var editor : editors) {
-      editor.shouldBe(visible).click();
-      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-      editor.sendKeys(Keys.DELETE);
-      Selenide.sleep(200);
-      editor.sendKeys(content);
-      editor.pressTab();
-    }
-
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    undoCmsChanges();
+    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<{0} files}");
+    saveAndUndoCmsChanges();
   }
 
   @Test
@@ -230,6 +211,7 @@ public class CmsLiveEditorWebTest {
     openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    Selenide.sleep(300);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
     String[] contents =
@@ -241,10 +223,7 @@ public class CmsLiveEditorWebTest {
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(contents[i % contents.length]);
     }
-
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
-    undoCmsChanges();
+    saveAndUndoCmsChanges();
   }
 
   @Test
@@ -276,7 +255,20 @@ public class CmsLiveEditorWebTest {
     Selenide.sleep(1000);
   }
 
-  public void undoCmsChanges() {
+  private void fillContentsToEditor(ElementsCollection editors, String content) {
+    for (var editor : editors) {
+      editor.shouldBe(visible).click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      editor.sendKeys(content);
+      editor.pressTab();
+    }
+  }
+
+  private void saveAndUndoCmsChanges() {
+    $(By.id(SAVE_BUTTON_ID)).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+
     var undoButton = $(By.id("content-form:undo-change-path"));
     if (undoButton.exists()) {
       undoButton.shouldBe(enabled).click();
