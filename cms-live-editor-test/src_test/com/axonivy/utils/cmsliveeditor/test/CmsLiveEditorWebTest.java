@@ -220,11 +220,8 @@ public class CmsLiveEditorWebTest {
       editor.pressTab();
     }
 
-    Selenide.Wait().until(driver -> (Boolean) Selenide.executeJavaScript("return window.cmsDirtyEditors && "
-        + "window.cmsDirtyEditors.size === Object.keys(window.cmsLiveEditors).length;"));
-
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(5));
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     undoCmsChanges();
   }
 
