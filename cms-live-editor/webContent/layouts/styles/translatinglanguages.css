@@ -22,10 +22,10 @@
 .left {
   width: 50%
 }
-/* 
+
 .table-cms-keys table thead tr {
   display: none;
-} */
+}
 
 .ui-accordion .ui-accordion-content {
   overflow: visible !important;
@@ -230,8 +230,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
   .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
   .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
-  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading,
-  .cms-review-cancel-button {
+  .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon-loading {
   position: relative !important;
   top: 0 !important;
   margin-top: -0.5px !important;
@@ -245,8 +244,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 /* Common text styling */
 .cms-download-btn span.ui-button-text, .cms-edit-button span.ui-button-text,
-  .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text,
-  .cms-review-cancel-button span.ui-button-text {
+  .cms-cancel-button span.ui-button-text, .cms-save-button span.ui-button-text {
   padding: 0.5rem 1rem !important;
 }
 
@@ -269,7 +267,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   background-color: #F8F8F8 !important;
 }
 
-.cms-edit-button, .cms-cancel-button {
+.cms-edit-button, .cms-cancel-button .cms-review-cancel-button{
   background-color: #F3F3F3 !important;
 }
 
@@ -396,10 +394,6 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   color: #111827;
 }
 
-.cms-settings-btn i {
-  color: ivy-primary-color;
-}
-
 .cms-translate-btn {
   display: inline-flex;
   align-items: center;
@@ -411,13 +405,25 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   transition: all 0.2s ease;
 }
 
-.cms-translate-btn:hover {
+.cms-translate-btn:hover  {
   background-color: #f3f4f6;
   color: #111827;
 }
 
-.cms-translate-btn i {
-  color: ivy-primary-color-h;
+/* Default icon color if no theme class is present */
+.cms-translate-btn i, .cms-settings-btn i {
+  color: black !important; /* Default to black */
+}
+
+/* For dark mode */
+.body-hd.dark .cms-translate-btn i, .body-hd.dark .cms-settings-btn i {
+  color: white !important;
+}
+
+/* For light mode */
+.body-hd.light .cms-translate-btn i, .body-hd.light .cms-settings-btn i
+  {
+  color: black !important;
 }
 
 .column-header {
@@ -429,7 +435,6 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .disable-scroll .ui-dialog-content {
@@ -469,9 +474,22 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   border-radius: 6px;
 }
 .review-data-table .ui-datatable-data > tr {
-  background-color: text-color-secondary !important; /* Make rows light grey */
+  background-color: text-color-secondary !important;
 }
 
 .review-data-table .ui-datatable-data > tr:nth-child(even) {
-  background-color: text-color-secondary !important; /* Subtle striped effect */
+  background-color: text-color-secondary !important;
+}
+
+.equal-width {
+  width: 8rem !important;
+}
+
+.review-checkbox .ui-chkbox-box.ui-state-active {
+  background-color: #E6F1F5 !important;
+  border-color: #96C4D4 !important;
+}
+
+.review-checkbox .ui-chkbox-box.ui-state-active .ui-chkbox-icon {
+  color: #007095 !important;
 }

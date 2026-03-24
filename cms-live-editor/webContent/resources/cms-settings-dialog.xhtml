@@ -10,8 +10,8 @@
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
     resizable="false" styleClass="border-round-xl w-25rem">
 
-    <div class="px-4 pb-4 pt-1">
-      <div class="mb-3 mt-1">
+    <div class="px-4 pb-4 mb-4">
+      <div class="mb-3">
         <div class="text-lg font-semibold mb-3">
           #{ivy.cms.co('/Labels/Translations')}</div>
         <div class="mb-3">
@@ -41,13 +41,15 @@
           </p:selectOneMenu>
         </div>
       </div>
+    </div>
+    <f:facet name="footer">
       <div class="flex justify-content-center">
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
-          styleClass="w-full border-round-lg"
+          id="cms-setting-save-btn" styleClass="w-full border-round-lg"
           actionListener="#{cmsLiveEditorBean.saveSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
       </div>
-    </div>
+    </f:facet>
   </p:dialog>
 </ui:composition>

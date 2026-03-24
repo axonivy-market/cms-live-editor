@@ -23,8 +23,7 @@
             value="#{cmsLiveEditorBean.getTargetCmsContent(cms)}" />
           <!-- Path -->
           <p:column headerText="#{ivy.cms.co('/Labels/Path')}">
-            <h:outputText value="#{cms.uri}"
-              styleClass="word-break-all" />
+            <h:outputText value="#{cms.uri}" styleClass="word-break-all" />
           </p:column>
 
           <!-- Source -->
@@ -65,7 +64,7 @@
             width="3rem">
             <h:panelGroup layout="block" rendered="#{not cms.file}"
               styleClass="flex justify-content-center">
-              <p:selectBooleanCheckbox
+              <p:selectBooleanCheckbox styleClass="review-checkbox"
                 value="#{targetContent.translated}">
                 <p:ajax process="@this" update="@none" />
               </p:selectBooleanCheckbox>
@@ -79,14 +78,15 @@
     <f:facet name="footer">
       <h:panelGroup layout="block"
         styleClass="flex justify-content-end w-full">
-        <h:panelGroup layout="block" styleClass="flex gap-2">
+        <h:panelGroup layout="block" styleClass="flex gap-1">
           <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
-            styleClass="w-full mt-3 ui-button-outlined ui-button-secondary cms-review-cancel-button"
+            styleClass="equal-width w-full cms-review-cancel-button"
             actionListener="#{cmsLiveEditorBean.cancelTranslations}"
             update=":content-form:reviewContent"
             oncomplete="PF('translationReviewDialog').hide();" />
           <p:commandButton value="#{ivy.cms.co('/Labels/Translate')}"
-            icon="pi pi-check" styleClass="p-button-primary"
+            icon="pi pi-check"
+            styleClass="equal-width w-full p-button-primary"
             update=":content-form:cms-values"
             action="#{cmsLiveEditorBean.applyTranslations}"
             process=":content-form:reviewContent"

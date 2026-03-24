@@ -260,7 +260,7 @@ public class CmsLiveEditorWebTest {
     $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
     SelenideElement settingsDialog = $$(By.cssSelector(CMS_SETTINGS_DIALOG)).first();
     settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
-    SelenideElement saveButton = settingsDialog.$(".pi-save").parent();
+    SelenideElement saveButton = settingsDialog.$("#cms-setting-save-btn").parent();
     saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
     settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
   }
