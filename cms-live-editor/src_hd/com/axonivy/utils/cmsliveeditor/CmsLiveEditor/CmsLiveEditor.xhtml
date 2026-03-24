@@ -14,8 +14,6 @@
       <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full card">
         <ui:include src="/resources/cms-settings-dialog.xhtml"/>
         <ui:include src="/resources/translation-review-dialog.xhtml"/>
-        <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
-          partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
         <h:panelGroup styleClass="flex flex-column h-full" layout="block">
