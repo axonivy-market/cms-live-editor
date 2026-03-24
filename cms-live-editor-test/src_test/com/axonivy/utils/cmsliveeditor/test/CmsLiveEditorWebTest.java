@@ -101,7 +101,6 @@ public class CmsLiveEditorWebTest {
     var selectedCms = cmsList.get(0);
     var otherCms = cmsList.get(1);
     selectedCms.click();
-    selectedCms.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
