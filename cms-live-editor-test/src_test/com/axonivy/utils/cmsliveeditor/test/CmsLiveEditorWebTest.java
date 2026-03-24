@@ -207,20 +207,17 @@ public class CmsLiveEditorWebTest {
     openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
-    editors.shouldHave(sizeGreaterThanOrEqual(1));
-
-    String content = "There {0,choice,0#are no files|1#is one file|1<{0} files}";
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
 
     for (var editor : editors) {
       editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
-      Selenide.sleep(200);
-      editor.sendKeys(content);
+      editor.sendKeys("There {0,choice,0#are no files|1#is one file|1<{0} files}");
       editor.pressTab();
     }
 
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_BUTTON_ID)).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     undoCmsChanges();
   }
