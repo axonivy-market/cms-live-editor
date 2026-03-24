@@ -81,7 +81,6 @@ function markDirtyIfChanged() {
   editor.onBlur = () => {
     markDirtyIfChanged();
   };
-
 }
 
 function restricActionForNonHtml(isHtmlContent, editor) {
