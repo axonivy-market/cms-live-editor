@@ -8,16 +8,16 @@ const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
 const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
 
 const FULL_TOOLBAR = [
-  ["font", "fontSize", "formatBlock"],
-  ["paragraphStyle", "blockquote"],
-  ["bold", "underline", "italic", "strike", "subscript", "superscript"],
-  ["fontColor", "hiliteColor", "textStyle"],
-  ["removeFormat"],
-  ["outdent", "indent"],
-  ["align", "list", "lineHeight", "horizontalRule"],
-  ["table", "link"],
-  ["fullScreen"],
-  ["undo", "redo"],
+  ['font', 'fontSize', 'formatBlock'],
+  ['paragraphStyle', 'blockquote'],
+  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+  ['fontColor', 'hiliteColor', 'textStyle'],
+  ['removeFormat'],
+  ['outdent', 'indent'],
+  ['align', 'list', 'lineHeight', 'horizontalRule'],
+  ['table', 'link'],
+  ['fullScreen'],
+  ['undo', 'redo'],
 ];
 
 function initSunEditor(languageIndex, editorId) {
@@ -28,8 +28,8 @@ function initSunEditor(languageIndex, editorId) {
   const editor = SUNEDITOR.create(textarea, {
     buttonList: FULL_TOOLBAR,
     attributesWhitelist: {
-      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
-    },
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
+    }
   });
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
