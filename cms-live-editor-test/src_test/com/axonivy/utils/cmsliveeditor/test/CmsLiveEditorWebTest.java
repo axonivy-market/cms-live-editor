@@ -98,15 +98,16 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testEditedButNotSaveShouldShowError() {
     var cmsList = $$(CMS_PATH_URI);
-    var cmsWithHtmlFormat = cmsList.findBy(exactText(TEST_CMS_HTML_URI));
-    var rawTextCMS = cmsList.get(1);
-    cmsWithHtmlFormat.click();
+    var selectedCms = cmsList.get(0);
+    var otherCms = cmsList.get(1);
+    selectedCms.click();
+    selectedCms.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     Selenide.sleep(1000);
-    rawTextCMS.click();
+    otherCms.click();
 
     var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
     closeDialog(errorDialog);
