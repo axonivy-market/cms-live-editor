@@ -45,22 +45,22 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-  function markDirtyIfChanged() {
-    const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || '';
+function markDirtyIfChanged() {
+  const currentContent = editor.getContents();
+  const originalContents = window.cmsInitialContents[languageIndex] || '';
 
-    if (currentContent === originalContents) {
-      // Back to original -> not dirty anymore
-      window.cmsDirtyEditors.delete(languageIndex);
-      setEditorError(languageIndex, false);
-    } else {
-      window.cmsDirtyEditors.add(languageIndex);
-      setValueChanged([
-        { name: 'languageIndex', value: languageIndex },
-        { name: 'content', value: currentContent },
-      ]);
-    }
+  if (currentContent === originalContents) {
+    // Back to original -> not dirty anymore
+    window.cmsDirtyEditors.delete(languageIndex);
+    setEditorError(languageIndex, false);
+  } else {
+    window.cmsDirtyEditors.add(languageIndex);
+    setValueChanged([
+      { name: 'languageIndex', value: languageIndex },
+      { name: 'content', value: currentContent },
+    ]);
   }
+}
 
   function debounce(fn, delay) {
     let timer;
@@ -81,6 +81,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   };
 
 }
+
 function restricActionForNonHtml(isHtmlContent, editor) {
   if (isHtmlContent) {
     return;
