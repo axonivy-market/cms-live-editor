@@ -453,62 +453,57 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   width: auto !important;
 }
 
-/* .review-data-table {
-  overflow-x: visible !important;
-} */
-
-/* Wrapper for the table */
 .review-table-wrapper {
   padding: 20px;
   border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
-
-/* Table with consistent border and rounded corners */
 .review-data-table {
-  background-color: #F8F8F8 !important; /* Light gray for the table */
-  border: 2px solid #EBEBEB; /* Solid border around the entire table */
-  border-radius: 8px; /* Rounded corners */
-  overflow: hidden; /* Prevent internal elements from breaking borders */
+  background-color: #F8F8F8 !important;
+  border: 2px solid #EBEBEB;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 /* Scrollable header */
 .review-data-table .ui-datatable-scrollable-header {
-  background-color: #F8F8F8 !important; /* Header consistent background */
-  border-bottom: 2px solid #EBEBEB; /* Seamless border between header and body */
-  border-top-left-radius: 8px; /* Add rounded corner for top left */
-  border-top-right-radius: 8px; /* Add rounded corner for top right */
-  overflow: hidden; /* Prevent visual artifacts at corners */
+  background-color: #F8F8F8 !important;
+  border-bottom: 2px solid #EBEBEB;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  overflow: hidden;
 }
 
 /* Scrollable body */
 .review-data-table .ui-datatable-scrollable-body {
-  background-color: #F8F8F8 !important; /* Body consistent background */
+  background-color: #F8F8F8 !important;
   border-color: #EBEBEB !important;
 }
 
 /* Scrollable footer */
 .review-data-table .ui-datatable-scrollable-footer {
-  background-color: #F8F8F8 !important; /* Footer consistent background */
-  border-top: none; /* Prevent double border overlap */
-  border-bottom-left-radius: 8px; /* Add rounded corner for bottom left */
-  border-bottom-right-radius: 8px; /* Add rounded corner for bottom right */
+  background-color: #F8F8F8 !important;
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   overflow: hidden;
 }
 
 /* Header row styling */
-.review-data-table .ui-datatable-thead {
-  background-color: #F8F8F8 !important; /* Ensure consistent gray header */
+.review-data-table .ui-state-default {
+  background-color: #F8F8F8 !important;
   border-color: #EBEBEB !important;
 }
 
 /* Rows */
 .review-data-table .ui-datatable-data > tr {
-  background-color: #F8F8F8 !important; /* Row background */
+  background-color: #F8F8F8 !important;
 }
 
 /* Alternating rows for stripe effect */
 .review-data-table .ui-datatable-data > tr:nth-child(even) {
-  background-color: #F8F8F8 !important; /* Even rows maintain the same */
+  background-color: #F8F8F8 !important;
 }
 
 /* Remove artifacts when using scrollbars */
@@ -532,4 +527,13 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 .cms-setting-save-btn {
   margin : 0px !important;
+}
+
+/* Ensure the "Path" column breaks text and appears on a new line */
+.path-column-content {
+  white-space: pre-line; /* Allows preserving line breaks and adds new lines */
+  overflow-wrap: break-word; /* Forces long words or URLs to wrap */
+  word-wrap: break-word; /* Ensures all cases work across browsers */
+  word-break: break-all; /* Forces even unbreakable words (optional, fallback) */
+  display: block; /* Forces block display for new-line behavior */
 }
