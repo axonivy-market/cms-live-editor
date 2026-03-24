@@ -16,8 +16,6 @@
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
-        <p:remoteCommand id="show-html-mode-warning" name="showHtmlModeWarningDialog" global="false" process="@this"
-          update="html-mode-warning-dialog" partialSubmit="true" oncomplete="PF('htmlModeWarningDialog').show();" />
         <h:panelGroup styleClass="flex flex-column h-full" layout="block">
           <!-- Title -->
           <div class="mb-3">
@@ -312,20 +310,6 @@
             </div>
           </div>
         </p:dialog>
-        <p:confirmDialog id="html-mode-warning-dialog" widgetVar="htmlModeWarningDialog" modal="true" closable="true"
-          closeOnEscape="true" header="#{ivy.cms.co('/Labels/Warning')}">
-          <div class="flex justify-content-center mb-2">
-            <i class="pi pi-exclamation-triangle" />
-          </div>
-          <div class="text-center">
-            <h:outputText value="#{ivy.cms.co('/Labels/CMSWarningTextForHtmlMode')}" escape="false" />
-          </div>
-          <f:facet name="footer">
-            <div class="flex justify-content-center">
-              <p:commandButton value="OK" type="button" onclick="PF('htmlModeWarningDialog').hide();" />
-            </div>
-          </f:facet>
-        </p:confirmDialog>
       </h:form>
 
       <p:dialog id="downloadSuccessDlg" widgetVar="downloadSuccessDlg" modal="true" closable="false" draggable="false"

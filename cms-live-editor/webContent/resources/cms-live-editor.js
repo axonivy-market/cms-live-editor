@@ -3,11 +3,10 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
-window.cmsSunEditorCores = {}; // Store SunEditor core instances
-window.cmsToggleButtonMap = {}; // Map toggle buttons to editor IDs
 
 const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
 const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
+
 const FULL_TOOLBAR = [
   ["font", "fontSize", "formatBlock"],
   ["paragraphStyle", "blockquote"],
@@ -46,26 +45,26 @@ function initSunEditor(languageIndex, editorId) {
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = "";
+    window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-  function markDirtyIfChanged() {
-    const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || "";
+function markDirtyIfChanged() {
+  const currentContent = editor.getContents();
+  const originalContents = window.cmsInitialContents[languageIndex] || '';
 
-    if (currentContent === originalContents) {
-      // Back to original -> not dirty anymore
-      window.cmsDirtyEditors.delete(languageIndex);
-      setEditorError(languageIndex, false);
-    } else {
-      window.cmsDirtyEditors.add(languageIndex);
-      setValueChanged([
-        { name: "languageIndex", value: languageIndex },
-        { name: "content", value: currentContent },
-      ]);
-    }
+  if (currentContent === originalContents) {
+    // Back to original -> not dirty anymore
+    window.cmsDirtyEditors.delete(languageIndex);
+    setEditorError(languageIndex, false);
+  } else {
+    window.cmsDirtyEditors.add(languageIndex);
+    setValueChanged([
+      { name: "languageIndex", value: languageIndex },
+      { name: "content", value: currentContent },
+    ]);
   }
+}
 
   function debounce(fn, delay) {
     let timer;

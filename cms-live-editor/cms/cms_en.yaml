@@ -7,7 +7,6 @@ Labels:
   CMSPlaceHolderErrorMessage: Invalid placeholder syntax.
   CMSSaved: Saved application <br /> CMS to Engine
   CMSWarningTextForDownload: If you want to apply persistent changes to the CMS, you need to download the ZIP file and deploy it on the engine.
-  CMSWarningTextForHtmlMode: You are changing cms value from text format to html.<br />Please make sure the UI component support to render html.
   CMSWarningTextForSave: Save makes these changes immediately visible in the application
   Cancel: Cancel
   ChangeDocument: Change document
