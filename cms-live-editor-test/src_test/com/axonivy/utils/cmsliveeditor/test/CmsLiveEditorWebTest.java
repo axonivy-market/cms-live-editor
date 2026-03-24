@@ -215,7 +215,7 @@ public class CmsLiveEditorWebTest {
       editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
-      Selenide.sleep(300);
+      Selenide.sleep(200);
       editor.sendKeys(content);
       editor.pressTab();
     }
