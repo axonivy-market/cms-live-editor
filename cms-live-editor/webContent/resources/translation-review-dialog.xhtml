@@ -24,7 +24,7 @@
           <!-- Path -->
           <p:column headerText="#{ivy.cms.co('/Labels/Path')}">
             <h:outputText value="#{cms.uri}"
-              style="word-break: break-all;" />
+              styleClass="word-break-all" />
           </p:column>
 
           <!-- Source -->
@@ -53,7 +53,7 @@
                   styleClass="line-through text-color-secondary"
                   title="#{targetContent.content}" />
                 <h:outputText value="→"
-                  style="color: var(--text-color-secondary);" />
+                  styleClass="text-color-secondary" />
                 <h:outputText value="#{targetContent.translatedContent}"
                   title="#{targetContent.translatedContent}" />
               </h:panelGroup>
