@@ -94,52 +94,29 @@ function markDirtyIfChanged() {
 
 function saveAllEditors() {
   const dirtyEditors = new Set(window.cmsDirtyEditors);
+
   if (dirtyEditors.size === 0) {
     return true;
   }
 
-  const editorKeys = Object.keys(window.cmsLiveEditors || {});
-  const allLocalesEdited =
-    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
   const values = [];
-  let placeholderError = false;
-  let hasAnyError = false;
-  let expectedPlaceholders = null;
 
   for (const languageIndex of dirtyEditors) {
     const editor = window.cmsLiveEditors[languageIndex];
     const contents = editor.getContents();
 
-    const validationResult = validatePlaceholders({
-      languageIndex,
-      contents,
-      allLocalesEdited,
-      expectedPlaceholders
-    });
-
-    if (!validationResult.valid) {
-      hasAnyError = true;
-      placeholderError = true;
-      setEditorError(languageIndex, true);
-      continue;
-    }
-
-    expectedPlaceholders = validationResult.expectedPlaceholders;
-    setEditorError(languageIndex, false);
-
     values.push({
       languageIndex: Number(languageIndex),
       contents: contents
     });
+
+    // reset error state before backend validation
+    setEditorError(languageIndex, false);
   }
 
-  if (hasAnyError) {
-    setErrorMessageVisible(placeholderError);
-    return false;
-  }
-
-  setErrorMessageVisible(false);
+  // Send all data to backend
   destroyEditors();
+
   saveAllValue([{
     name: 'values',
     value: JSON.stringify(values)

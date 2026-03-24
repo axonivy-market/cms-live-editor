@@ -17,12 +17,18 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,6 +54,7 @@ import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.model.Placeholder;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
@@ -79,6 +86,8 @@ public class CmsLiveEditorBean implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final String CMS_FILE_FORMAT = "%s_%s.%s";
   private static final String FILE_EXTENSION_FORMAT = ".%s";
+  private static final Pattern PLACEHOLDER_PATTERN =
+      Pattern.compile("\\{(\\d+)(?:,([^,}]+)(?:,([^}]+))?)?\\}");
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -109,7 +118,150 @@ public class CmsLiveEditorBean implements Serializable {
     onAppChange();
   }
 
+  private List<Placeholder> extractPlaceholders(String content) {
+    if (content == null || content.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Matcher matcher = PLACEHOLDER_PATTERN.matcher(content);
+    List<Placeholder> result = new ArrayList<>();
+
+    while (matcher.find()) {
+      int index = Integer.parseInt(matcher.group(1));
+      String format = matcher.group(2) != null ? matcher.group(2).trim() : null;
+      String style = matcher.group(3) != null ? matcher.group(3).trim() : null;
+
+      result.add(new Placeholder(index, format, style));
+    }
+
+    result.sort(Comparator.comparingInt(Placeholder::getIndex));
+    return result;
+  }
+
+  private boolean arePlaceholderListsEqual(List<Placeholder> a, List<Placeholder> b) {
+    if (a.size() != b.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < a.size(); i++) {
+      Placeholder p1 = a.get(i);
+      Placeholder p2 = b.get(i);
+
+      if (p1.getIndex() != p2.getIndex()) {
+        return false;
+      }
+
+      String f1 = normalize(p1.getFormat());
+      String f2 = normalize(p2.getFormat());
+
+      if ("choice".equals(f1) || "choice".equals(f2)) {
+        if (!Objects.equals(f1, f2)) {
+          return false;
+        }
+
+        if (!areChoiceStylesEqual(p1.getStyle(), p2.getStyle())) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private String normalize(String s) {
+    return s == null ? null : s.trim();
+  }
+
+  private boolean areChoiceStylesEqual(String a, String b) {
+    if (Objects.equals(a, b)) {
+      return true;
+    }
+
+    if (a == null || b == null) {
+      return false;
+    }
+
+    List<String> aParts = Arrays.stream(a.split("\\|")).map(String::trim).sorted().toList();
+
+    List<String> bParts = Arrays.stream(b.split("\\|")).map(String::trim).sorted().toList();
+
+    return aParts.equals(bParts);
+  }
+
+  private String validatePlaceholders(Map<String, SavedCms> locales) {
+
+    // determine reference placeholders (from ORIGINAL)
+    List<Placeholder> reference = null;
+
+    for (SavedCms cms : locales.values()) {
+      if (cms.getOriginalContent() != null) {
+        reference = extractPlaceholders(cms.getOriginalContent());
+        break;
+      }
+    }
+
+    if (reference == null) {
+      return null;
+    }
+
+    // validate ALL edited contents against reference
+    for (Map.Entry<String, SavedCms> entry : locales.entrySet()) {
+
+      String locale = entry.getKey();
+      SavedCms cms = entry.getValue();
+
+      String content = cms.getNewContent();
+
+      if (content == null || content.equals(cms.getOriginalContent())) {
+        continue;
+      }
+
+      List<Placeholder> newPlaceholders = extractPlaceholders(content);
+
+      if (!arePlaceholderListsEqual(reference, newPlaceholders)) {
+        return "Placeholder mismatch in locale: " + locale;
+      }
+    }
+
+    return null;
+  }
+
   public void writeCmsToApplication() {
+    for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
+
+      String cmsKey = cmsEntry.getKey();
+      Map<String, SavedCms> locales = cmsEntry.getValue();
+
+      // placeholder validation
+      String placeholderError = validatePlaceholders(locales);
+      if (placeholderError != null) {
+        FacesContext.getCurrentInstance().validationFailed();
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+            Ivy.cms().co("/Labels/CMSPlaceHolderErrorMessage"), placeholderError));
+        return;
+      }
+
+      // existing MessageFormat validation
+      for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
+        String locale = localeEntry.getKey();
+        SavedCms savedCms = localeEntry.getValue();
+
+        String content = savedCms.getNewContent();
+
+        if (content == null || content.equals(savedCms.getOriginalContent())) {
+          continue;
+        }
+
+        String error = validateMessageFormat(content);
+        if (error != null) {
+          FacesContext.getCurrentInstance().validationFailed();
+          FacesContext.getCurrentInstance().addMessage(null,
+              new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/CMSPlaceHolderErrorMessage"), error));
+          return;
+        }
+      }
+    }
+
     isEditableCms = false;
     if (selectedCms.isFile()) {
       cmsService.writeCmsFileToApplication(selectedCms);
@@ -120,7 +272,17 @@ public class CmsLiveEditorBean implements Serializable {
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
+    PF.current().ajax().update("content-form:cms-edit-value");
     lastSelectedCms = null;
+  }
+
+  private String validateMessageFormat(String pattern) {
+    try {
+      new java.text.MessageFormat(pattern, java.util.Locale.ENGLISH);
+      return null;
+    } catch (IllegalArgumentException e) {
+      return e.getMessage();
+    }
   }
 
   public boolean isRenderResetAllChange() {
