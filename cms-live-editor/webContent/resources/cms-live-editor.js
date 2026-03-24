@@ -25,19 +25,14 @@ function initSunEditor(languageIndex, editorId) {
   if (!textarea) {
     return;
   }
-  const buttonList = FULL_TOOLBAR;
   const editor = SUNEDITOR.create(textarea, {
-    buttonList: buttonList,
+    buttonList: FULL_TOOLBAR,
     attributesWhitelist: {
-      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
   });
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
-
-  // Register the editor core with its ID for the toggle button
-  window.cmsSunEditorCores[editorId] = editor.core;
-  console.log("Editor registered - ID:", editorId, "- ready for toggle button");
 
   // Store original content and placeholder pattern for later comparison
   try {
@@ -60,8 +55,8 @@ function markDirtyIfChanged() {
   } else {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
-      { name: "languageIndex", value: languageIndex },
-      { name: "content", value: currentContent },
+      { name: 'languageIndex', value: languageIndex },
+      { name: 'content', value: currentContent }
     ]);
   }
 }
