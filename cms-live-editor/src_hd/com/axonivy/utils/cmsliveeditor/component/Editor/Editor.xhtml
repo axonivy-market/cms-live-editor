@@ -32,22 +32,17 @@
       <h:outputText value="#{cc.attrs.content}" escape="false" />
     </h:panelGroup>
   </h:panelGroup>
+#{cc.attrs.isHtmlFormat}
+#{cc.attrs.isReadOnly}
 
   <!-- EDIT MODE -->
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
-    <!-- Rich Text Editor (visual editor) -->
-    <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor"
-      autoResize="false" 
-      rendered="#{cc.attrs.isHtmlFormat}" />
-    
-    <!-- Raw Text Editor -->
-    <p:inputTextarea id="raw-content-editor" value="#{cc.attrs.content}" styleClass="js-article-content-editor"
-      autoResize="false" 
-      rendered="#{not cc.attrs.isHtmlFormat}" />
+    <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
+      autoResize="false" />
   </h:panelGroup>
 
-  <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
-    onstart="initSunEditor(#{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id');"
+  <p:remoteCommand autoRun="true" async="true" rendered="#{cc.attrs.isHtmlFormat and not cc.attrs.isReadOnly}"
+    onstart="initSunEditor(#{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id', #{cc.attrs.isHtmlFormat});"
     global="false" process="@none" update="@none" immediate="true" />
 
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"
