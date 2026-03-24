@@ -4,8 +4,8 @@ window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 
-const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
-const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
+const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
+const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 
 const FULL_TOOLBAR = [
   ['font', 'fontSize', 'formatBlock'],
@@ -57,7 +57,7 @@ function markDirtyIfChanged() {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
       { name: 'languageIndex', value: languageIndex },
-      { name: 'content', value: currentContent },
+      { name: 'content', value: currentContent }
     ]);
   }
 }
