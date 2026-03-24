@@ -30,6 +30,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
+    defaultStyle: 'font-family: Inter;',
+    font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
   restricActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
