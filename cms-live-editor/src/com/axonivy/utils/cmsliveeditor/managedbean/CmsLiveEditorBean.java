@@ -105,6 +105,40 @@ public class CmsLiveEditorBean implements Serializable {
   private String resetConfirmText;
   private boolean isInEditMode;
 
+  private List<Integer> validationFailedLanguageIndices = Collections.emptyList();
+
+  public String getValidationFailedLanguageIndicesJson() {
+    try {
+      return mapper.writeValueAsString(validationFailedLanguageIndices);
+    } catch (JsonProcessingException e) {
+      Ivy.log().warn("Could not serialize validationFailedLanguageIndices", e);
+      return "[]";
+    }
+  }
+
+  private void setValidationFailedLocales(List<String> localeTags) {
+    if (localeTags == null || localeTags.isEmpty()) {
+      validationFailedLanguageIndices = Collections.emptyList();
+      return;
+    }
+
+    if (selectedCms == null || selectedCms.getContents() == null) {
+      validationFailedLanguageIndices = Collections.emptyList();
+      return;
+    }
+
+    List<Integer> indices = selectedCms.getContents().stream()
+        .filter(c -> c.getLocale() != null)
+        .filter(c -> localeTags.stream().anyMatch(tag -> tag != null
+            && c.getLocale().toLanguageTag().equalsIgnoreCase(Locale.forLanguageTag(tag).toLanguageTag())))
+        .map(CmsContent::getIndex)
+        .distinct()
+        .sorted()
+        .toList();
+
+    validationFailedLanguageIndices = indices;
+  }
+
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
@@ -188,8 +222,7 @@ public class CmsLiveEditorBean implements Serializable {
     return aParts.equals(bParts);
   }
 
-  private String validatePlaceholders(Map<String, SavedCms> locales) {
-
+  private List<String> findPlaceholderMismatchLocales(Map<String, SavedCms> locales) {
     // determine reference placeholders (from ORIGINAL)
     List<Placeholder> reference = null;
 
@@ -201,56 +234,95 @@ public class CmsLiveEditorBean implements Serializable {
     }
 
     if (reference == null) {
-      return null;
+      return Collections.emptyList();
     }
 
-    // validate ALL edited contents against reference
-    for (Map.Entry<String, SavedCms> entry : locales.entrySet()) {
+    List<String> mismatches = new ArrayList<>();
 
+    for (Map.Entry<String, SavedCms> entry : locales.entrySet()) {
       String locale = entry.getKey();
       SavedCms cms = entry.getValue();
 
       String content = cms.getNewContent();
-
       if (content == null || content.equals(cms.getOriginalContent())) {
         continue;
       }
 
       List<Placeholder> newPlaceholders = extractPlaceholders(content);
-
       if (!arePlaceholderListsEqual(reference, newPlaceholders)) {
-        return "Placeholder mismatch in locale: " + locale;
+        mismatches.add(locale);
       }
     }
 
-    return null;
+    return mismatches;
+  }
+
+  private List<String> findMessageFormatErrorLocales(Map<String, SavedCms> locales) {
+    List<String> errors = new ArrayList<>();
+
+    for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
+      String locale = localeEntry.getKey();
+      SavedCms savedCms = localeEntry.getValue();
+
+      String content = savedCms.getNewContent();
+      if (content == null || content.equals(savedCms.getOriginalContent())) {
+        continue;
+      }
+
+      String error = validateMessageFormat(content);
+      if (error != null) {
+        errors.add(locale);
+      }
+    }
+
+    return errors;
   }
 
   public void writeCmsToApplication() {
+    validationFailedLanguageIndices = Collections.emptyList();
+
     for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
       Map<String, SavedCms> locales = cmsEntry.getValue();
 
       // placeholder validation
-      String placeholderError = validatePlaceholders(locales);
-      if (placeholderError != null) {
+      List<String> placeholderMismatchLocales = findPlaceholderMismatchLocales(locales);
+      if (!placeholderMismatchLocales.isEmpty()) {
+        setValidationFailedLocales(placeholderMismatchLocales);
+
         FacesContext.getCurrentInstance().validationFailed();
+
+        PF.current().ajax().update(
+            CONTENT_FORM_PATH_COLUMN,
+            CONTENT_FORM_EDITABLE_COLUMN,
+            "content-form:cms-error-container",
+            "content-form:validation-failed-language-indices"
+        );
         return;
       }
 
-      // existing MessageFormat validation
+      // MessageFormat validation
+      List<String> messageFormatErrorLocales = findMessageFormatErrorLocales(locales);
+      if (!messageFormatErrorLocales.isEmpty()) {
+        setValidationFailedLocales(messageFormatErrorLocales);
+
+        FacesContext.getCurrentInstance().validationFailed();
+
+        PF.current().ajax().update(
+            CONTENT_FORM_PATH_COLUMN,
+            CONTENT_FORM_EDITABLE_COLUMN,
+            "content-form:cms-error-container",
+            "content-form:validation-failed-language-indices"
+        );
+        return;
+      }
+
+      // existing MessageFormat validation (legacy block kept for debug logging only)
       for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
         SavedCms savedCms = localeEntry.getValue();
 
         String content = savedCms.getNewContent();
-
         if (content == null || content.equals(savedCms.getOriginalContent())) {
           continue;
-        }
-
-        String error = validateMessageFormat(content);
-        if (error != null) {
-          FacesContext.getCurrentInstance().validationFailed();
-          return;
         }
       }
     }
@@ -264,12 +336,13 @@ public class CmsLiveEditorBean implements Serializable {
     }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
-    PF.current().ajax().update(
+    PF.current().ajax().update("content-form",
       "content-form:table-cms-keys",
       "content-form:cms-values",
       "content-form:cms-edit-value",
       "content-form:editable-column",
-      "content-form:cms-error-container");
+      "content-form:cms-error-container",
+      "content-form:validation-failed-language-indices");
     lastSelectedCms = null;
   }
 
@@ -315,6 +388,9 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void resetAllChanges() {
+    validationFailedLanguageIndices = Collections.emptyList();
+    lastSelectedCms = null;
+    isInEditMode = false;
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
       if (cms.isFile()) {
@@ -322,7 +398,10 @@ public class CmsLiveEditorBean implements Serializable {
       } else {
         savedCmsMap.remove(cms.getUri());
         cmsService.removeApplicationCmsByUri(cms.getUri());
-        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+        cms.getContents().forEach(content -> {
+          content.saveContent(content.getOriginalContent());
+          content.setEditing(false);
+        });
       }
     });
     onAppChange();
@@ -337,6 +416,9 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void undoChange() {
+    validationFailedLanguageIndices = Collections.emptyList();
+    lastSelectedCms = null;
+    isInEditMode = false;
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
       if (selectedCms.isFile()) {
@@ -344,10 +426,14 @@ public class CmsLiveEditorBean implements Serializable {
         selectedCms.getContents().forEach(cmsContent -> {
           cmsContent.setApplicationFileSize(0);
           cmsContent.setApplicationFileContent(null);
+          cmsContent.setEditing(false);
         });
       } else {
         cmsService.removeApplicationCmsByUri(cms.getUri());
-        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+        cms.getContents().forEach(content -> {
+          content.saveContent(content.getOriginalContent());
+          content.setEditing(false);
+        });
       }
     });
     onAppChange();
@@ -363,6 +449,30 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
+    validationFailedLanguageIndices = Collections.emptyList();
+
+    if (selectedCms != null) {
+      // Drop any unsaved changes for the current CMS key
+      savedCmsMap.remove(selectedCms.getUri());
+
+      // Restore current values from application CMS (or project value as fallback)
+      if (!selectedCms.isFile() && selectedCms.getContents() != null) {
+        for (CmsContent cmsContent : selectedCms.getContents()) {
+          if (cmsContent == null || cmsContent.getLocale() == null) {
+            continue;
+          }
+
+          String applicationValue = cmsService.getCmsFromApplication(selectedCms.getUri(), cmsContent.getLocale());
+          if (StringUtils.isBlank(applicationValue)) {
+            applicationValue = cmsContent.getOriginalContent();
+          }
+
+          cmsContent.saveContent(applicationValue);
+          cmsContent.setEditing(false);
+        }
+      }
+    }
+
     isEditableCms = false;
     lastSelectedCms = null;
     isInEditMode = false;

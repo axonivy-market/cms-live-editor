@@ -88,7 +88,7 @@
                   <p:commandLink id="undo-change-path" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
                     actionListener="#{cmsLiveEditorBean.undoChange}"
                     update="column-container table-cms-keys cms-values cms-edit-value"
-                    oncomplete="restorePathPanelScroll();"
+                    oncomplete="restorePathPanelScroll(); clearValidationFailedState();"
                     styleClass="flex align-items-center gap-2 cursor-pointer undo-action-custom">
                     <i class="pi pi-undo" />
                     <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
@@ -266,22 +266,31 @@
                       </div>
                     </h:panelGroup>
 
+                      <h:outputText id="validation-failed-language-indices"
+                        value="#{cmsLiveEditorBean.validationFailedLanguageIndicesJson}"
+                        styleClass="hidden" />
+
                     <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
                       <p:commandButton id="cancel-edit-button" value="#{ivy.cms.co('/Labels/Cancel')}"
                         icon="pi pi-times" process="@this"
                         styleClass="flex-1 mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
                         update="column-container" actionListener="#{cmsLiveEditorBean.onCancelEditableButton()}"
-                        oncomplete="restorePathPanelScroll();" />
+                        oncomplete="restorePathPanelScroll(); clearValidationFailedState();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
-                        update="table-cms-keys cms-values cms-edit-value editable-column cms-error-container"
+                        update="cms-edit-value editable-column cms-error-container validation-failed-language-indices"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
                         oncomplete="
                                   if (!args.validationFailed) {
+                                  window.cmsValidationFailed = false;
+                                  window.cmsValidationFailedLanguageIndices = [];
                                   initCmsWarnings();
                                   restorePathPanelScroll();
                                     showSaveSuccess();
+                                  } else {
+                                  window.cmsValidationFailed = true;
+                                  applyValidationFailedState();
                                   }"
                         partialSubmit="true" />
                     </h:panelGroup>
@@ -316,7 +325,7 @@
               <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}"
                 styleClass="ui-button-danger w-full" actionListener="#{cmsLiveEditorBean.resetAllChanges}"
                 update="column-container table-cms-keys cms-values cms-edit-value"
-                disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide();" />
+                disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
             </div>
           </div>
         </p:dialog>

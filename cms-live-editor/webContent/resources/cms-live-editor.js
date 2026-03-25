@@ -3,9 +3,18 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
+window.cmsValidationFailed = window.cmsValidationFailed || false;
+window.cmsValidationFailedLanguageIndices = window.cmsValidationFailedLanguageIndices || [];
 
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const CMS_VALIDATION_FAILED_LANGUAGE_INDICES_ID = 'content-form:validation-failed-language-indices';
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text ?? '';
+  return div.innerHTML;
+}
 
 function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   const textarea = document.getElementById(editorId);
@@ -42,13 +51,25 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
     }
   });
+
+  // In plain-text mode, make sure the initial value is treated as text.
+  // Otherwise patterns like ChoiceFormat '1<...' can be parsed as an HTML tag and the rest disappears.
+  if (!isFormatButtonListVisible) {
+    const rawText = textarea.value || '';
+    const escapedText = escapeHtml(rawText).replace(/\r\n|\r|\n/g, '<br>');
+    editor.setContents(`<p>${escapedText}</p>`);
+  }
+
   const initialContent = editor.getContents();
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
+  const failedIndices = window.cmsValidationFailedLanguageIndices || [];
+  setEditorError(languageIndex, failedIndices.includes(Number(languageIndex)));
+
   // Store original content and placeholder pattern for later comparison
   try {
-    const initialContents = editor.getContents();
+    const initialContents = initialContent;
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents);
   } catch (e) {
@@ -92,7 +113,69 @@ function markDirtyIfChanged() {
   };
 }
 
+function getValidationFailedLanguageIndicesFromDom() {
+  const el = document.getElementById(CMS_VALIDATION_FAILED_LANGUAGE_INDICES_ID);
+  if (!el) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(el.textContent || '[]');
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.map(Number).filter(Number.isFinite);
+  } catch (e) {
+    return [];
+  }
+}
+
+function applyValidationFailedState() {
+  const failedIndices = getValidationFailedLanguageIndicesFromDom();
+  window.cmsValidationFailedLanguageIndices = failedIndices;
+
+  const maxAttempts = 10;
+  let attempts = 0;
+
+  function tryApply() {
+    attempts += 1;
+
+    // Clear all first, then set errors only for failed locales.
+    for (const languageIndex in window.cmsLiveEditorIds) {
+      setEditorError(Number(languageIndex), failedIndices.includes(Number(languageIndex)));
+    }
+
+    // Stop retrying once at least one failed editor is styled, or we reached the limit.
+    if ((failedIndices.length === 0 || document.querySelector('.sun-editor.cms-editor-error')) || attempts >= maxAttempts) {
+      return;
+    }
+
+    setTimeout(tryApply, 100);
+  }
+
+  setTimeout(tryApply, 0);
+}
+
+function clearValidationFailedState() {
+  window.cmsValidationFailed = false;
+  window.cmsValidationFailedLanguageIndices = [];
+
+  // Try to clear via tracked editor ids (when available)
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    setEditorError(Number(languageIndex), false);
+  }
+
+  // Also clear any remaining DOM nodes (in case the editor was re-rendered)
+  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((el) => {
+    el.classList.remove('cms-editor-error');
+  });
+}
+
 function saveAllEditors() {
+  // Reset validation flag for a new save attempt.
+  window.cmsValidationFailed = false;
+  window.cmsValidationFailedLanguageIndices = [];
+
   const dirtyEditors = new Set(window.cmsDirtyEditors);
 
   if (dirtyEditors.size === 0) {
@@ -125,36 +208,6 @@ function saveAllEditors() {
   return true;
 }
 
-/** Placeholder validation:
-* - If all locales are edited → ensure placeholders are consistent across locales.
-* - If only some locales edited → ensure placeholder numbers match the original of this locale.
-*/
-function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
-  const newPlaceholders = extractPlaceholders(contents);
-
-  if (allLocalesEdited) {
-    if (expectedPlaceholders === null) {
-      return {
-        valid: true,
-        expectedPlaceholders: newPlaceholders
-      };
-    }
-
-    return {
-      valid: arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders),
-      expectedPlaceholders
-    };
-  }
-
-  const originalPlaceholders =
-    window.cmsOriginalPlaceholders[languageIndex] || [];
-
-  return {
-    valid: arePlaceholderListsEqual(originalPlaceholders, newPlaceholders),
-    expectedPlaceholders
-  };
-}
-
 function setEditorError(languageIndex, hasError) {
   const container = getEditorContainer(languageIndex);
   if (!container) {
@@ -181,117 +234,6 @@ function getEditorContainer(languageIndex) {
       ? textarea.nextElementSibling
       : textarea.parentElement?.querySelector('.sun-editor')
   ) || null;
-}
-
-/** 
-* Extracts placeholder argument indexes from MessageFormat patterns in the content.
-*
-* Supports placeholders following Java MessageFormat syntax:
-*   {0}
-*   {1,number}
-*   {2,date,short}
-*   {0,choice,0#none|1#one|1<{0} files}
-*
-* We extract:
-*   index  → argument index (required)
-*   format → e.g. number, date, choice (optional)
-*   style  → format-specific style (optional)
-*
-* The returned array is sorted by index.
-*/
-function extractPlaceholders(content) {
-  if (!content) {
-    return [];
-  }
-
-  const javaMessageFormatRegex = /\{(\d+)(?:,([^,}]+)(?:,([^}]+))?)?\}/g;
-
-  const placeholders = [];
-  let match;
-
-  while ((match = javaMessageFormatRegex.exec(content)) !== null) {
-    placeholders.push({
-      index: Number(match[1]),
-      format: match[2] ? match[2].trim() : null,
-      style: match[3] ? match[3].trim() : null
-    });
-  }
-
-  return placeholders.sort((a, b) => a.index - b.index);
-}
-
-/** Compares two placeholder lists
-* The lists must:
-* - Have the same length
-* - Same indexes (order matters because lists are sorted)
-* - Format/style differences are ignored "choice"
-*/
-function arePlaceholderListsEqual(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].index !== b[i].index) {
-      return false;
-    }
-
-    const formatA = a[i].format || null;
-    const formatB = b[i].format || null;
-
-    if (formatA === 'choice' || formatB === 'choice') {
-      if (formatA !== formatB) {
-        return false;
-      }
-
-      if (!areChoiceStylesEqual(a[i].style, b[i].style)) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-/** Compare two ChoiceFormat styles.
-*
-* Example:
-*   "0#none|1#one" === "1#one | 0#none"
-*
-* Rules:
-* - Order-insensitive
-* - Whitespace-insensitive
-* - Exact string match per segment
-*/
-function areChoiceStylesEqual(styleA, styleB) {
-  if (styleA === styleB) {
-    return true;
-  }
-
-  if (!styleA || !styleB) {
-    return false;
-  }
-
-  const splitAndSortChoiceSegments = (style) =>
-    style
-      .split('|')
-      .map(s => s.trim())
-      .sort();
-
-  const aParts = splitAndSortChoiceSegments(styleA);
-  const bParts = splitAndSortChoiceSegments(styleB);
-
-  if (aParts.length !== bParts.length) {
-   return false;
-  }
-
-  for (let i = 0; i < aParts.length; i++) {
-    if (aParts[i] !== bParts[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function removeNonPrintableChars(str) {
