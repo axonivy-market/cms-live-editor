@@ -11,7 +11,9 @@ const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
 const CTRL_KEY_PASTE = 'v';
 const CTRL_KEY_CUT = 'x';
-const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT]);
+const CTRL_KEY_ALL = 'a';
+const CTRL_KEY_UNDO = 'z';
+const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
 
 const FULL_TOOLBAR = [
   ['font', 'fontSize', 'formatBlock'],
@@ -56,7 +58,6 @@ function initSunEditor(languageIndex, editorId, isHtml) {
 function markDirtyIfChanged() {
   const currentContent = editor.getContents();
   const originalContents = window.cmsInitialContents[languageIndex] || '';
-
   if (currentContent === originalContents) {
     // Back to original -> not dirty anymore
     window.cmsDirtyEditors.delete(languageIndex);
@@ -99,10 +100,9 @@ function restricActionForNonHtml(isHtmlContent, editor) {
 
   editor.onKeyDown = function (e) {
     const key = (e.key || '').toLowerCase();
-    if ((e.ctrlKey || e.metaKey) && NON_HTML_ALLOWED_CTRL_KEYS.has(key)) {
-      return true;
-    }
-    if (e.key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE) {
+    const isNotAllowedCtrlKey = (e.ctrlKey || e.metaKey) && !NON_HTML_ALLOWED_CTRL_KEYS.has(key);
+    const isEnterKey = key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE;
+    if (isNotAllowedCtrlKey || isEnterKey) {
       e.preventDefault();
       return false;
     }
