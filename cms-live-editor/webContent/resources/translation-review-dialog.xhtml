@@ -8,7 +8,7 @@
 
   <p:dialog header="#{ivy.cms.co('/Labels/TranslationWizard')}"
     closeOnEscape="false" widgetVar="translationReviewDialog"
-    styleClass="disable-scroll" modal="true" closable="true"
+    styleClass="disable-scroll" modal="true" closable="true" onHide="cancelTranslationsRemote()"
     resizable="true" width="75%" height="32rem"
     id="translationReviewDialog">
 
@@ -44,9 +44,13 @@
                 <h:outputText
                   value="#{ivy.cms.co('/Labels/FileCannotBeTranslated')}" />
               </h:panelGroup>
-
+             <h:panelGroup rendered="#{not cms.file and targetContent == null}" layout="block"
+                styleClass="flex align-items-center gap-2 text-color-secondary font-italic">
+                <h:outputText
+                  value="#{ivy.cms.co('/Labels/LocaleNotAvailable')}" />
+              </h:panelGroup> 
               <!-- Non-file: old -> new preview -->
-              <h:panelGroup rendered="#{not cms.file}" layout="block"
+              <h:panelGroup rendered="#{not cms.file and targetContent != null}" layout="block"
                 styleClass="flex align-items-center gap-2 flex-wrap">
                 <h:outputText value="#{targetContent.content}"
                   styleClass="line-through text-color-secondary"
@@ -62,7 +66,7 @@
           <!-- Select (hidden for file entries) -->
           <p:column headerText="#{ivy.cms.co('/Labels/Select')}"
             width="3rem">
-            <h:panelGroup layout="block" rendered="#{not cms.file}"
+            <h:panelGroup layout="block" rendered="#{not cms.file and targetContent != null}"
               styleClass="flex justify-content-center">
               <p:selectBooleanCheckbox styleClass="review-checkbox"
                 value="#{targetContent.translated}">

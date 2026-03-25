@@ -21,6 +21,7 @@ Labels:
   FileCannotBeTranslated: This CMS can't be translated since it is file type
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
+  LocaleNotAvailable: This locale is not available in the selected project
   Message: Message
   Options: Options
   Path: Path
