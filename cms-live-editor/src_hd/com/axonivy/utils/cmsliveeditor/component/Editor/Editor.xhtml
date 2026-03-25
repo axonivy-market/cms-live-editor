@@ -22,14 +22,14 @@
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
     <h:panelGroup rendered="#{isSameContent}">
-      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isFormatButtonListVisible}" />
+      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isHtmlFormat}" />
     </h:panelGroup>
 
     <h:panelGroup rendered="#{not isSameContent}">
       <del class="cms-original-content">
-        <h:outputText value="#{cc.attrs.originalContent}" escape="#{not cc.attrs.isFormatButtonListVisible}" />
+        <h:outputText value="#{cc.attrs.originalContent}" escape="#{not cc.attrs.isHtmlFormat}" />
       </del>
-      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isFormatButtonListVisible}" />
+      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isHtmlFormat}" />
     </h:panelGroup>
   </h:panelGroup>
 

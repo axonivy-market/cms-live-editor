@@ -51,7 +51,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
 
-  if (!isFormatButtonListVisible) {
+  if (!isHtml) {
     const rawText = textarea.value || '';
     const escapedText = escapeHtml(rawText).replace(/\r\n|\r|\n/g, '<br>');
     editor.setContents(`<p>${escapedText}</p>`);
