@@ -4,11 +4,9 @@ window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsValidationFailed = window.cmsValidationFailed || false;
-window.cmsValidationFailedLanguageIndices = window.cmsValidationFailedLanguageIndices || [];
+window.cmsInvalidLocaleIndices = window.cmsInvalidLocaleIndices || [];
 
-const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
-const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
-const CMS_VALIDATION_FAILED_LANGUAGE_INDICES_ID = 'content-form:validation-failed-language-indices';
+const CMS_INVALID_LOCALE_INDICES_ID = 'content-form:invalid-locale-indices';
 
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -64,7 +62,7 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
-  const failedIndices = window.cmsValidationFailedLanguageIndices || [];
+  const failedIndices = window.cmsInvalidLocaleIndices || [];
   setEditorError(languageIndex, failedIndices.includes(Number(languageIndex)));
 
   // Store original content and placeholder pattern for later comparison
@@ -113,14 +111,14 @@ function markDirtyIfChanged() {
   };
 }
 
-function getValidationFailedLanguageIndicesFromDom() {
-  const el = document.getElementById(CMS_VALIDATION_FAILED_LANGUAGE_INDICES_ID);
-  if (!el) {
+function getInvalidLocaleIndices() {
+  const invalidLocaleIndicesElement = document.getElementById(CMS_INVALID_LOCALE_INDICES_ID);
+  if (!invalidLocaleIndicesElement) {
     return [];
   }
 
   try {
-    const parsed = JSON.parse(el.textContent || '[]');
+    const parsed = JSON.parse(invalidLocaleIndicesElement.textContent || '[]');
     if (!Array.isArray(parsed)) {
       return [];
     }
@@ -131,8 +129,8 @@ function getValidationFailedLanguageIndicesFromDom() {
 }
 
 function applyValidationFailedState() {
-  const failedIndices = getValidationFailedLanguageIndicesFromDom();
-  window.cmsValidationFailedLanguageIndices = failedIndices;
+  const failedIndices = getInvalidLocaleIndices();
+  window.cmsInvalidLocaleIndices = failedIndices;
 
   const maxAttempts = 10;
   let attempts = 0;
@@ -158,23 +156,20 @@ function applyValidationFailedState() {
 
 function clearValidationFailedState() {
   window.cmsValidationFailed = false;
-  window.cmsValidationFailedLanguageIndices = [];
-
-  // Try to clear via tracked editor ids (when available)
+  window.cmsInvalidLocaleIndices = [];
   for (const languageIndex in window.cmsLiveEditorIds) {
     setEditorError(Number(languageIndex), false);
   }
 
-  // Also clear any remaining DOM nodes (in case the editor was re-rendered)
-  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((el) => {
-    el.classList.remove('cms-editor-error');
+  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
+    element.classList.remove('cms-editor-error');
   });
 }
 
 function saveAllEditors() {
   // Reset validation flag for a new save attempt.
   window.cmsValidationFailed = false;
-  window.cmsValidationFailedLanguageIndices = [];
+  window.cmsInvalidLocaleIndices = [];
 
   const dirtyEditors = new Set(window.cmsDirtyEditors);
 
@@ -267,15 +262,6 @@ function bindCmsWarning(hoverId, warningId) {
     clearTimeout(hideTimeout);
   });
   targetElement.addEventListener("mouseleave", hideWarning);
-}
-
-function setErrorMessageVisible(isVisible) {
-  const element = document.getElementById(CMS_SAVE_ERROR_CONTAINER_ID);
-  if (!element) {
-    return;
-  }
-  element.dataset.forceVisible = isVisible ? 'true' : 'false';
-  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {

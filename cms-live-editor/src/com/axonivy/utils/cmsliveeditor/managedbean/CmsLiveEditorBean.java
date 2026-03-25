@@ -5,6 +5,10 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_ED
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_EDITOR_PMV_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_EDIT_VALUE;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALIDATION_FAILED;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALUES;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_ERROR_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
@@ -17,18 +21,13 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -54,10 +53,10 @@ import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
-import com.axonivy.utils.cmsliveeditor.model.Placeholder;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
+import com.axonivy.utils.cmsliveeditor.service.PlaceholderService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
@@ -86,10 +85,10 @@ public class CmsLiveEditorBean implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final String CMS_FILE_FORMAT = "%s_%s.%s";
   private static final String FILE_EXTENSION_FORMAT = ".%s";
-  private static final Pattern PLACEHOLDER_PATTERN =
-      Pattern.compile("\\{(\\d+)(?:,([^,}]+)(?:,([^}]+))?)?\\}");
-  private static final ObjectMapper mapper = new ObjectMapper();
+
   private final CmsService cmsService = CmsService.getInstance();
+  private final PlaceholderService placeholderService = PlaceholderService.getInstance();
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
@@ -104,40 +103,7 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean isInEditMode;
-
-  private List<Integer> validationFailedLanguageIndices = Collections.emptyList();
-
-  public String getValidationFailedLanguageIndicesJson() {
-    try {
-      return mapper.writeValueAsString(validationFailedLanguageIndices);
-    } catch (JsonProcessingException e) {
-      Ivy.log().warn("Could not serialize validationFailedLanguageIndices", e);
-      return "[]";
-    }
-  }
-
-  private void setValidationFailedLocales(List<String> localeTags) {
-    if (localeTags == null || localeTags.isEmpty()) {
-      validationFailedLanguageIndices = Collections.emptyList();
-      return;
-    }
-
-    if (selectedCms == null || selectedCms.getContents() == null) {
-      validationFailedLanguageIndices = Collections.emptyList();
-      return;
-    }
-
-    List<Integer> indices = selectedCms.getContents().stream()
-        .filter(c -> c.getLocale() != null)
-        .filter(c -> localeTags.stream().anyMatch(tag -> tag != null
-            && c.getLocale().toLanguageTag().equalsIgnoreCase(Locale.forLanguageTag(tag).toLanguageTag())))
-        .map(CmsContent::getIndex)
-        .distinct()
-        .sorted()
-        .toList();
-
-    validationFailedLanguageIndices = indices;
-  }
+  private List<Integer> invalidLocaleIndices;
 
   @PostConstruct
   private void init() {
@@ -152,178 +118,18 @@ public class CmsLiveEditorBean implements Serializable {
     onAppChange();
   }
 
-  private List<Placeholder> extractPlaceholders(String content) {
-    if (content == null || content.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    Matcher matcher = PLACEHOLDER_PATTERN.matcher(content);
-    List<Placeholder> result = new ArrayList<>();
-
-    while (matcher.find()) {
-      int index = Integer.parseInt(matcher.group(1));
-      String format = matcher.group(2) != null ? matcher.group(2).trim() : null;
-      String style = matcher.group(3) != null ? matcher.group(3).trim() : null;
-
-      result.add(new Placeholder(index, format, style));
-    }
-
-    result.sort(Comparator.comparingInt(Placeholder::getIndex));
-    return result;
-  }
-
-  private boolean arePlaceholderListsEqual(List<Placeholder> a, List<Placeholder> b) {
-    if (a.size() != b.size()) {
-      return false;
-    }
-
-    for (int i = 0; i < a.size(); i++) {
-      Placeholder p1 = a.get(i);
-      Placeholder p2 = b.get(i);
-
-      if (p1.getIndex() != p2.getIndex()) {
-        return false;
-      }
-
-      String f1 = normalize(p1.getFormat());
-      String f2 = normalize(p2.getFormat());
-
-      if ("choice".equals(f1) || "choice".equals(f2)) {
-        if (!Objects.equals(f1, f2)) {
-          return false;
-        }
-
-        if (!areChoiceStylesEqual(p1.getStyle(), p2.getStyle())) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  private String normalize(String s) {
-    return s == null ? null : s.trim();
-  }
-
-  private boolean areChoiceStylesEqual(String a, String b) {
-    if (Objects.equals(a, b)) {
-      return true;
-    }
-
-    if (a == null || b == null) {
-      return false;
-    }
-
-    List<String> aParts = Arrays.stream(a.split("\\|")).map(String::trim).sorted().toList();
-
-    List<String> bParts = Arrays.stream(b.split("\\|")).map(String::trim).sorted().toList();
-
-    return aParts.equals(bParts);
-  }
-
-  private List<String> findPlaceholderMismatchLocales(Map<String, SavedCms> locales) {
-    // determine reference placeholders (from ORIGINAL)
-    List<Placeholder> reference = null;
-
-    for (SavedCms cms : locales.values()) {
-      if (cms.getOriginalContent() != null) {
-        reference = extractPlaceholders(cms.getOriginalContent());
-        break;
-      }
-    }
-
-    if (reference == null) {
-      return Collections.emptyList();
-    }
-
-    List<String> mismatches = new ArrayList<>();
-
-    for (Map.Entry<String, SavedCms> entry : locales.entrySet()) {
-      String locale = entry.getKey();
-      SavedCms cms = entry.getValue();
-
-      String content = cms.getNewContent();
-      if (content == null || content.equals(cms.getOriginalContent())) {
-        continue;
-      }
-
-      List<Placeholder> newPlaceholders = extractPlaceholders(content);
-      if (!arePlaceholderListsEqual(reference, newPlaceholders)) {
-        mismatches.add(locale);
-      }
-    }
-
-    return mismatches;
-  }
-
-  private List<String> findMessageFormatErrorLocales(Map<String, SavedCms> locales) {
-    List<String> errors = new ArrayList<>();
-
-    for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
-      String locale = localeEntry.getKey();
-      SavedCms savedCms = localeEntry.getValue();
-
-      String content = savedCms.getNewContent();
-      if (content == null || content.equals(savedCms.getOriginalContent())) {
-        continue;
-      }
-
-      String error = validateMessageFormat(content);
-      if (error != null) {
-        errors.add(locale);
-      }
-    }
-
-    return errors;
-  }
-
   public void writeCmsToApplication() {
-    validationFailedLanguageIndices = Collections.emptyList();
-
+    invalidLocaleIndices = Collections.emptyList();
     for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
-      Map<String, SavedCms> locales = cmsEntry.getValue();
+      List<String> errorLocales = placeholderService.validateLocales(cmsEntry.getValue());
 
-      // placeholder validation
-      List<String> placeholderMismatchLocales = findPlaceholderMismatchLocales(locales);
-      if (!placeholderMismatchLocales.isEmpty()) {
-        setValidationFailedLocales(placeholderMismatchLocales);
-
+      if (!errorLocales.isEmpty()) {
+        invalidLocaleIndices =
+            placeholderService.findInvalidLocaleIndices(errorLocales, selectedCms);
         FacesContext.getCurrentInstance().validationFailed();
-
-        PF.current().ajax().update(
-            CONTENT_FORM_PATH_COLUMN,
-            CONTENT_FORM_EDITABLE_COLUMN,
-            "content-form:cms-error-container",
-            "content-form:validation-failed-language-indices"
-        );
+        PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID,
+            CONTENT_FORM_CMS_VALIDATION_FAILED);
         return;
-      }
-
-      // MessageFormat validation
-      List<String> messageFormatErrorLocales = findMessageFormatErrorLocales(locales);
-      if (!messageFormatErrorLocales.isEmpty()) {
-        setValidationFailedLocales(messageFormatErrorLocales);
-
-        FacesContext.getCurrentInstance().validationFailed();
-
-        PF.current().ajax().update(
-            CONTENT_FORM_PATH_COLUMN,
-            CONTENT_FORM_EDITABLE_COLUMN,
-            "content-form:cms-error-container",
-            "content-form:validation-failed-language-indices"
-        );
-        return;
-      }
-
-      // existing MessageFormat validation (legacy block kept for debug logging only)
-      for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
-        SavedCms savedCms = localeEntry.getValue();
-
-        String content = savedCms.getNewContent();
-        if (content == null || content.equals(savedCms.getOriginalContent())) {
-          continue;
-        }
       }
     }
 
@@ -336,22 +142,18 @@ public class CmsLiveEditorBean implements Serializable {
     }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
-    PF.current().ajax().update("content-form",
-      "content-form:table-cms-keys",
-      "content-form:cms-values",
-      "content-form:cms-edit-value",
-      "content-form:editable-column",
-      "content-form:cms-error-container",
-      "content-form:validation-failed-language-indices");
+    PF.current().ajax().update(CONTENT_FORM, CONTENT_FORM_TABLE_CMS_KEYS, CONTENT_FORM_CMS_VALUES,
+        CONTENT_FORM_CMS_EDIT_VALUE, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID,
+        CONTENT_FORM_CMS_VALIDATION_FAILED);
     lastSelectedCms = null;
   }
 
-  private String validateMessageFormat(String pattern) {
+  public String getValidationFailedLocaleIndicesJson() {
     try {
-      new java.text.MessageFormat(pattern, java.util.Locale.ENGLISH);
-      return null;
-    } catch (IllegalArgumentException e) {
-      return e.getMessage();
+      return mapper.writeValueAsString(invalidLocaleIndices);
+    } catch (JsonProcessingException e) {
+      Ivy.log().warn("Could not serialize invalidLocaleIndices", e);
+      return "[]";
     }
   }
 
@@ -388,7 +190,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void resetAllChanges() {
-    validationFailedLanguageIndices = Collections.emptyList();
+    invalidLocaleIndices = Collections.emptyList();
     lastSelectedCms = null;
     isInEditMode = false;
     selectedCms = null;
@@ -416,7 +218,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void undoChange() {
-    validationFailedLanguageIndices = Collections.emptyList();
+    invalidLocaleIndices = Collections.emptyList();
     lastSelectedCms = null;
     isInEditMode = false;
     savedCmsMap.remove(selectedCms.getUri());
@@ -449,13 +251,10 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
-    validationFailedLanguageIndices = Collections.emptyList();
+    invalidLocaleIndices = Collections.emptyList();
 
     if (selectedCms != null) {
-      // Drop any unsaved changes for the current CMS key
       savedCmsMap.remove(selectedCms.getUri());
-
-      // Restore current values from application CMS (or project value as fallback)
       if (!selectedCms.isFile() && selectedCms.getContents() != null) {
         for (CmsContent cmsContent : selectedCms.getContents()) {
           if (cmsContent == null || cmsContent.getLocale() == null) {
@@ -466,7 +265,6 @@ public class CmsLiveEditorBean implements Serializable {
           if (StringUtils.isBlank(applicationValue)) {
             applicationValue = cmsContent.getOriginalContent();
           }
-
           cmsContent.saveContent(applicationValue);
           cmsContent.setEditing(false);
         }
