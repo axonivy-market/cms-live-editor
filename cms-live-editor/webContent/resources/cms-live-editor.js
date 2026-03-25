@@ -6,6 +6,12 @@ window.cmsInitialContents = window.cmsInitialContents || {};
 
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const ENTER_KEY = 'Enter';
+const ENTER_KEY_CODE = 13;
+const CTRL_KEY_COPY = 'c';
+const CTRL_KEY_PASTE = 'v';
+const CTRL_KEY_CUT = 'x';
+const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT]);
 
 const FULL_TOOLBAR = [
   ['font', 'fontSize', 'formatBlock'],
@@ -91,10 +97,12 @@ function restricActionForNonHtml(isHtmlContent, editor) {
     return false;
   };
 
-  const allowedCtrlKeys = new Set(['c', 'v', 'x']);
   editor.onKeyDown = function (e) {
-    if (e.ctrlKey || e.metaKey) {
-      if (allowedCtrlKeys.has(e.key.toLowerCase())) return true;
+    const key = (e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && NON_HTML_ALLOWED_CTRL_KEYS.has(key)) {
+      return true;
+    }
+    if (e.key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE) {
       e.preventDefault();
       return false;
     }
