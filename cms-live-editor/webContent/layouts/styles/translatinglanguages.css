@@ -454,7 +454,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 .review-table-wrapper {
-  padding: 20px;
+  padding: 0 20px 20px 20px;
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
