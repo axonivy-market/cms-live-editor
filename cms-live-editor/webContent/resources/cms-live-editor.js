@@ -6,43 +6,42 @@ window.cmsInitialContents = window.cmsInitialContents || {};
 
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const ENTER_KEY = 'Enter';
+const ENTER_KEY_CODE = 13;
+const CTRL_KEY_COPY = 'c';
+const CTRL_KEY_PASTE = 'v';
+const CTRL_KEY_CUT = 'x';
+const CTRL_KEY_ALL = 'a';
+const CTRL_KEY_UNDO = 'z';
+const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
 
-function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
+const FULL_TOOLBAR = [
+  ['font', 'fontSize', 'formatBlock'],
+  ['paragraphStyle', 'blockquote'],
+  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+  ['fontColor', 'hiliteColor', 'textStyle'],
+  ['removeFormat'],
+  ['outdent', 'indent'],
+  ['align', 'list', 'lineHeight', 'horizontalRule'],
+  ['table', 'link'],
+  ['fullScreen'],
+  ['undo', 'redo'],
+];
+
+function initSunEditor(languageIndex, editorId, isHtml) {
   const textarea = document.getElementById(editorId);
   if (!textarea) {
     return;
   }
-
-  let buttonList;
-  if (isFormatButtonListVisible) {
-    buttonList = [
-      ['font', 'fontSize', 'formatBlock'],
-      ['paragraphStyle', 'blockquote'],
-      ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-      ['fontColor', 'hiliteColor', 'textStyle'],
-      ['removeFormat'],
-      ['outdent', 'indent'],
-      ['align', 'list', 'lineHeight', 'horizontalRule'],
-      ['table', 'link'],
-      ['fullScreen'],
-      ['undo', 'redo']
-    ];
-  } else {
-    buttonList = [
-      ['font'],
-      ['bold', 'underline', 'italic'],
-      ['fontColor', 'align', 'list'],
-      ['fullScreen']
-    ];
-  }
-
   const editor = SUNEDITOR.create(textarea, {
-    buttonList,
+    buttonList: isHtml ? FULL_TOOLBAR : [],
     attributesWhitelist: {
-      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target'
-    }
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
+    },
+    defaultStyle: 'font-family: Inter;',
+    font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
-  const initialContent = editor.getContents();
+  restricActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
@@ -59,7 +58,6 @@ function initSunEditor(isFormatButtonListVisible, languageIndex, editorId) {
 function markDirtyIfChanged() {
   const currentContent = editor.getContents();
   const originalContents = window.cmsInitialContents[languageIndex] || '';
-
   if (currentContent === originalContents) {
     // Back to original -> not dirty anymore
     window.cmsDirtyEditors.delete(languageIndex);
@@ -89,6 +87,29 @@ function markDirtyIfChanged() {
   // Handle quick CMS switching (click outside editor)
   editor.onBlur = () => {
     markDirtyIfChanged();
+  };
+}
+
+function restricActionForNonHtml(isHtmlContent, editor) {
+  if (isHtmlContent) {
+    return;
+  }
+  editor.onCommand = function () {
+    return false;
+  };
+
+  editor.onKeyDown = function (e) {
+    const key = (e.key || '').toLowerCase();
+    const isNotAllowedCtrlKey = (e.ctrlKey || e.metaKey) && !NON_HTML_ALLOWED_CTRL_KEYS.has(key);
+    const isEnterKey = key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE;
+    if (isNotAllowedCtrlKey || isEnterKey) {
+      e.preventDefault();
+      return false;
+    }
+  };
+
+  editor.onPaste = function (e, cleanData) {
+    return cleanData;
   };
 }
 
