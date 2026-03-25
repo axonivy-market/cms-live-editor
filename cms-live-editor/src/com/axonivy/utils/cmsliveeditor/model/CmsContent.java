@@ -4,6 +4,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Locale;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
@@ -51,7 +52,7 @@ public class CmsContent implements Serializable {
     this.originalContent = originalContent;
     this.content = content;
     this.isEditing = false;
-    this.isHtml = Utils.containsHtmlTag(originalContent);
+    this.isHtml = BooleanUtils.isTrue(getIsHtmlContent());
   }
 
   public CmsContent(int index, Locale locale, boolean isFile, String fileName, String uri) {
@@ -190,5 +191,9 @@ public class CmsContent implements Serializable {
 
   public void setNewFileContent(byte[] newFileContent) {
     this.newFileContent = newFileContent;
+  }
+
+  public Boolean getIsHtmlContent() {
+    return BooleanUtils.isNotTrue(isFile) && Utils.containsHtmlTag(this.content);
   }
 }

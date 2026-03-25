@@ -1,3 +1,4 @@
 Test:
   TestContent: TODO Test Content
   TestContent2: TODO Contenido de prueba 2
+  TestContentHtml: TODO <b>Test Content</b>
