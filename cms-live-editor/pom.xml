@@ -86,7 +86,7 @@
     </repository>
     <repository>
       <snapshots>
-        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
       <id>maven.axonivy.com</id>
       <url>https://maven.axonivy.com</url>
