@@ -8,9 +8,9 @@
 
   <p:dialog header="#{ivy.cms.co('/Labels/TranslationWizard')}"
     closeOnEscape="false" widgetVar="translationReviewDialog"
-    styleClass="disable-scroll" modal="true" closable="true" onHide="cancelTranslationsRemote()"
-    resizable="true" width="75%" height="32rem"
-    id="translationReviewDialog">
+    styleClass="disable-scroll" modal="true" closable="true"
+    onHide="PF('cms-review-cancel-button').jq.click();" resizable="true"
+    width="75%" height="32rem" id="translationReviewDialog">
 
     <h:panelGroup id="reviewContent" layout="block"
       styleClass="flex justify-content-center">
@@ -23,7 +23,8 @@
             value="#{cmsLiveEditorBean.getTargetCmsContent(cms)}" />
           <!-- Path -->
           <p:column headerText="#{ivy.cms.co('/Labels/Path')}">
-            <h:outputText value="#{cms.uri}" styleClass="path-column-content" />
+            <h:outputText value="#{cms.uri}"
+              styleClass="path-column-content" />
           </p:column>
 
           <!-- Source -->
@@ -48,7 +49,7 @@
                 styleClass="flex align-items-center gap-2 text-color-secondary font-italic">
                 <h:outputText
                   value="#{ivy.cms.co('/Labels/LocaleNotAvailable')}" />
-              </h:panelGroup> 
+              </h:panelGroup>
               <!-- Non-file: old -> new preview -->
               <h:panelGroup rendered="#{not cms.file and targetContent != null}" layout="block"
                 styleClass="flex align-items-center gap-2 flex-wrap">
@@ -84,6 +85,7 @@
         styleClass="flex justify-content-end w-full">
         <h:panelGroup layout="block" styleClass="flex gap-1">
           <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
+            widgetVar="cms-review-cancel-button"
             styleClass="equal-width w-full cms-review-cancel-button"
             actionListener="#{cmsLiveEditorBean.cancelTranslations}"
             update=":content-form:reviewContent"

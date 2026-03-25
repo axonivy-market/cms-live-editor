@@ -11,6 +11,7 @@ public class CmsConstants {
   public static final String CONTENT_FORM_CMS_EDIT_VALUE = "content-form:cms-edit-value";
   public static final String CONTENT_FORM_CMS_COLUMN = "content-form:cms-columns";
   public static final String CONTENT_FORM = "content-form";
+  public static final String CMS_SETTING_DIALOG = "content-form:cms-settings-dialog";
 
   public static final String TABLE_CMS_KEY_ID = "table-cms-keys";
   public static final String EDIT_BUTTON_ID = "content-form:edit-button";

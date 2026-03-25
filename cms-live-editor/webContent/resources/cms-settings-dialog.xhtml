@@ -8,7 +8,8 @@
   <p:dialog id="cms-settings-dialog"
     header="#{ivy.cms.co('/Labels/Settings')}"
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
-    resizable="false" styleClass="border-round-xl w-25rem">
+    onHide="PF('hidden-exit-btn').jq.click();" resizable="false"
+    styleClass="border-round-xl w-25rem">
 
     <div class="px-4 pb-4 mb-4">
       <div class="mb-3">
@@ -45,10 +46,13 @@
     <f:facet name="footer">
       <div class="flex justify-content-center">
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
-          id="cms-setting-save-btn" styleClass="w-full border-round-lg cms-setting-save-btn"
+          id="cms-setting-save-btn"
+          styleClass="w-full border-round-lg cms-setting-save-btn"
           actionListener="#{cmsLiveEditorBean.saveSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
+        <p:commandButton widgetVar="hidden-exit-btn" styleClass="hidden"
+          actionListener="#{cmsLiveEditorBean.onHideSettingDialog()}" />
       </div>
     </f:facet>
   </p:dialog>

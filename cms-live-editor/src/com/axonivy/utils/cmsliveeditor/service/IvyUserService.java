@@ -11,7 +11,7 @@ public class IvyUserService {
 
   public static void updateUserProperty(String sourceLang, String targetLang) {
     Ivy.session().getSessionUser().setProperty(UserConstants.SOURCE_LANG, sourceLang);
-    Ivy.session().getSessionUser().setProperty(UserConstants.TARGET_LANG, sourceLang);
+    Ivy.session().getSessionUser().setProperty(UserConstants.TARGET_LANG, targetLang);
   }
 
   public static String getUserProperty(String propertyName) {

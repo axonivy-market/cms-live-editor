@@ -3,6 +3,7 @@ package com.axonivy.utils.cmsliveeditor.managedbean;
 import static ch.ivyteam.ivy.environment.Ivy.cms;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_EDITOR_DEMO_PMV_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_EDITOR_PMV_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_SETTING_DIALOG;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
@@ -217,6 +218,11 @@ public class CmsLiveEditorBean implements Serializable {
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
+  public void onHideSettingDialog() {
+    initLocales();
+    PF.current().ajax().update(CMS_SETTING_DIALOG);
+  }
+
   private void clearNewUploadFile() {
     if (selectedCms.isFile()) {
       selectedCms.getContents().stream().forEach(cmsContent -> {
@@ -244,7 +250,8 @@ public class CmsLiveEditorBean implements Serializable {
       selectedCms =
           filteredCMSList.stream().filter(entry -> entry.getUri().equals(selectedCms.getUri())).findAny().orElse(null);
     }
-    PF.current().ajax().update(CONTENT_FORM);
+    initLocales();
+    PF.current().ajax().update(CONTENT_FORM, CMS_SETTING_DIALOG);
   }
 
   public void translate(CmsContent content) {
@@ -582,7 +589,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private void initLocales() {
-    languageList = CmsContentUtils.getLocalListFromCMS(cmsList);
+    languageList = CmsContentUtils.getLocalListFromCMS(filteredCMSList);
 
     selectedSourceLocale = IvyUserService.getUserProperty(UserConstants.SOURCE_LANG);
     selectedTargetLocale = IvyUserService.getUserProperty(UserConstants.TARGET_LANG);
