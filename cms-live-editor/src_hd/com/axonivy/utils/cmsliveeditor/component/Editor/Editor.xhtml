@@ -9,7 +9,7 @@
   <cc:attribute name="content" required="true" />
   <cc:attribute name="originalContent" default="" />
   <cc:attribute name="languageIndex" required="true" />
-  <cc:attribute name="isFormatButtonListVisible" default="false" />
+  <cc:attribute name="isHtmlFormat" default="false" />
   <cc:attribute name="isReadOnly" default="false" />
 </cc:interface>
 <cc:implementation>
@@ -40,7 +40,7 @@
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"
-    onstart="initSunEditor(#{cc.attrs.isFormatButtonListVisible}, #{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id');"
+    onstart="initSunEditor(#{cc.attrs.languageIndex}, '#{cc.clientId}:content-editor-id', #{cc.attrs.isHtmlFormat});"
     global="false" process="@none" update="@none" immediate="true" />
 
   <p:remoteCommand name="setValueChanged" global="false" partialSubmit="true" process="@this"
