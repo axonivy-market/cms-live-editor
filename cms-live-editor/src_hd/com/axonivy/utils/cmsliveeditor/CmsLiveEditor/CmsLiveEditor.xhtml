@@ -255,7 +255,8 @@
                       </div>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" styleClass="cms-error" id="cms-error-container" rendered="#{facesContext.validationFailed}">
+                    <h:panelGroup layout="block" styleClass="cms-error" id="cms-error-container"
+                    style="#{facesContext.validationFailed ? 'display:block' : 'display:none'}">
                       <div class="cms-error-title">
                         <i class="si-delete-1 cms-error-icon" /> 
                         <span>#{ivy.cms.co('/Labels/Error')}</span>
@@ -273,7 +274,7 @@
                         oncomplete="restorePathPanelScroll();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
-                        update="table-cms-keys cms-values cms-edit-value editable-column"
+                        update="table-cms-keys cms-values cms-edit-value editable-column cms-error-container"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
                         oncomplete="

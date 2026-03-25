@@ -228,22 +228,17 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void writeCmsToApplication() {
     for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
-
-      String cmsKey = cmsEntry.getKey();
       Map<String, SavedCms> locales = cmsEntry.getValue();
 
       // placeholder validation
       String placeholderError = validatePlaceholders(locales);
       if (placeholderError != null) {
         FacesContext.getCurrentInstance().validationFailed();
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-            Ivy.cms().co("/Labels/CMSPlaceHolderErrorMessage"), placeholderError));
         return;
       }
 
       // existing MessageFormat validation
       for (Map.Entry<String, SavedCms> localeEntry : locales.entrySet()) {
-        String locale = localeEntry.getKey();
         SavedCms savedCms = localeEntry.getValue();
 
         String content = savedCms.getNewContent();
@@ -255,8 +250,6 @@ public class CmsLiveEditorBean implements Serializable {
         String error = validateMessageFormat(content);
         if (error != null) {
           FacesContext.getCurrentInstance().validationFailed();
-          FacesContext.getCurrentInstance().addMessage(null,
-              new FacesMessage(FacesMessage.SEVERITY_ERROR, Ivy.cms().co("/Labels/CMSPlaceHolderErrorMessage"), error));
           return;
         }
       }
@@ -271,8 +264,12 @@ public class CmsLiveEditorBean implements Serializable {
     }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
-    PF.current().ajax().update(CONTENT_FORM);
-    PF.current().ajax().update("content-form:cms-edit-value");
+    PF.current().ajax().update(
+      "content-form:table-cms-keys",
+      "content-form:cms-values",
+      "content-form:cms-edit-value",
+      "content-form:editable-column",
+      "content-form:cms-error-container");
     lastSelectedCms = null;
   }
 
