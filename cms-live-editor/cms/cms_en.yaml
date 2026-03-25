@@ -1,6 +1,7 @@
 Labels:
   AllProjects: All
   Application: Application
+  ApplicationCMSDefinition: Validates the HTML syntax of the content to ensure it is well-formed and error-free.
   AttachDocument: Attach document
   CMS: CMS
   CMSDownload: CMSDownload
@@ -12,10 +13,8 @@ Labels:
   ChangeDocument: Change document
   ChangesSaved: Changes saved
   CmsDownloaded: Project CMS saved <br /> to ZIP file
-  CmsInformation: CMS Information
   Download: Download for deployment
   Edit: Edit
-  EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
@@ -24,6 +23,7 @@ Labels:
   Options: Options
   Paths: Paths
   Preview: Preview
+  ProjectCMSApplication: Project CMS stores content locally within the project, making it specific to that PMV (project version). Unlike Application CMS, it is read-only at runtime and cannot be modified dynamically.
   ProjectCmsTitle: Project-CMS
   ResetAdvice: Enter <b>reset</b> to confirm
   ResetAll: Reset all
