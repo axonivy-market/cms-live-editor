@@ -531,9 +531,14 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 /* Ensure the "Path" column breaks text and appears on a new line */
 .path-column-content {
-  white-space: pre-line; /* Allows preserving line breaks and adds new lines */
-  overflow-wrap: break-word; /* Forces long words or URLs to wrap */
-  word-wrap: break-word; /* Ensures all cases work across browsers */
-  word-break: break-all; /* Forces even unbreakable words (optional, fallback) */
-  display: block; /* Forces block display for new-line behavior */
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+  display: block;
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 1.5rem;
 }

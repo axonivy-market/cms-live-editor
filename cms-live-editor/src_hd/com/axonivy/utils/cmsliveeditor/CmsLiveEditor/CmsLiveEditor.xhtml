@@ -32,7 +32,7 @@
                 <p:tooltip for="cms-settings-btn"
                   value="#{ivy.cms.co('/Labels/Settings')}" />
               </p:commandLink>
-              <div class="bg-gray-100" style="width: 1px; height: 1.5rem;"></div>
+              <div class="bg-gray-100 vertical-divider"></div>
               <p:commandLink id="cms-translate-btn"
                 actionListener="#{cmsLiveEditorBean.translateAll}"
                 process="table-cms-keys"
@@ -251,7 +251,7 @@
                               process="@this" update="@none"
                               oncomplete="updateEditorContent(xhr, status, args)"
                               styleClass="cms-translate-btn"
-                              title="Translate">
+                              title="#{ivy.cms.co('/Labels/Translate')}">
                               <i class="pi pi-language"></i>
                             </p:commandLink>
                           </h:panelGroup>

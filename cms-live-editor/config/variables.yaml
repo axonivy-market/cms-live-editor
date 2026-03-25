@@ -13,7 +13,3 @@ Variables:
         cmsliveeditor:
           # Unit is MB.
           MaxUploadedFileSize: "50"
-      connector:
-        deepl:
-          #[password]
-          authKey: ''
