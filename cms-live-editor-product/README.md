@@ -65,6 +65,39 @@ The CMS Live Editor also supports handling files stored in the CMS. Files can be
 - This can be used for a permanent engine deployment of the CMS values in the application.
   ![](./images/14-cms-live-editor-undo.png)
 
+### 8. Auto Translation
+
+The Auto Translation feature allows users to quickly translate CMS entries using DeepL, with configurable source and target languages and support for batch operations.
+![](./images/20-cms-live-editor-setting-and-translate.png)
+
+#### Configuration
+A new **Settings** button (gear icon) is available in the top-right corner of the editor.
+
+![](./images/21-cms-live-editor-setting-dialog.png)
+
+In the **Settings** dialog, users can:
+- Define the **Source Language** (leading language for translation)
+- Define the **Target Language**
+
+These settings are applied when performing auto-translation.
+
+#### Selecting Entries
+Users can select CMS entries directly in the translation table:
+- Click to select a single entry
+- Use **Shift + Click** to select multiple entries
+- Use **Ctrl + A** to select all entries
+![](./images/22-cms-live-editor-multi-select.png)
+
+#### Auto-Translate Action
+A new **Translate** button is available to translate selected entries.
+
+![](./images/23-cms-live-editor-translation-dialog.png)
+
+After clicking on the translate button, a dialog is displayed showing the generated translations for the selected CMS entries. Users can review the results and choose which translations to apply by selecting the corresponding checkboxes.
+- Only selected CMS entries are translated
+- The system uses the configured **Source Language** as input and translates into the **Target Language**
+- Existing translations in the target language will be overwritten when **Translate** button is clicked
+
 ## Setup
 
 By default, the maximum file size for CMS uploads is 50 MB. If needed, you can modify this limit by changing the configuration variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.
@@ -72,3 +105,7 @@ By default, the maximum file size for CMS uploads is 50 MB. If needed, you can m
 ```
 @variables.yaml@
 ```
+> **Note**  
+> To use Auto Translation with DeepL, you must configure the required variables.  
+> Please refer to the official setup guide:  
+> https://market.axonivy.com/deepl-connector?version=12.0.3#setup
