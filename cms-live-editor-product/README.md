@@ -8,8 +8,6 @@ In Axon Ivy, languages for UIs, notifications, and emails are managed in the CMS
 - User-friendly editor for translating into new languages
 - Support for an unlimited number of languages
 - Simple styling options
-- Allow users to modify CMS files
-- No HTML tags required in translation texts
 
 ## Demo
 ### 1. Install the CMS Live Editor
