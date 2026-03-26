@@ -12,16 +12,39 @@
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
       <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full card">
+        <ui:include src="/resources/cms-settings-dialog.xhtml"/>
+        <ui:include src="/resources/translation-review-dialog.xhtml"/>
         <p:remoteCommand id="check-and-show" name="showWarningDialog" global="false" process="@this" update="@this"
           partialSubmit="true" actionListener="#{cmsLiveEditorBean.checkIsEditingAndShowMessage()}" />
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
         <h:panelGroup styleClass="flex flex-column h-full" layout="block">
-          <!-- Title -->
-          <div class="mb-3">
-            <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
+          <div
+            class="flex align-items-center justify-content-between mb-1">
+            <div class="mb-3">
+              <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
+            </div>
+            <div class="header-actions">
+              <p:commandLink id="cms-settings-btn"
+                onclick="PF('cmsSettingsDialog').show(); return false;"
+                styleClass="cms-settings-btn">
+                <i class="pi pi-cog"></i>
+                <p:tooltip for="cms-settings-btn"
+                  value="#{ivy.cms.co('/Labels/Settings')}" />
+              </p:commandLink>
+              <div class="bg-gray-100 vertical-divider"></div>
+              <p:commandLink id="cms-translate-btn"
+                actionListener="#{cmsLiveEditorBean.translateAll}"
+                process="table-cms-keys"
+                update=":content-form:reviewContent"
+                oncomplete="PF('translationReviewDialog').show();"
+                styleClass="cms-translate-btn">
+                <i class="pi pi-language"></i>
+                <p:tooltip for="cms-translate-btn"
+                  value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
+              </p:commandLink>
+            </div>
           </div>
-
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">
               <p:selectOneMenu id="app" value="#{cmsLiveEditorBean.selectedProjectName}" class="w-full">
@@ -45,34 +68,57 @@
           <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
             <h:panelGroup layout="block" id="path-column"
               styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} p-0 h-full right-border flex flex-column">
-              <div class="column-header flex align-items-center justify-content-between">
-                <span class="path-label font-semibold text-lg"> #{ivy.cms.co('/Labels/Paths')} </span>
-                <h:panelGroup id="reset-all-change-button" layout="block"
+              <div
+                class="column-header flex align-items-center justify-content-between">
+                <span class="path-label font-semibold text-lg">
+                  #{ivy.cms.co('/Labels/Paths')} </span>
+                <h:panelGroup id="reset-all-change-button"
+                  layout="block"
                   rendered="#{cmsLiveEditorBean.isRenderResetAllChange()}"
                   class="flex align-items-center gap-2 cursor-pointer reset-all-change-button">
-                  <f:passThroughAttribute name="onclick" value="PF('resetConfirmDlg').show();" />
+                  <f:passThroughAttribute name="onclick"
+                    value="PF('resetConfirmDlg').show();" />
                   <i class="pi pi-refresh" />
-                  <span> #{ivy.cms.co("/Labels/ResetAllChanges")} </span>
+                  <span> #{ivy.cms.co("/Labels/ResetAllChanges")}
+                  </span>
                 </h:panelGroup>
               </div>
-
               <h:panelGroup styleClass="panel left w-full h-full" layout="block">
-                <p:dataTable id="table-cms-keys" value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
-                  selection="#{cmsLiveEditorBean.selectedCms}" selectionMode="single" rowKey="#{entry.uri}"
-                  scrollHeight="100%" pageLinks="5" styleClass="cms-path-table"
-                  onRowClick="savePathPanelScroll(); showWarningDialog(); return false;">
-                  <p:column>
-                    <div class="path-row">
-                      <h:outputText id="cms-uri" class="cms-uri" value="#{entry.uri}" />
-                      <h:panelGroup rendered="#{entry.differentWithApplication}">
-                        <span class="orange-dot" />
-                      </h:panelGroup>
-                    </div>
-                    <p:tooltip for="cms-uri" value="#{entry.uri} (#{entry.pmvName})" position="top" />
-                  </p:column>
-                  <p:ajax event="rowSelect" process="@this" update="@this" partialSubmit="true"
-                    oncomplete="setRowChange()" />
-                </p:dataTable>
+                  <p:dataTable id="table-cms-keys"
+                    value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
+                    rowKey="#{entry.uri}"
+                    selection="#{cmsLiveEditorBean.selectedCmsEntries}"
+                    selectionMode="multiple" rowSelectMode="new"
+                    widgetVar="tableCmsKeysWidget" scrollHeight="100%"
+                    styleClass="cms-path-table"
+                    onRowClick="savePathPanelScroll(); showWarningDialog(); return false;">
+
+                    <p:column>
+                      <div class="path-row">
+                        <h:outputText class="cms-uri" id="cms-uri" value="#{entry.uri}" />
+                        <h:panelGroup
+                          rendered="#{entry.differentWithApplication}">
+                          <span class="orange-dot" />
+                        </h:panelGroup>
+                      </div>
+                      <p:tooltip value="#{entry.uri} (#{entry.pmvName})"
+                        position="top" />
+                    </p:column>
+
+                    <!-- MUST process the table so old selection is cleared server-side -->
+                    <p:ajax event="rowSelect"
+                      listener="#{cmsLiveEditorBean.onRowSelect}"
+                      process="table-cms-keys"
+                      update=":content-form:cms-columns table-cms-keys"
+                      partialSubmit="true" onstart="savePathPanelScroll();"
+                      oncomplete="setRowChange()" />
+
+                    <p:ajax event="rowUnselect" process="table-cms-keys"
+                      update="@none" partialSubmit="true" />
+                    <p:ajax event="toggleSelect" process="table-cms-keys"
+                      update="@none" partialSubmit="true" />
+
+               </p:dataTable>
               </h:panelGroup>
             </h:panelGroup>
 
@@ -200,9 +246,17 @@
                               skinSimple="true">
                               <f:attribute name="index" value="#{language.index}" />
                             </p:fileUpload>
+                            <p:commandLink rendered="#{cmsLiveEditorBean.isRenderTranslateButton(language)}"
+                              actionListener="#{cmsLiveEditorBean.translate(language)}"
+                              process="@this" update="@none"
+                              oncomplete="updateEditorContent(xhr, status, args)"
+                              styleClass="cms-translate-btn"
+                              title="#{ivy.cms.co('/Labels/Translate')}">
+                              <i class="pi pi-language"></i>
+                            </p:commandLink>
                           </h:panelGroup>
                         </f:facet>
-                        <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
+                        <h:panelGroup id="editor-wrapper" styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
                           <ic:com.axonivy.utils.cmsliveeditor.component.Editor content="#{language.content}"
                             languageIndex="#{language.index}" managedBean="#{cmsLiveEditorBean}"
                             isReadOnly="#{!cmsLiveEditorBean.editableCms}" isHtmlFormat="#{language.isHtmlContent}" />
@@ -339,8 +393,17 @@
         window.isHideTaskAction = true;
         window.isHideCaseInfo = true;
         window.isWorkingOnATask = false;
-      </script>
 
+        //<![CDATA[
+        document.addEventListener('keydown', function(e) {
+          const table = document.querySelector('[id$="table-cms-keys"]');
+          if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            e.preventDefault();
+            PF('tableCmsKeysWidget').selectAllRows();
+          }
+        });
+        //]]>
+      </script>
     </ui:define>
   </ui:composition>
 </h:body>

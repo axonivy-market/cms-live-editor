@@ -1,4 +1,4 @@
-package com.axonivy.utils.cmsliveeditor.test;
+package com.axonivy.utils.cmsliveeditor.test.service;
 
 import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.DOCX_EXTENSION;
 import static com.axonivy.utils.cmsliveeditor.constants.DocumentConstants.PDF_CONTENT_TYPE;

@@ -1,17 +1,28 @@
 package com.axonivy.utils.cmsliveeditor.service;
 
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.CMS_FILE_FORMAT;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
+import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 
 import ch.ivyteam.ivy.application.IApplication;
 import ch.ivyteam.ivy.cm.ContentManagementSystem;
 import ch.ivyteam.ivy.cm.ContentObject;
+import ch.ivyteam.ivy.cm.ContentObjectReader;
+import ch.ivyteam.ivy.cm.ContentObjectValue;
 import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
 import ch.ivyteam.ivy.security.exec.Sudo;
@@ -123,6 +134,33 @@ public class CmsService {
 
   public void removeApplicationCmsByUri(String uri) {
     Sudo.run(() -> createOrGetCmsByUri(uri).delete());
+  }
+
+  public void convertToCmsText(ContentObject contentObject, List<Locale> locales, Cms cms) {
+    for (var i = 0; i < locales.size(); i++) {
+      Locale locale = locales.get(i);
+      ContentObjectValue value = contentObject.value().get(locale);
+      String projectCmsValueString = Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::string).orElse(EMPTY);
+      String cmsApplicationValue = getCmsFromApplication(cms.getUri(), locale);
+      if (StringUtils.isBlank(cmsApplicationValue)) {
+        cmsApplicationValue = projectCmsValueString;
+      }
+      cms.addContent(new CmsContent(i, locale, projectCmsValueString, cmsApplicationValue));
+    }
+  }
+
+  public void convertToCmsFile(ContentObject contentObject, List<Locale> locales, Cms cms, String fileExtension) {
+    cms.setFile(true);
+    cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
+    FileType fileType = CmsFileUtils.getFileTypeByExtension(fileExtension);
+    cms.setFileType(fileType);
+    for (var i = 0; i < locales.size(); i++) {
+      Locale locale = locales.get(i);
+      String language = locale.getLanguage();
+      String projectCmsFileUri = String.format(CMS_FILE_FORMAT, contentObject.uri(), language, fileExtension);
+      String fileName = projectCmsFileUri.substring(projectCmsFileUri.lastIndexOf(CommonConstants.SLASH_CHARACTER) + 1);
+      cms.addContent(new CmsContent(i, locale, true, fileName, projectCmsFileUri));
+    }
   }
 
 }

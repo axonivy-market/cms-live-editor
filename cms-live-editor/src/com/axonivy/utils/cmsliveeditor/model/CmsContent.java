@@ -24,6 +24,10 @@ public class CmsContent implements Serializable {
 
   private boolean isEditing;
 
+  private boolean isTranslated;
+
+  private String translatedContent;
+
   private boolean isFile;
 
   private String uri;
@@ -64,6 +68,10 @@ public class CmsContent implements Serializable {
     this.isHtml = false;
   }
 
+  public CmsContent() {
+    this.isHtml = false;
+  }
+
   public int getIndex() {
     return index;
   }
@@ -99,6 +107,22 @@ public class CmsContent implements Serializable {
 
   public void setEditing(boolean isEditting) {
     this.isEditing = isEditting;
+  }
+
+  public boolean isTranslated() {
+    return isTranslated;
+  }
+
+  public void setTranslated(boolean isTranslated) {
+    this.isTranslated = isTranslated;
+  }
+
+  public String getTranslatedContent() {
+    return translatedContent;
+  }
+
+  public void setTranslatedContent(String translatedContent) {
+    this.translatedContent = translatedContent;
   }
 
   public String getOriginalContent() {
