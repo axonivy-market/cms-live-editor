@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor-product</artifactId>
-  <version>12.0.7</version>
+  <version>12.0.8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
     <variables.yaml.file>../cms-live-editor/config/variables.yaml</variables.yaml.file>
