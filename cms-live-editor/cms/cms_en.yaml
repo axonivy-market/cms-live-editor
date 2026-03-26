@@ -40,11 +40,11 @@ Labels:
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
   Source: source
-  SourceLanguage: Source Language
+  SourceLanguage: Source language
   Target: target
-  TargetLanguage: Target Language
+  TargetLanguage: Target language
   Translate: Translate
-  TranslateMultiple: Translate Multiple Entries
+  TranslateMultiple: Translate multiple entries
   TranslationWizard: Translation wizard
   Translations: Translations
   UndoChanges: Undo changes
