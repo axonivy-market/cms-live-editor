@@ -34,8 +34,6 @@ import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
 
-
-
   public static StreamedContent writeCmsToZipStreamedContent(String projectName, String applicationName,
       Map<String, PmvCms> cmsPmvMap) throws Exception {
     var workbooks = new HashMap<String, Workbook>();

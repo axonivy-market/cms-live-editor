@@ -10,12 +10,12 @@
   </parent>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor</artifactId>
-  <version>12.0.8-SNAPSHOT</version>
+  <version>13.2.0-SNAPSHOT</version>
   <packaging>iar</packaging>
   <properties>
-    <ivy.engine.version>12.0.8</ivy.engine.version>
+    <ivy.engine.version>13.2.0</ivy.engine.version>
     <aspose.version>24.3</aspose.version>
-    <project.build.plugin.version>12.0.8</project.build.plugin.version>
+    <project.build.plugin.version>13.2.0</project.build.plugin.version>
   </properties>
   <dependencies>
     <dependency>
