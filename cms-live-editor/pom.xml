@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.axonivy.ivy.api</groupId>
+    <artifactId>ivy-project-parent</artifactId>
+    <version>13.2.0</version>
+    <relativePath></relativePath>
+  </parent>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor</artifactId>
   <version>12.0.8-SNAPSHOT</version>
   <packaging>iar</packaging>
   <properties>
     <ivy.engine.version>12.0.8</ivy.engine.version>
-    <project.build.plugin.version>12.0.8</project.build.plugin.version>
     <aspose.version>24.3</aspose.version>
+    <project.build.plugin.version>12.0.8</project.build.plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -66,10 +73,14 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
-    	<groupId>com.axonivy.connector.deepl</groupId>
-    	<artifactId>deepl-connector</artifactId>
-    	<version>12.0.3</version>
-    	<type>iar</type>
+      <groupId>com.axonivy.connector.deepl</groupId>
+      <artifactId>deepl-connector</artifactId>
+      <version>13.2.1</version>
+      <type>iar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.axonivy.ivy.api</groupId>
+      <artifactId>ivy-api</artifactId>
     </dependency>
   </dependencies>
   <repositories>
@@ -92,24 +103,21 @@
       <url>https://maven.axonivy.com</url>
     </repository>
   </repositories>
-
   <pluginRepositories>
     <pluginRepository>
-      <id>sonatype</id>
-      <url>https://central.sonatype.com/repository/maven-snapshots</url>
       <snapshots>
         <updatePolicy>always</updatePolicy>
       </snapshots>
+      <id>sonatype</id>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
     </pluginRepository>
   </pluginRepositories>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
-
       <plugin>
         <groupId>com.axonivy.ivy.ci</groupId>
         <artifactId>project-build-plugin</artifactId>
-        <version>${project.build.plugin.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -120,8 +128,7 @@
             </goals>
             <configuration>
               <compilerOptions>
-                <compilerOption>
-                  -ApersistenceXml=${basedir}/src/META-INF/persistence.xml</compilerOption>
+                <compilerOption>-ApersistenceXml=${basedir}/src/META-INF/persistence.xml</compilerOption>
                 <compilerOption>-s</compilerOption>
                 <compilerOption>${basedir}/src_generated</compilerOption>
                 <compilerOption>-proc:only</compilerOption>
@@ -137,7 +144,6 @@
           </compilerOptions>
         </configuration>
       </plugin>
-
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>3.1.0</version>
@@ -154,7 +160,6 @@
           </filesets>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
 </project>
