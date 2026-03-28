@@ -196,17 +196,18 @@ public class CmsLiveEditorWebTest {
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
     editors.get(0).setValue("File count {0}");
-    editors.get(1).setValue("Date value {1}");
+    editors.get(1).setValue("Date value {0} {1}");
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
   }
 
   @Test
   public void testResetAllChanges() {
-    openFirstCmsAndEdit();
+    var selectedCms = openFirstCmsAndEdit();
     updateAndSaveContent();
     openResetDialog();
     confirmReset();
+    selectedCms.click();
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
   }
@@ -387,8 +388,8 @@ public class CmsLiveEditorWebTest {
 
   private SelenideElement openFirstCmsAndEdit() {
     var selectedCms = $$(CMS_PATH_URI).first();
-    selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    selectedCms.shouldBe(visible).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     return selectedCms;
   }
 

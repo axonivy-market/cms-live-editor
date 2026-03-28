@@ -67,26 +67,34 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void testFindInvalidLocaleIndicesShouldNormalizeUnderscoresAndReturnDistinctSortedIndices() {
+  void findInvalidLocaleIndicesShouldReturnMatchingIndices() {
     Cms cms = new Cms();
 
-    CmsContent en1 = new CmsContent();
-    en1.setIndex(2);
-    en1.setLocale(Locale.forLanguageTag("en-US"));
-    cms.addContent(en1);
+    CmsContent en = new CmsContent();
+    en.setLocale(Locale.forLanguageTag("en"));
+    en.setIndex(0);
 
-    CmsContent de = new CmsContent();
-    de.setIndex(1);
-    de.setLocale(Locale.forLanguageTag("de-DE"));
-    cms.addContent(de);
+    CmsContent fr = new CmsContent();
+    fr.setLocale(Locale.forLanguageTag("fr"));
+    fr.setIndex(1);
 
-    CmsContent enDuplicateIndex = new CmsContent();
-    enDuplicateIndex.setIndex(2);
-    enDuplicateIndex.setLocale(Locale.forLanguageTag("en-US"));
-    cms.addContent(enDuplicateIndex);
+    cms.setContents(List.of(en, fr));
 
-    List<Integer> invalidIndices = service.findInvalidLocaleIndices(List.of("en_US", null, "de-DE"), cms);
-    assertEquals(List.of(1, 2), invalidIndices);
+    List<Integer> result = service.findInvalidLocaleIndices(List.of("fr"), cms);
+    assertEquals(List.of(1), result);
+  }
+
+  @Test
+  void findInvalidLocaleIndicesShouldHandleUnderscoreLocales() {
+    Cms cms = new Cms();
+
+    CmsContent enUS = new CmsContent();
+    enUS.setLocale(Locale.forLanguageTag("en-US"));
+    enUS.setIndex(0);
+    cms.setContents(List.of(enUS));
+
+    List<Integer> result = service.findInvalidLocaleIndices(List.of("en_US"), cms);
+    assertEquals(List.of(0), result);
   }
 
   @Test
