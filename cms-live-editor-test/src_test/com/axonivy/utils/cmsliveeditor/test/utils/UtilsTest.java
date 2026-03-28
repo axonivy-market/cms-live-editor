@@ -1,4 +1,4 @@
-package com.axonivy.utils.cmsliveeditor.test;
+package com.axonivy.utils.cmsliveeditor.test.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

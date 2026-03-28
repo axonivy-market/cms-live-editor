@@ -6,4 +6,6 @@ public class CommonConstants {
   public static final String UNDERSCORE_CHARACTER = "_";
   public static final String HYPHEN_CHARACTER = "-";
   public static final String VERTICAL_LINE_CHARACTER = "\\|";
+  public static final String UNDER_SCORE = "_";
+  public static final String HYPHEN = "-";
 }

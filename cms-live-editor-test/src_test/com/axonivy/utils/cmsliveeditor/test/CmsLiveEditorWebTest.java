@@ -1,14 +1,28 @@
 package com.axonivy.utils.cmsliveeditor.test;
 
-import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.*;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_CONTAINER_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_SAVE_CONTAINER_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.DOWNLOAD_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.EDIT_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.ORANGE_DOT_CLASS;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_ALL_CHANGES_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_BTN_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.RESET_CONFIRM_INPUT_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SAVE_SUCCESS_BAR_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SEARCH_INPUT_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SETTING_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.TRANSLATE_ALL_BUTTON_ID;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.interactable;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -26,6 +40,7 @@ import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -41,6 +56,10 @@ public class CmsLiveEditorWebTest {
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String TEST_CMS_HTML_URI = "/Test/TestContentHtml";
+  private static final String TRANSLATED_CMS_REVIEW_DIALOG = "[id$=':table-translation-review']";
+  private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
+  private static final String CMS_SETTINGS_SAVE_BUTTON = "[id$='content-form:cms-setting-save-btn']";
+  private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
 
   /**
    * Dear Bug Hunter,
@@ -49,12 +68,23 @@ public class CmsLiveEditorWebTest {
    */
   @BeforeEach
   void startProcess() {
+    Configuration.browserSize = "1366x2000";
     loginAndStartProcess("cmsAdmin", "123456");
   }
 
   @Test
   public void testDownloadButtonShouldBeVisible() {
     $(By.id(DOWNLOAD_BUTTON_ID)).shouldBe(visible);
+  }
+
+  @Test
+  public void testTranslateMultipleButtonShouldBeVisible() {
+    $(By.id(TRANSLATE_ALL_BUTTON_ID)).shouldBe(visible);
+  }
+
+  @Test
+  public void testSettingsButtonShouldBeVisible() {
+    $(By.id(SETTING_BUTTON_ID)).shouldBe(visible);
   }
 
   @Test
@@ -100,15 +130,15 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testEditedButNotSaveShouldShowError() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    var otherCms = cmsList.get(1);
-    selectedCms.click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    var otherElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at 2 " + System.currentTimeMillis());
     Selenide.sleep(1000);
-    otherCms.click();
+    otherElement.click();
 
     var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
     closeDialog(errorDialog);
@@ -131,27 +161,29 @@ public class CmsLiveEditorWebTest {
   @Test
   public void testHoverEditButtonToShowWarningMessage() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    selectedCms.click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
 
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).hover();
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).scrollTo().hover();
     $(By.id(CMS_WARNING_SAVE_CONTAINER_ID)).shouldBe(visible);
   }
 
   @Test
   public void testEditedAndSavedShouldNotShowError() {
     var cmsList = $$(CMS_PATH_URI);
-    var selectedCms = cmsList.get(0);
-    var otherCms = cmsList.get(1);
-    selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    var otherElement = cmsList.findBy(exactText(TEST_CMS_FILE_DOCX_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    cmsElement.click();
+    $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
     Selenide.sleep(1000);
     $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
-    otherCms.click();
+    otherElement.click();
     $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
   }
 
@@ -305,6 +337,37 @@ public class CmsLiveEditorWebTest {
     loginAndStartProcess("normalUser", "123456");
     var exception = $(By.cssSelector(".exception-content"));
     exception.shouldBe(visible).shouldHave(matchText("Access denied. Need role CMS_ADMIN"));
+  }
+
+  @Test
+  public void testOpenTranslateDialogShouldBeOpened() {
+    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+
+    SelenideElement table = $$(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG)).first();
+    table.shouldBe(visible, Duration.ofSeconds(5));
+    $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
+    table.shouldNotBe(visible, Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testOpenSettingsDialogAndSave() {
+    $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+    SelenideElement settingsDialog = $$(By.cssSelector(CMS_SETTINGS_DIALOG)).first();
+    settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
+    SelenideElement saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));
+    saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
+    settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testTranslateButtonInEditSection() {
+    var cmsList = $$(CMS_PATH_URI);
+    var cmsElement = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
+    cmsElement.shouldBe(visible, Duration.ofSeconds(5)).click();
+    $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    SelenideElement translateBtn = $$(By.cssSelector(EDITOR_TRANSLATE_BTN)).filter(visible).first();
+    translateBtn.shouldBe(enabled, Duration.ofSeconds(5)).click();
   }
 
   /**

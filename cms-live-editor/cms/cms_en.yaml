@@ -17,8 +17,10 @@ Labels:
   Edit: Edit
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
+  FileCannotBeTranslated: This CMS can't be translated since it is file type
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
+  LocaleNotAvailable: This locale is not available in the selected project
   Message: Message
   MessageFormatHint: |-
     <p><strong>This field supports Java MessageFormat syntax.</strong></p>
@@ -45,6 +47,7 @@ Labels:
         </ul>
       </p>
   Options: Options
+  Path: Path
   Paths: Paths
   Preview: Preview
   ProjectCmsTitle: Project-CMS
@@ -54,9 +57,19 @@ Labels:
   ResetAllChanges: Reset all changes
   Save: Save
   Search: Search for paths or CMS content
+  Select: Select
   SelectedCMS: Selected CMS
+  Settings: Settings
   ShowOnlyTODO: Show only TODO
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
+  Source: source
+  SourceLanguage: Source language
+  Target: target
+  TargetLanguage: Target language
+  Translate: Translate
+  TranslateMultiple: Translate multiple entries
+  TranslationWizard: Translation wizard
+  Translations: Translations
   UndoChanges: Undo changes
   Warning: Warning
 Processes:

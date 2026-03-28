@@ -1,0 +1,104 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:ic="http://ivyteam.ch/jsf/component"
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+
+  <p:dialog header="#{ivy.cms.co('/Labels/TranslationWizard')}"
+    closeOnEscape="false" widgetVar="translationReviewDialog"
+    styleClass="disable-scroll" modal="true" closable="true"
+    onHide="PF('cms-review-cancel-button').jq.click();" resizable="true"
+    width="75%" height="32rem" id="translationReviewDialog">
+
+    <h:panelGroup id="reviewContent" layout="block"
+      styleClass="flex justify-content-center">
+      <div class="review-table-wrapper">
+        <p:dataTable id="table-translation-review"
+          value="#{cmsLiveEditorBean.selectedCmsEntries}" var="cms"
+          styleClass="p-datatable-sm review-data-table"
+          scrollHeight="24rem" scrollable="true" stripedRows="true">
+          <c:set var="targetContent"
+            value="#{cmsLiveEditorBean.getTargetCmsContent(cms)}" />
+          <!-- Path -->
+          <p:column headerText="#{ivy.cms.co('/Labels/Path')}">
+            <h:outputText value="#{cms.uri}"
+              styleClass="path-column-content" />
+          </p:column>
+
+          <!-- Source -->
+          <p:column
+            headerText="#{cmsLiveEditorBean.getDisplayLocaleByCode(cmsLiveEditorBean.selectedSourceLocale)} (#{ivy.cms.co('/Labels/Source')})">
+            <h:outputText
+              value="#{cmsLiveEditorBean.getSourceCmsContent(cms).content}" />
+          </p:column>
+
+          <!-- Target -->
+          <p:column
+            headerText="#{cmsLiveEditorBean.getDisplayLocaleByCode(cmsLiveEditorBean.selectedTargetLocale)} (#{ivy.cms.co('/Labels/Target')})">
+            <h:panelGroup layout="block">
+              <!-- If entry is a file, show message -->
+              <h:panelGroup rendered="#{cms.file}" layout="block"
+                styleClass="flex align-items-center gap-2 text-color-secondary font-italic">
+                <i class="pi pi-file" />
+                <h:outputText
+                  value="#{ivy.cms.co('/Labels/FileCannotBeTranslated')}" />
+              </h:panelGroup>
+             <h:panelGroup rendered="#{not cms.file and targetContent == null}" layout="block"
+                styleClass="flex align-items-center gap-2 text-color-secondary font-italic">
+                <h:outputText
+                  value="#{ivy.cms.co('/Labels/LocaleNotAvailable')}" />
+              </h:panelGroup>
+              <!-- Non-file: old -> new preview -->
+              <h:panelGroup rendered="#{not cms.file and targetContent != null}" layout="block"
+                styleClass="flex align-items-center gap-2 flex-wrap">
+                <h:outputText value="#{targetContent.content}"
+                  styleClass="line-through text-color-secondary"
+                  title="#{targetContent.content}" />
+                <h:outputText value="→"
+                  styleClass="text-color-secondary" />
+                <h:outputText value="#{targetContent.translatedContent}"
+                  title="#{targetContent.translatedContent}" />
+              </h:panelGroup>
+            </h:panelGroup>
+          </p:column>
+
+          <!-- Select (hidden for file entries) -->
+          <p:column headerText="#{ivy.cms.co('/Labels/Select')}"
+            width="3rem">
+            <h:panelGroup layout="block" rendered="#{not cms.file and targetContent != null}"
+              styleClass="flex justify-content-center">
+              <p:selectBooleanCheckbox styleClass="review-checkbox"
+                value="#{targetContent.translated}">
+                <p:ajax process="@this" update="@none" />
+              </p:selectBooleanCheckbox>
+            </h:panelGroup>
+          </p:column>
+        </p:dataTable>
+      </div>
+    </h:panelGroup>
+
+    <!-- Footer -->
+    <f:facet name="footer">
+      <h:panelGroup layout="block"
+        styleClass="flex justify-content-end w-full">
+        <h:panelGroup layout="block" styleClass="flex gap-1">
+          <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
+            widgetVar="cms-review-cancel-button"
+            styleClass="equal-width w-full cms-review-cancel-button"
+            actionListener="#{cmsLiveEditorBean.cancelTranslations}"
+            update=":content-form:reviewContent"
+            oncomplete="PF('translationReviewDialog').hide();" />
+          <p:commandButton value="#{ivy.cms.co('/Labels/Translate')}"
+            icon="pi pi-check"
+            styleClass="equal-width w-full p-button-primary"
+            update=":content-form:cms-values"
+            action="#{cmsLiveEditorBean.applyTranslations}"
+            process=":content-form:reviewContent"
+            oncomplete="PF('translationReviewDialog').hide(); restorePathPanelScroll();" />
+        </h:panelGroup>
+      </h:panelGroup>
+    </f:facet>
+  </p:dialog>
+</ui:composition>

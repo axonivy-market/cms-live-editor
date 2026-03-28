@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor</artifactId>
-  <version>12.0.7-SNAPSHOT</version>
+  <version>12.0.8-SNAPSHOT</version>
   <packaging>iar</packaging>
   <properties>
     <ivy.engine.version>12.0.8</ivy.engine.version>
@@ -64,6 +64,12 @@
       <groupId>com.axonivy.utils.docscommon</groupId>
       <artifactId>axonivy-docs-common</artifactId>
       <version>1.0.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.axonivy.connector.deepl</groupId>
+    	<artifactId>deepl-connector</artifactId>
+    	<version>12.0.3</version>
+    	<type>iar</type>
     </dependency>
   </dependencies>
   <repositories>
