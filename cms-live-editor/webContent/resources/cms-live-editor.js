@@ -117,11 +117,11 @@ function getInvalidLocaleIndices() {
   }
 
   try {
-    const parsed = JSON.parse(invalidLocaleIndicesElement.textContent || '[]');
-    if (!Array.isArray(parsed)) {
+    const parsedIndices = JSON.parse(invalidLocaleIndicesElement.textContent || '[]');
+    if (!Array.isArray(parsedIndices)) {
       return [];
     }
-    return parsed.map(Number).filter(Number.isFinite);
+    return parsedIndices.map(Number).filter(Number.isFinite);
   } catch (e) {
     return [];
   }

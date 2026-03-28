@@ -37,15 +37,14 @@ public class PlaceholderService {
       return Collections.emptyList();
     }
 
-    Set<String> normalized = invalidLocales.stream().filter(Objects::nonNull)
+    Set<String> normalizedLocaleTags = invalidLocales.stream().filter(Objects::nonNull)
         .map(tag -> Locale
             .forLanguageTag(tag.replace(CommonConstants.UNDERSCORE_CHARACTER, CommonConstants.HYPHEN_CHARACTER))
             .toLanguageTag())
         .collect(Collectors.toSet());
 
     return selectedCms.getContents().stream()
-        .filter(cms -> cms.getLocale() != null)
-        .filter(cms -> normalized.contains(cms.getLocale().toLanguageTag()))
+        .filter(cms -> cms.getLocale() != null && normalizedLocaleTags.contains(cms.getLocale().toLanguageTag()))
         .map(CmsContent::getIndex)
         .distinct()
         .sorted()
@@ -53,7 +52,7 @@ public class PlaceholderService {
   }
 
   public List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
-    // Placeholder validation
+    // Placeholder structure validation
     List<String> placeholderErrors = findMismatchLocales(cmsLocales);
     if (!CollectionUtils.isEmpty(placeholderErrors)) {
       return placeholderErrors;
@@ -68,54 +67,79 @@ public class PlaceholderService {
   }
 
   public List<String> findMismatchLocales(Map<String, SavedCms> cmsLocales) {
-    List<Placeholder> originalPlaceholders = cmsLocales.values().stream()
+    if (cmsLocales == null || cmsLocales.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<Placeholder> originalPlaceholders = extractOriginalPlaceholders(cmsLocales);
+
+    /** CASE 1: 
+     *  Original has placeholder(s) 
+     *  -> All edited locales must follow the same placeholder structure as the origin
+     */
+    if (!originalPlaceholders.isEmpty()) {
+      return findMismatchWithOriginalPlaceholders(cmsLocales, originalPlaceholders);
+    }
+
+    /** CASE 2: 
+     *  Original has no placeholder(s) 
+     *  -> All edited locales must be consistent of placeholder structure
+     */
+    return findMismatchWithoutOriginalPlaceholders(cmsLocales);
+  }
+  
+  private List<Placeholder> extractOriginalPlaceholders(Map<String, SavedCms> cmsLocales) {
+    return cmsLocales.values().stream()
         .map(SavedCms::getOriginalContent)
         .filter(StringUtils::isNotBlank)
         .map(this::extractPlaceholders)
         .max(Comparator.comparingInt(List::size))
         .orElse(Collections.emptyList());
-    // CASE 1: original content has placeholders -> new content validates placeholder structure against original one
-    if (!originalPlaceholders.isEmpty()) {
-      return cmsLocales.entrySet().stream()
-          .filter(cms -> isEdited(cms.getValue()))
-          .filter(cms -> !hasSamePlaceholderStructure(originalPlaceholders, extractPlaceholders(cms.getValue().getNewContent())))
-          .map(Map.Entry::getKey)
-          .toList();
-    }
+  }
 
-    // CASE 2: original content has no placeholders -> check placeholder number consistency between new contents
-    List<Map.Entry<String, SavedCms>> allEntries = new ArrayList<>(cmsLocales.entrySet());
+  private List<String> findMismatchWithOriginalPlaceholders(Map<String, SavedCms> cmsLocales,
+      List<Placeholder> referencePlaceholders) {
+    return cmsLocales.entrySet().stream()
+        .filter(e -> isEdited(e.getValue()))
+        .filter(e -> !hasSamePlaceholderStructure(referencePlaceholders,
+            extractPlaceholders(e.getValue().getNewContent())))
+        .map(Map.Entry::getKey)
+        .toList();
+  }
 
-    List<List<Placeholder>> newPlaceholders = allEntries.stream()
+  private List<String> findMismatchWithoutOriginalPlaceholders(Map<String, SavedCms> cmsLocales) {
+    List<Map.Entry<String, SavedCms>> entries = new ArrayList<>(cmsLocales.entrySet());
+
+    List<List<Placeholder>> allNewPlaceholders = entries.stream()
         .map(e -> extractPlaceholders(e.getValue().getNewContent()))
         .toList();
 
-    if (newPlaceholders.isEmpty()) {
+    if (allNewPlaceholders.isEmpty()) {
       return Collections.emptyList();
     }
 
-    boolean hasEmpty = newPlaceholders.stream().anyMatch(List::isEmpty);
-    boolean hasNonEmpty = newPlaceholders.stream().anyMatch(list -> !list.isEmpty());
-    if ((hasEmpty && hasNonEmpty) || (hasNonEmpty && newPlaceholders.size() < 2)) {
-   // Mismatch number of placeholder -> invalid
-      return allEntries.stream()
-          .map(Map.Entry::getKey)
-          .toList();
+    // Count how many locales actually define placeholders
+    long nonEmptyCount = allNewPlaceholders.stream()
+        .filter(list -> !list.isEmpty())
+        .count();
+
+    // Mixed placeholder presence (some locales introduce placeholders while others do not) -> Invalid
+    boolean hasMixedPresence = nonEmptyCount > 0 && nonEmptyCount < allNewPlaceholders.size();
+    boolean hasTooFewWithPlaceholders = nonEmptyCount == 1;
+    if (hasMixedPresence || hasTooFewWithPlaceholders) {
+      return new ArrayList<>(cmsLocales.keySet());
     }
 
-    // No new placeholders -> valid
-    if (hasEmpty) {
+    // No new placeholders -> Valid
+    if (nonEmptyCount == 0) {
       return Collections.emptyList();
     }
 
-    // Have new placeholders -> check the structure
-    List<Placeholder> referenceContents = newPlaceholders.get(0);
-
-    return allEntries.stream()
+    // All new contents have placeholders -> All locales must share the same placeholder structure
+    return entries.stream()
         .filter(e -> !hasSamePlaceholderStructure(
-            referenceContents,
-            extractPlaceholders(e.getValue().getNewContent())
-        ))
+            allNewPlaceholders.get(0),
+            extractPlaceholders(e.getValue().getNewContent())))
         .map(Map.Entry::getKey)
         .toList();
   }
