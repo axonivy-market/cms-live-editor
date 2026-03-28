@@ -249,7 +249,7 @@ public class CmsLiveEditorWebTest {
     Selenide.sleep(300);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
-    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<{0} files}");
+    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are many files}");
     saveAndUndoCmsChanges();
   }
 
@@ -266,9 +266,11 @@ public class CmsLiveEditorWebTest {
 
     for (int i = 0; i < editors.size(); i++) {
       var editor = editors.get(i);
-      editor.click();
+      editor.shouldBe(visible).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
       editor.sendKeys(contents[i % contents.length]);
+      editor.pressTab();
     }
     saveAndUndoCmsChanges();
   }
