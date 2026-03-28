@@ -68,19 +68,54 @@ public class PlaceholderService {
   }
 
   public List<String> findMismatchLocales(Map<String, SavedCms> cmsLocales) {
-    List<Placeholder> placeholders = cmsLocales.values().stream()
+    List<Placeholder> originalPlaceholders = cmsLocales.values().stream()
         .map(SavedCms::getOriginalContent)
-        .filter(Objects::nonNull)
-        .findFirst()
+        .filter(StringUtils::isNotBlank)
         .map(this::extractPlaceholders)
+        .max(Comparator.comparingInt(List::size))
         .orElse(Collections.emptyList());
+    // CASE 1: original content has placeholders -> new content validates placeholder structure against original one
+    if (!originalPlaceholders.isEmpty()) {
+      return cmsLocales.entrySet().stream()
+          .filter(cms -> isEdited(cms.getValue()))
+          .filter(cms -> !hasSamePlaceholderStructure(originalPlaceholders, extractPlaceholders(cms.getValue().getNewContent())))
+          .map(Map.Entry::getKey)
+          .toList();
+    }
 
-    if (placeholders.isEmpty()) {
+    // CASE 2: original content has no placeholders -> check placeholder number consistency between new contents
+    List<Map.Entry<String, SavedCms>> allEntries = new ArrayList<>(cmsLocales.entrySet());
+
+    List<List<Placeholder>> newPlaceholders = allEntries.stream()
+        .map(e -> extractPlaceholders(e.getValue().getNewContent()))
+        .toList();
+
+    if (newPlaceholders.isEmpty()) {
       return Collections.emptyList();
     }
-    return cmsLocales.entrySet().stream()
-        .filter(e -> isEdited(e.getValue()))
-        .filter(e -> !hasSamePlaceholderStructure(placeholders, extractPlaceholders(e.getValue().getNewContent())))
+
+    boolean hasEmpty = newPlaceholders.stream().anyMatch(List::isEmpty);
+    boolean hasNonEmpty = newPlaceholders.stream().anyMatch(list -> !list.isEmpty());
+    if ((hasEmpty && hasNonEmpty) || (hasNonEmpty && newPlaceholders.size() < 2)) {
+   // Mismatch number of placeholder -> invalid
+      return allEntries.stream()
+          .map(Map.Entry::getKey)
+          .toList();
+    }
+
+    // No new placeholders -> valid
+    if (hasEmpty) {
+      return Collections.emptyList();
+    }
+
+    // Have new placeholders -> check the structure
+    List<Placeholder> referenceContents = newPlaceholders.get(0);
+
+    return allEntries.stream()
+        .filter(e -> !hasSamePlaceholderStructure(
+            referenceContents,
+            extractPlaceholders(e.getValue().getNewContent())
+        ))
         .map(Map.Entry::getKey)
         .toList();
   }
