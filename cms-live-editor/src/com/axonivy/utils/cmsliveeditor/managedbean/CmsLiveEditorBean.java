@@ -41,8 +41,6 @@ import javax.faces.context.FacesContext;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.primefaces.PF;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
@@ -605,10 +603,9 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public boolean isTheSameContent(String originalContent, String content) {
-    Document originValue = Jsoup.parse(originalContent);
-    Document newValue = Jsoup.parse(content);
-
-    return originValue.body().html().equals(newValue.body().html());
+    String originValue = Utils.sanitizeContent(originalContent, originalContent);
+    String newValue = Utils.sanitizeContent(originalContent, content);
+    return Objects.equals(originValue, newValue);
   }
 
   public void handleFileUpload(FileUploadEvent event) {

@@ -13,7 +13,6 @@ import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
 
 public class Utils {
-  private static final String HTML_TAG_PATTERN = "<.*?>";
   private static final Pattern VALID_HTML_TAG_PATTERN = Pattern.compile("</?[A-Za-z][^>]*>");
   private static final String TABLE_ELEMENT = "table";
   private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
@@ -80,8 +79,7 @@ public class Utils {
     if (Objects.isNull(str)) {
       return false;
     }
-    var pattern = Pattern.compile(HTML_TAG_PATTERN);
-    return pattern.matcher(str).find();
+    return VALID_HTML_TAG_PATTERN.matcher(str).find();
   }
 
   public static boolean isOnlyWrappedPlainText(String html) {
