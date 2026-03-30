@@ -199,13 +199,33 @@
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
-                      <p:commandButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}"
+                      <!-- <p:commandButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}"
                         icon="pi pi-download" ajax="false"
                         actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
                         styleClass="w-full mt-3 cms-download-btn" onstart="initCmsWarnings();"
                         onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
                         <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
-                      </p:commandButton>
+                      </p:commandButton> -->
+
+                      <p:menuButton value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
+                        buttonStyleClass="w-full mt-3 cms-download-btn">
+                        <p:menuitem value="ZIP" actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
+                          icon="pi pi-save" onstart="initCmsWarnings();" ajax="false"
+                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
+                          <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
+                          </p:menuitem>
+                        <p:menuitem value="XLSX" icon="pi pi-refresh"
+                          actionListener="#{cmsLiveEditorBean.handleBeforeDownloadExcelFile}" ajax="false"
+                          disabled="#{empty cmsLiveEditorBean.selectedProjectName}"
+                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" >
+                           <p:fileDownload value="#{cmsLiveEditorBean.excelFileDownload}" />
+                          </p:menuitem>
+                        <p:menuitem value="YAML" icon="pi pi-times"
+                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" />
+
+                      </p:menuButton>
+
+
                       <p:commandButton id="edit-button" value="#{ivy.cms.co('/Labels/Edit')}" icon="pi pi-pencil"
                         process="@this" update="cms-columns" oncomplete="initCmsWarnings(); restorePathPanelScroll();"
                         styleClass="w-full mt-3 ui-button-outlined ui-button-secondary cms-edit-button"

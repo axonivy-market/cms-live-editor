@@ -92,6 +92,7 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedProjectName;
   private String searchKey;
   private StreamedContent fileDownload;
+  private StreamedContent excelFileDownload;
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
@@ -526,6 +527,11 @@ public class CmsLiveEditorBean implements Serializable {
     String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
     this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
   }
+  
+  public void handleBeforeDownloadExcelFile() throws Exception {
+    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
+    this.excelFileDownload = CmsFileUtils.writeCmsToExcel(selectedProjectName, this.pmvCmsMap);
+  }
 
   public void downloadFinished() {
     showDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
@@ -693,6 +699,14 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setSelectedTargetLocale(String selectedTargetLocale) {
     this.selectedTargetLocale = selectedTargetLocale;
+  }
+
+  public StreamedContent getExcelFileDownload() {
+    return excelFileDownload;
+  }
+
+  public void setExcelFileDownload(StreamedContent excelFileDownload) {
+    this.excelFileDownload = excelFileDownload;
   }
 
 }
