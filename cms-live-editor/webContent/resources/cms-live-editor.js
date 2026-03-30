@@ -171,12 +171,10 @@ function saveAllEditors() {
 
   setErrorMessageVisible(false);
   destroyEditors();
-  saveAllValue([
-    {
+  saveAllValue([{
       name: 'values',
       value: JSON.stringify(values),
-    },
-  ]);
+    }]);
 
   return true;
 }
@@ -197,7 +195,7 @@ function validateNotEmpty(editor, languageIndex) {
 * - If all locales are edited → ensure placeholders are consistent across locales.
 * - If only some locales edited → ensure placeholder numbers match the original of this locale.
 */
-function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expectedPlaceholders }) {
+function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
   const newPlaceholders = extractPlaceholders(contents).sort();
 
   if (allLocalesEdited) {
@@ -210,11 +208,11 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
 
     return {
       valid: arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders),
-      expectedPlaceholders,
+      expectedPlaceholders
     };
   }
 
-  const originalPlaceholders = 
+  const originalPlaceholders =
     window.cmsOriginalPlaceholders[languageIndex] || [];
 
   return {
@@ -247,12 +245,13 @@ function getEditorContainer(languageIndex) {
   return (
     textarea.nextElementSibling?.classList.contains('sun-editor')
       ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector('.sun-editor')) || null;
+      : textarea.parentElement?.querySelector('.sun-editor')
+  ) || null;
 }
 
 /** Extracts numbered placeholders from the editing content.
- * A placeholder is defined as format {number}, e.g. {0}, {1}
- */
+* A placeholder is defined as format {number}, e.g. {0}, {1}
+*/
 function extractPlaceholders(content) {
   if (!content) {
     return [];
@@ -262,10 +261,10 @@ function extractPlaceholders(content) {
 }
 
 /** Compares two placeholder lists for exact equality.
- * The lists must:
- * - Have the same length
- * - Contain the same elements
- */
+* The lists must:
+* - Have the same length
+* - Contain the same elements
+*/
 function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
     return false;
@@ -295,7 +294,7 @@ function bindCmsWarning(hoverId, warningId) {
   }
 
   function hideWarning() {
-    if (targetElement.dataset && targetElement.dataset.forceVisible === "true") {
+    if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
       return;
     }
     hideTimeout = setTimeout(function () {
@@ -305,7 +304,7 @@ function bindCmsWarning(hoverId, warningId) {
 
   hoverElement.addEventListener("mouseenter", showWarning);
   hoverElement.addEventListener("mouseleave", hideWarning);
-  targetElement.addEventListener("mouseenter", function () {
+  targetElement.addEventListener("mouseenter", function() {
     clearTimeout(hideTimeout);
   });
   targetElement.addEventListener("mouseleave", hideWarning);
@@ -316,8 +315,8 @@ function setErrorMessageVisible(isVisible) {
   if (!element) {
     return;
   }
-  element.dataset.forceVisible = isVisible ? "true" : "false";
-  element.style.display = isVisible ? "block" : "none";
+  element.dataset.forceVisible = isVisible ? 'true' : 'false';
+  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {
@@ -327,7 +326,7 @@ function initCmsWarnings() {
 
 function showDialog(dialogId) {
   PF(dialogId).show();
-  setTimeout(function () {
+  setTimeout(function() {
     PF(dialogId).hide();
   }, 1500);
 }
@@ -483,23 +482,25 @@ function updateEditorContent(xhr, status, args) {
 }
 
 function showSaveSuccess() {
-  const bar = document.getElementById("content-form:save-success-bar");
+  const bar = document.getElementById('content-form:save-success-bar');
   if (!bar) {
     return;
   }
-  bar.classList.add("show");
+  bar.classList.add('show');
   if (bar.hideTimeout) {
     clearTimeout(bar.hideTimeout);
   }
   bar.hideTimeout = setTimeout(() => {
-    bar.classList.remove("show");
+    bar.classList.remove('show');
   }, 3500);
 }
 
 let pathPanelScrollTop = 0;
 
 function getPathPanel() {
-  return document.querySelector("#content-form\\:path-column .panel");
+  return document.querySelector(
+    '#content-form\\:path-column .panel'
+  );
 }
 
 function savePathPanelScroll() {
