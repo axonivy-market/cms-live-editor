@@ -95,6 +95,7 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean isInEditMode;
+  private String dialogDetail;
 
   @PostConstruct
   private void init() {
@@ -349,12 +350,18 @@ public class CmsLiveEditorBean implements Serializable {
     var editingCmsList = lastSelectedCms.getContents().stream().filter(CmsContent::isEditing).map(CmsContent::getLocale)
         .map(Locale::getDisplayLanguage).collect(Collectors.toList());
     var detail = Utils.convertListToHTMLList(editingCmsList);
-    showDialog(cms().co("/Labels/SomeFieldsHaveNotBeenSaved"), detail);
+    showDialog(detail);
   }
 
-  private void showDialog(String summary, String detail) {
-    var message = new FacesMessage(SEVERITY_INFO, summary, detail);
-    PrimeFaces.current().dialog().showMessageDynamic(message, false);
+  private void showDialog( String detail) {
+    this.dialogDetail = detail;
+    PrimeFaces.current().ajax().update(CONTENT_FORM + ":contentNotBeenSaveDlg", "contentNotBeenSaveDlg");
+    PrimeFaces.current().executeScript("PF('contentNotBeenSaveDlg').show();");
+  }
+
+
+  public String getDialogDetail() {
+    return dialogDetail;
   }
 
   public void getAllChildren(String pmvName, ContentObject contentObject, List<Locale> locales) {
@@ -481,7 +488,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void downloadFinished() {
-    showDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
+    showCustomDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
   }
 
   public String getActiveIndex() {

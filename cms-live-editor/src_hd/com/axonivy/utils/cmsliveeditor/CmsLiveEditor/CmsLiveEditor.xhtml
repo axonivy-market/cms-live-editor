@@ -322,6 +322,21 @@
         </div>
       </p:dialog>
 
+      <p:dialog id="contentNotBeenSaveDlg" widgetVar="contentNotBeenSaveDlg" modal="true" closable="true" draggable="false"
+        resizable="false" showHeader="true" styleClass="custom-message-dialog" width="420">
+        <f:facet name="header">
+          <span class="align-items-center gap-2">
+            <i class="si-road-sign-warning" />
+            <h:outputText styleClass="ml-2" value="#{ivy.cms.co('/Labels/Warning')}" escape="false" />
+          </span>
+        </f:facet>
+      
+        <div class="mb-3 ml-4">
+          <h:outputText value="#{ivy.cms.co('/Labels/FieldHasNotBeenSaveMeassge')}"/>
+          <h:outputText value="#{cmsLiveEditorBean.dialogDetail}" escape="false" />
+        </div>
+      </p:dialog>
+
       <!-- Dialog for previewing document -->
       <p:dialog widgetVar="preview-document-dialog"
         id="preview-document-dialog" header="#{ivy.cms.co('/Labels/Preview')}" modal="true"

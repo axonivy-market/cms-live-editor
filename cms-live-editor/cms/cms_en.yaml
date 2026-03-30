@@ -17,6 +17,7 @@ Labels:
   Edit: Edit
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
+  FieldHasNotBeenSaveMeassge: 'The following fields have not been saved yet:'
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
   Message: Message
@@ -33,7 +34,6 @@ Labels:
   Search: Search for paths or CMS content
   SelectedCMS: Selected CMS
   ShowOnlyTODO: Show only TODO
-  SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
   UndoChanges: Undo changes
   Warning: Warning
 Processes:
