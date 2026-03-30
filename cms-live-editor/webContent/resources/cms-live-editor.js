@@ -172,9 +172,9 @@ function saveAllEditors() {
   setErrorMessageVisible(false);
   destroyEditors();
   saveAllValue([{
-      name: 'values',
-      value: JSON.stringify(values),
-    }]);
+    name: 'values',
+    value: JSON.stringify(values),
+  }]);
 
   return true;
 }
@@ -278,7 +278,7 @@ function arePlaceholderListsEqual(a, b) {
 }
 
 function removeNonPrintableChars(str) {
-  return str.replace(/[\u00A0\u0000\u200B]/g, "");
+  return str.replace(/[\u00A0\u0000\u200B]/g, '');
 }
 
 function bindCmsWarning(hoverId, warningId) {
@@ -297,7 +297,7 @@ function bindCmsWarning(hoverId, warningId) {
     if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
       return;
     }
-    hideTimeout = setTimeout(function () {
+    hideTimeout = setTimeout(function() {
       targetElement.style.display = "none";
     }, 500);
   }
@@ -485,7 +485,7 @@ function showSaveSuccess() {
   const bar = document.getElementById('content-form:save-success-bar');
   if (!bar) {
     return;
-  }
+  };
   bar.classList.add('show');
   if (bar.hideTimeout) {
     clearTimeout(bar.hideTimeout);
