@@ -21,7 +21,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -124,7 +123,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    invalidLocaleIndices = Collections.emptyList();
+    invalidLocaleIndices = new ArrayList<>();
     for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
       List<String> errorLocales = placeholderService.validateLocales(cmsEntry.getValue());
 
@@ -195,7 +194,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void resetAllChanges() {
-    invalidLocaleIndices = Collections.emptyList();
+    invalidLocaleIndices = new ArrayList<>();
     lastSelectedCms = null;
     isInEditMode = false;
     selectedCms = null;
@@ -223,7 +222,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void undoChange() {
-    invalidLocaleIndices = Collections.emptyList();
+    invalidLocaleIndices = new ArrayList<>();
     lastSelectedCms = null;
     isInEditMode = false;
     savedCmsMap.remove(selectedCms.getUri());
@@ -256,7 +255,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
-    invalidLocaleIndices = Collections.emptyList();
+    invalidLocaleIndices = new ArrayList<>();
 
     if (selectedCms != null) {
       savedCmsMap.remove(selectedCms.getUri());
