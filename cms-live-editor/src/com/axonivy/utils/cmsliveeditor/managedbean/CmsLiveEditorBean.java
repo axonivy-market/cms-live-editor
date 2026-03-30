@@ -350,15 +350,19 @@ public class CmsLiveEditorBean implements Serializable {
     var editingCmsList = lastSelectedCms.getContents().stream().filter(CmsContent::isEditing).map(CmsContent::getLocale)
         .map(Locale::getDisplayLanguage).collect(Collectors.toList());
     var detail = Utils.convertListToHTMLList(editingCmsList);
-    showDialog(detail);
+    showContentHaveNotBeenSaveDialog(detail);
   }
 
-  private void showDialog( String detail) {
+  private void showContentHaveNotBeenSaveDialog( String detail) {
     this.dialogDetail = detail;
     PrimeFaces.current().ajax().update(CONTENT_FORM + ":contentNotBeenSaveDlg", "contentNotBeenSaveDlg");
     PrimeFaces.current().executeScript("PF('contentNotBeenSaveDlg').show();");
   }
 
+  private void showDialog(String summary, String detail) {
+    var message = new FacesMessage(SEVERITY_INFO, summary, detail);
+    PrimeFaces.current().dialog().showMessageDynamic(message, false);
+  }
 
   public String getDialogDetail() {
     return dialogDetail;
@@ -488,7 +492,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void downloadFinished() {
-    showCustomDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
+    showDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
   }
 
   public String getActiveIndex() {
