@@ -468,6 +468,21 @@ function createFloatingButton(languageIndex, editorId, commandName) {
   clone._cmsToolbarObserver = observer;
 }
 
+function updateEditorContent(xhr, status, args) {
+  if (!args) return;
+
+  const { langIndex, newContent } = args;
+  const editor = window.cmsLiveEditors[langIndex];
+
+  if (editor) {
+    editor.setContents(newContent);
+
+    // update dirty state tracking
+    window.cmsInitialContents[langIndex] = newContent;
+    window.cmsDirtyEditors.delete(langIndex);
+  }
+}
+
 function showSaveSuccess() {
   const bar = document.getElementById("content-form:save-success-bar");
   if (!bar) {

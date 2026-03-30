@@ -1,8 +1,11 @@
 # CMS Live Editor
 
-In AxonIvy werden Sprachen für Benutzeroberflächen, Benachrichtigungen oder E-Mails im CMS verwaltet. Wir freuen uns, den neuen CMS-Live-Editor vorzustellen, der die Bearbeitung von Sprachen erheblich vereinfacht! Die wichtigsten Funktionen sind:
+In Axon Ivy werden Sprachen für Benutzeroberflächen, Benachrichtigungen und E-Mails im CMS (Content Management System) verwaltet. Wir freuen uns, den neuen CMS Live Editor vorzustellen, der die Sprachbearbeitung erheblich vereinfacht.
 
-- Benutzerfreundlicher Editor zum Übersetzen neuer Sprachen
-- Bearbeite eine unbegrenzte Anzahl von Sprachen
-- Einfache Styles verfügbar
-- Keine HTML-Tags im Übersetzungstext erforderlich
+**Highlights:**
+
+- Prozessbasiert, d. h. der CMS Live Editor kann direkt vom Portal gestartet werden
+- Live-Bearbeitung möglich (d. h. kein Deployment erforderlich)
+- Benutzerfreundlicher Editor für die Übersetzung in neue Sprachen
+- Unterstützung einer unbegrenzten Anzahl von Sprachen
+- Einfache Formatierungsoptionen

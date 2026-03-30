@@ -1,5 +1,12 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTENSION_FORMAT;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,6 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
@@ -26,11 +34,7 @@ import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
 
-  private static final String SHEET_NAME = "cms";
-  private static final String URI_HEADER = "Uri";
-  private static final String ZIP_CONTENT_TYPE = "application/zip";
-  private static final String EXCEL_FILE_NAME = "%s.xlsx";
-  private static final String ZIP_FILE_NAME = "%s_%s_%s.zip";
+
 
   public static StreamedContent writeCmsToZipStreamedContent(String projectName, String applicationName,
       Map<String, PmvCms> cmsPmvMap) throws Exception {
@@ -142,4 +146,10 @@ public class CmsFileUtils {
       Ivy.log().error("Error when close workbook", e);
     }
   }
+
+  public static FileType getFileTypeByExtension(String extension) {
+    String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
+    return FileType.fromExtension(fileExtension);
+  }
+
 }
