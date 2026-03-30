@@ -5,28 +5,28 @@ window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsClonedButtons = window.cmsClonedButtons || {};
 
-const CMS_PLACEHOLDER_ERROR_CLASS = "cms-placeholder-error";
-const CMS_SAVE_ERROR_CONTAINER_ID = "content-form:cms-error-container";
-const ENTER_KEY = "Enter";
+const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
+const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
-const CTRL_KEY_COPY = "c";
-const CTRL_KEY_PASTE = "v";
-const CTRL_KEY_CUT = "x";
-const CTRL_KEY_ALL = "a";
-const CTRL_KEY_UNDO = "z";
+const CTRL_KEY_COPY = 'c';
+const CTRL_KEY_PASTE = 'v';
+const CTRL_KEY_CUT = 'x';
+const CTRL_KEY_ALL = 'a';
+const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
 
 const FULL_TOOLBAR = [
-  ["font", "fontSize", "formatBlock"],
-  ["paragraphStyle", "blockquote"],
-  ["bold", "underline", "italic", "strike", "subscript", "superscript"],
-  ["fontColor", "hiliteColor", "textStyle"],
-  ["removeFormat"],
-  ["outdent", "indent"],
-  ["align", "list", "lineHeight", "horizontalRule"],
-  ["table", "link"],
-  ["fullScreen"],
-  ["undo", "redo"],
+  ['font', 'fontSize', 'formatBlock'],
+  ['paragraphStyle', 'blockquote'],
+  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+  ['fontColor', 'hiliteColor', 'textStyle'],
+  ['removeFormat'],
+  ['outdent', 'indent'],
+  ['align', 'list', 'lineHeight', 'horizontalRule'],
+  ['table', 'link'],
+  ['fullScreen'],
+  ['undo', 'redo'],
 ];
 
 function initSunEditor(languageIndex, editorId, isHtml) {
@@ -37,36 +37,32 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   const editor = SUNEDITOR.create(textarea, {
     buttonList: isHtml ? FULL_TOOLBAR : [],
     attributesWhitelist: {
-      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
-    defaultStyle: "font-family: Inter;",
-    font: ["Inter", "Arial", "Tahoma", "Courier New", "Times New Roman", "Verdana", "Georgia", "Trebuchet MS", "Impact", "Comic Sans MS"],
+    defaultStyle: 'font-family: Inter;',
+    font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
   restricActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
-  // Create a floating button inside the editor area (bottom-right).
-  // Adjust the command name below to the toolbar button you want to float.
   try {
     createFloatingButton(languageIndex, editorId, "fullScreen");
   } catch (e) {
-    // ignore if floating button creation fails
   }
-
   // Store original content and placeholder pattern for later comparison
   try {
     const initialContents = editor.getContents();
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = "";
+    window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
   function markDirtyIfChanged() {
     const currentContent = editor.getContents();
-    const originalContents = window.cmsInitialContents[languageIndex] || "";
+    const originalContents = window.cmsInitialContents[languageIndex] || '';
     if (currentContent === originalContents) {
       // Back to original -> not dirty anymore
       window.cmsDirtyEditors.delete(languageIndex);
@@ -74,8 +70,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     } else {
       window.cmsDirtyEditors.add(languageIndex);
       setValueChanged([
-        { name: "languageIndex", value: languageIndex },
-        { name: "content", value: currentContent },
+        { name: 'languageIndex', value: languageIndex },
+        { name: 'content', value: currentContent },
       ]);
     }
   }
@@ -108,7 +104,7 @@ function restricActionForNonHtml(isHtmlContent, editor) {
   };
 
   editor.onKeyDown = function (e) {
-    const key = (e.key || "").toLowerCase();
+    const key = (e.key || '').toLowerCase();
     const isNotAllowedCtrlKey = (e.ctrlKey || e.metaKey) && !NON_HTML_ALLOWED_CTRL_KEYS.has(key);
     const isEnterKey = key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE;
     if (isNotAllowedCtrlKey || isEnterKey) {
@@ -129,7 +125,8 @@ function saveAllEditors() {
   }
 
   const editorKeys = Object.keys(window.cmsLiveEditors || {});
-  const allLocalesEdited = editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
+  const allLocalesEdited =
+    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
   const values = [];
   let placeholderError = false;
   let hasAnyError = false;
@@ -148,7 +145,7 @@ function saveAllEditors() {
       languageIndex,
       contents,
       allLocalesEdited,
-      expectedPlaceholders,
+      expectedPlaceholders
     });
 
     if (!validationResult.valid) {
@@ -163,7 +160,7 @@ function saveAllEditors() {
 
     values.push({
       languageIndex: Number(languageIndex),
-      contents: contents,
+      contents: contents
     });
   }
 
@@ -176,7 +173,7 @@ function saveAllEditors() {
   destroyEditors();
   saveAllValue([
     {
-      name: "values",
+      name: 'values',
       value: JSON.stringify(values),
     },
   ]);
@@ -197,9 +194,9 @@ function validateNotEmpty(editor, languageIndex) {
 }
 
 /** Placeholder validation:
- * - If all locales are edited → ensure placeholders are consistent across locales.
- * - If only some locales edited → ensure placeholder numbers match the original of this locale.
- */
+* - If all locales are edited → ensure placeholders are consistent across locales.
+* - If only some locales edited → ensure placeholder numbers match the original of this locale.
+*/
 function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expectedPlaceholders }) {
   const newPlaceholders = extractPlaceholders(contents).sort();
 
@@ -207,7 +204,7 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
     if (expectedPlaceholders === null) {
       return {
         valid: true,
-        expectedPlaceholders: newPlaceholders,
+        expectedPlaceholders: newPlaceholders
       };
     }
 
@@ -217,11 +214,12 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
     };
   }
 
-  const originalPlaceholders = window.cmsOriginalPlaceholders[languageIndex] || [];
+  const originalPlaceholders = 
+    window.cmsOriginalPlaceholders[languageIndex] || [];
 
   return {
     valid: arePlaceholderListsEqual(originalPlaceholders, newPlaceholders),
-    expectedPlaceholders,
+    expectedPlaceholders
   };
 }
 
@@ -231,7 +229,7 @@ function setEditorError(languageIndex, hasError) {
     return;
   }
 
-  container.classList.toggle("cms-editor-error", hasError);
+  container.classList.toggle('cms-editor-error', hasError);
 }
 
 function getEditorContainer(languageIndex) {
@@ -247,8 +245,9 @@ function getEditorContainer(languageIndex) {
 
   // SunEditor creates .sun-editor next to textarea
   return (
-    (textarea.nextElementSibling?.classList.contains("sun-editor") ? textarea.nextElementSibling : textarea.parentElement?.querySelector(".sun-editor")) || null
-  );
+    textarea.nextElementSibling?.classList.contains('sun-editor')
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector('.sun-editor')) || null;
 }
 
 /** Extracts numbered placeholders from the editing content.
