@@ -763,4 +763,8 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
+  public void setValidationFailedLocaleIndicesJson(String content) {
+    // Do nothing
+  }
+
 }
