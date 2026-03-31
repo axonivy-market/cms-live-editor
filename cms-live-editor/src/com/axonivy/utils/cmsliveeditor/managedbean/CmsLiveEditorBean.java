@@ -107,6 +107,7 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
+  private String validationFailedLocaleIndicesJson;
 
   @PostConstruct
   private void init() {
@@ -763,8 +764,8 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
-  public void setValidationFailedLocaleIndicesJson(String content) {
-    // Do nothing
+  public void setValidationFailedLocaleIndicesJson(String validationFailedLocaleIndicesJson) {
+    this.validationFailedLocaleIndicesJson = validationFailedLocaleIndicesJson;
   }
 
 }

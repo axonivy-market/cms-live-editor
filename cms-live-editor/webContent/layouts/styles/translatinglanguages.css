@@ -131,10 +131,6 @@ body.dark .cms-warning {
   display: none;
 }
 
-.cms-error {
-  display: none;
-}
-
 .cms-error, body.dark .cms-error,
 .cms-file-error-message .ui-messages-error.ui-corner-all,
 body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
