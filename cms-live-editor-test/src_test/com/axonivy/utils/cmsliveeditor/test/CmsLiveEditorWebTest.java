@@ -238,7 +238,8 @@ public class CmsLiveEditorWebTest {
     editors.shouldHave(sizeGreaterThanOrEqual(2));
 
     fillContentsToEditor(editors, "Files count {0}");
-    Selenide.sleep(300);
+    editors.first().shouldNotBe(empty);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled);
     saveAndUndoCmsChanges();
   }
 
@@ -247,8 +248,7 @@ public class CmsLiveEditorWebTest {
     openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
-    Selenide.sleep(300);
-    editors.shouldHave(sizeGreaterThanOrEqual(2));
+    editors.filter(visible).shouldHave(sizeGreaterThanOrEqual(2));
 
     fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are many files}");
     saveAndUndoCmsChanges();
@@ -259,8 +259,8 @@ public class CmsLiveEditorWebTest {
     openFirstCmsAndEdit();
 
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
-    Selenide.sleep(300);
     editors.shouldHave(sizeGreaterThanOrEqual(2));
+    editors.first().shouldBe(visible);
 
     String[] contents =
         {"{0} has {1} files", "{1} Dateien gehören zu {0}", "{0} tiene {1} archivos", "{1} dosyalar {0} için"};

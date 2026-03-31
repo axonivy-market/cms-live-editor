@@ -320,8 +320,8 @@
                       </div>
                     </h:panelGroup>
 
-                    <h:outputText id="invalid-locale-indices"
-                      value="#{cmsLiveEditorBean.validationFailedLocaleIndicesJson}" styleClass="hidden" />
+                    <h:inputHidden id="invalid-locale-indices"
+                      value="#{cmsLiveEditorBean.validationFailedLocaleIndicesJson}" />
 
                     <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
                       <p:commandButton id="cancel-edit-button" value="#{ivy.cms.co('/Labels/Cancel')}"
@@ -334,17 +334,7 @@
                         update="cms-edit-value editable-column cms-error-container invalid-locale-indices"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
-                        oncomplete="
-                                  if (!args.validationFailed) {
-                                  window.cmsValidationFailed = false;
-                                  window.cmsInvalidLocaleIndices = [];
-                                  initCmsWarnings();
-                                  restorePathPanelScroll();
-                                  showSaveSuccess();
-                                  } else {
-                                  window.cmsValidationFailed = true;
-                                  applyValidationFailedState();
-                                  }"
+                        oncomplete="handleCmsSaveComplete(args);"
                         partialSubmit="true" />
                     </h:panelGroup>
                   </h:panelGroup>

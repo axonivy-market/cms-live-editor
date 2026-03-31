@@ -2,7 +2,6 @@ package com.axonivy.utils.cmsliveeditor.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -23,10 +22,13 @@ import com.axonivy.utils.cmsliveeditor.model.Placeholder;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 
 public class PlaceholderService {
-  private static final PlaceholderService INSTANCE = new PlaceholderService();
+  private static PlaceholderService instance;
 
   public static PlaceholderService getInstance() {
-    return INSTANCE;
+    if (instance == null) {
+      instance = new PlaceholderService();
+    }
+    return instance;
   }
 
   private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(\\d+)(?:,([^,}]+)(?:,([^}]+))?)?\\}");
@@ -34,7 +36,7 @@ public class PlaceholderService {
 
   public List<Integer> findInvalidLocaleIndices(List<String> invalidLocales, Cms selectedCms) {
     if (selectedCms == null || CollectionUtils.isEmpty(selectedCms.getContents())) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     Set<String> normalizedLocaleTags = invalidLocales.stream().filter(Objects::nonNull)
@@ -68,7 +70,7 @@ public class PlaceholderService {
 
   public List<String> findMismatchLocales(Map<String, SavedCms> cmsLocales) {
     if (cmsLocales == null || cmsLocales.isEmpty()) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     List<Placeholder> originalPlaceholders = extractOriginalPlaceholders(cmsLocales);
@@ -94,7 +96,7 @@ public class PlaceholderService {
         .filter(StringUtils::isNotBlank)
         .map(this::extractPlaceholders)
         .max(Comparator.comparingInt(List::size))
-        .orElse(Collections.emptyList());
+        .orElse(new ArrayList<>());
   }
 
   private List<String> findMismatchWithOriginalPlaceholders(Map<String, SavedCms> cmsLocales,
@@ -115,7 +117,7 @@ public class PlaceholderService {
         .toList();
 
     if (allNewPlaceholders.isEmpty()) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     // Count how many locales actually define placeholders
@@ -132,7 +134,7 @@ public class PlaceholderService {
 
     // No new placeholders -> Valid
     if (nonEmptyCount == 0) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     // All new contents have placeholders -> All locales must share the same placeholder structure
@@ -146,7 +148,7 @@ public class PlaceholderService {
 
   public List<Placeholder> extractPlaceholders(String content) {
     if (StringUtils.isBlank(content)) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     Matcher matcher = PLACEHOLDER_PATTERN.matcher(content);

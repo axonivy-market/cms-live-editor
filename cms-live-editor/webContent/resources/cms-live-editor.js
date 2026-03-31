@@ -7,8 +7,7 @@ window.cmsValidationFailed = window.cmsValidationFailed || false;
 window.cmsInvalidLocaleIndices = window.cmsInvalidLocaleIndices || [];
 
 const CMS_INVALID_LOCALE_INDICES_ID = 'content-form:invalid-locale-indices';
-const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
-const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const CMS_EDIT_ERROR = ".sun-editor.cms-editor-error";
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
@@ -116,8 +115,12 @@ function getInvalidLocaleIndices() {
     return [];
   }
 
+  const rawValue = typeof invalidLocaleIndicesElement.value === 'string'
+    ? invalidLocaleIndicesElement.value
+    : (invalidLocaleIndicesElement.textContent || '');
+
   try {
-    const parsedIndices = JSON.parse(invalidLocaleIndicesElement.textContent || '[]');
+    const parsedIndices = JSON.parse(rawValue || '[]');
     if (!Array.isArray(parsedIndices)) {
       return [];
     }
@@ -143,7 +146,7 @@ function applyValidationFailedState() {
     }
 
     // Stop retrying once at least one failed editor is styled, or when reach the limit.
-    if ((failedIndices.length === 0 || document.querySelector('.sun-editor.cms-editor-error')) || attempts >= maxAttempts) {
+    if ((failedIndices.length === 0 || document.querySelector(CMS_EDIT_ERROR)) || attempts >= maxAttempts) {
       return;
     }
 
@@ -160,7 +163,7 @@ function clearValidationFailedState() {
     setEditorError(Number(languageIndex), false);
   }
 
-  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
+  document.querySelectorAll(CMS_EDIT_ERROR).forEach((element) => {
     element.classList.remove('cms-editor-error');
   });
 }
@@ -335,6 +338,22 @@ function showSaveSuccess() {
   bar.hideTimeout = setTimeout(() => {
     bar.classList.remove('show');
   }, 3500);
+}
+
+function handleCmsSaveComplete(args) {
+  const validationFailed = Boolean(args?.validationFailed);
+
+  if (!validationFailed) {
+    window.cmsValidationFailed = false;
+    window.cmsInvalidLocaleIndices = [];
+    initCmsWarnings();
+    restorePathPanelScroll();
+    showSaveSuccess();
+    return;
+  }
+
+  window.cmsValidationFailed = true;
+  applyValidationFailedState();
 }
 
 let pathPanelScrollTop = 0;

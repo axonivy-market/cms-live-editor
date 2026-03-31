@@ -1,8 +1,8 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,12 +20,11 @@ public class Utils {
   private static final String PARAGRAPH_TAG = "p";
   private static final String TEXT_NODE = "#text";
   private static final String BR_TAG = "br";
-  private static final String HTML_TAG_PLACEHOLDER_PREFIX = "\u0000TAG_";
-  private static final String HTML_TAG_PLACEHOLDER_SUFFIX = "\u0000";
   private static final String LESS_THAN = "<";
   private static final String GREATER_THAN = ">";
   private static final String ESCAPED_LESS_THAN = "&lt;";
   private static final String ESCAPED_GREATER_THAN = "&gt;";
+  private static final String HTML_TAG_PATTERN = "<.*?>";
 
   public static String sanitizeContent(String originalContent, String content) {
     if (!containsHtmlTag(originalContent)) {
@@ -44,42 +43,34 @@ public class Utils {
     return doc.body().text();
   }
 
-  private static String escapeNonTagAngleBrackets(String input) {
-    if (input == null) {
+  private static String escapeNonTagAngleBrackets(String content) {
+    if (content == null)
       return null;
-    }
 
-    var matcher = VALID_HTML_TAG_PATTERN.matcher(input);
-    var extractedTags = new ArrayList<String>();
-    var resultBuilder = new StringBuilder();
-
-    int lastAppendPosition = 0;
-    int placeholderIndex = 0;
+    Matcher matcher = VALID_HTML_TAG_PATTERN.matcher(content);
+    StringBuilder result = new StringBuilder();
+    int last = 0;
 
     while (matcher.find()) {
-      resultBuilder.append(input, lastAppendPosition, matcher.start());
-      resultBuilder.append(HTML_TAG_PLACEHOLDER_PREFIX).append(placeholderIndex).append(HTML_TAG_PLACEHOLDER_SUFFIX);
-      extractedTags.add(matcher.group());
-      lastAppendPosition = matcher.end();
-      placeholderIndex++;
+      result.append(escapeAngles(content.substring(last, matcher.start())));
+      result.append(matcher.group());
+      last = matcher.end();
     }
 
-    resultBuilder.append(input.substring(lastAppendPosition));
-    String escapedContent =
-        resultBuilder.toString().replace(LESS_THAN, ESCAPED_LESS_THAN).replace(GREATER_THAN, ESCAPED_GREATER_THAN);
+    result.append(escapeAngles(content.substring(last)));
+    return result.toString();
+  }
 
-    for (int index = 0; index < extractedTags.size(); index++) {
-      escapedContent = escapedContent.replace(HTML_TAG_PLACEHOLDER_PREFIX + index + HTML_TAG_PLACEHOLDER_SUFFIX,
-          extractedTags.get(index));
-    }
-    return escapedContent;
+  private static String escapeAngles(String text) {
+    return text.replace(LESS_THAN, ESCAPED_LESS_THAN).replace(GREATER_THAN, ESCAPED_GREATER_THAN);
   }
 
   public static boolean containsHtmlTag(String str) {
     if (Objects.isNull(str)) {
       return false;
     }
-    return VALID_HTML_TAG_PATTERN.matcher(str).find();
+    var pattern = Pattern.compile(HTML_TAG_PATTERN);
+    return pattern.matcher(str).find();
   }
 
   public static boolean isOnlyWrappedPlainText(String html) {
