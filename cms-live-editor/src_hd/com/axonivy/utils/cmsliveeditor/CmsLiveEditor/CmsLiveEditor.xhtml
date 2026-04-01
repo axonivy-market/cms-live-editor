@@ -309,7 +309,7 @@
                       </div>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" id="cms-error-container" rendered="#{facesContext.validationFailed}">
+                    <h:panelGroup layout="block" id="cms-error-container" styleClass="cms-error" rendered="#{facesContext.validationFailed}">
                       <div class="cms-error-title">
                         <i class="si-delete-1 cms-error-icon" /> 
                         <span>#{ivy.cms.co('/Labels/Error')}</span>

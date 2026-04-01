@@ -1,5 +1,7 @@
 package com.axonivy.utils.cmsliveeditor.service;
 
+import java.text.ChoiceFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -21,6 +23,8 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.Placeholder;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 
+import ch.ivyteam.ivy.environment.Ivy;
+
 public class PlaceholderService {
   private static PlaceholderService instance;
 
@@ -31,9 +35,27 @@ public class PlaceholderService {
     return instance;
   }
 
-  private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(\\d+)(?:,([^,}]+)(?:,([^}]+))?)?\\}");
+  /**
+   * Regex to match MessageFormat-style placeholders.
+   *
+   * Supported formats:
+   *   {0}
+   *   {1,number}
+   *   {2,choice,0#no|1#yes}
+   *
+   * Groups:
+   *   1 -> index (required)
+   *   2 -> format (optional, e.g. number, choice)
+   *   3 -> style (optional, e.g. currency, 0#no|1#yes)
+   */
+  private static final Pattern PLACEHOLDER_PATTERN =
+      Pattern.compile("\\{(\\d+)(?:,\\s*([^,{}]+)(?:,\\s*([^{}]+))?)?\\}");
   private static final String CHOICE_FORMAT = "choice";
 
+  /**
+   * Find indices of CMS contents whose locale(s) are invalid.
+   * Locale strings are normalized before comparison.
+   */
   public List<Integer> findInvalidLocaleIndices(List<String> invalidLocales, Cms selectedCms) {
     if (selectedCms == null || CollectionUtils.isEmpty(selectedCms.getContents())) {
       return new ArrayList<>();
@@ -54,16 +76,18 @@ public class PlaceholderService {
   }
 
   public List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
-    // Placeholder structure validation
+    // 1. Validate placeholder structure
     List<String> placeholderErrors = findMismatchLocales(cmsLocales);
     if (!CollectionUtils.isEmpty(placeholderErrors)) {
       return placeholderErrors;
     }
 
-    // MessageFormat validation
+    // 2. Validate MessageFormat syntax
     return cmsLocales.entrySet().stream()
-        .filter(e -> isEdited(e.getValue()))
-        .filter(e -> validateMessageFormat(e.getValue().getNewContent()) != null)
+        .filter(entry -> {
+          SavedCms cms = entry.getValue();
+          return isEdited(cms) && validateMessageFormat(cms.getNewContent()) != null;
+        })
         .map(Map.Entry::getKey)
         .toList();
   }
@@ -89,22 +113,22 @@ public class PlaceholderService {
      */
     return findMismatchWithoutOriginalPlaceholders(cmsLocales);
   }
-  
+
   private List<Placeholder> extractOriginalPlaceholders(Map<String, SavedCms> cmsLocales) {
     return cmsLocales.values().stream()
         .map(SavedCms::getOriginalContent)
         .filter(StringUtils::isNotBlank)
         .map(this::extractPlaceholders)
         .max(Comparator.comparingInt(List::size))
-        .orElse(new ArrayList<>());
+        .orElse(List.of());
   }
 
   private List<String> findMismatchWithOriginalPlaceholders(Map<String, SavedCms> cmsLocales,
       List<Placeholder> referencePlaceholders) {
     return cmsLocales.entrySet().stream()
-        .filter(e -> isEdited(e.getValue()))
-        .filter(e -> !hasSamePlaceholderStructure(referencePlaceholders,
-            extractPlaceholders(e.getValue().getNewContent())))
+        .filter(localeEntry -> isEdited(localeEntry.getValue()))
+        .filter(localeEntry -> !hasSamePlaceholderStructure(referencePlaceholders,
+            extractPlaceholders(localeEntry.getValue().getNewContent())))
         .map(Map.Entry::getKey)
         .toList();
   }
@@ -113,7 +137,7 @@ public class PlaceholderService {
     List<Map.Entry<String, SavedCms>> entries = new ArrayList<>(cmsLocales.entrySet());
 
     List<List<Placeholder>> allNewPlaceholders = entries.stream()
-        .map(e -> extractPlaceholders(e.getValue().getNewContent()))
+        .map(localeEntry -> extractPlaceholders(localeEntry.getValue().getNewContent()))
         .toList();
 
     if (allNewPlaceholders.isEmpty()) {
@@ -134,14 +158,14 @@ public class PlaceholderService {
 
     // No new placeholders -> Valid
     if (nonEmptyCount == 0) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     // All new contents have placeholders -> All locales must share the same placeholder structure
     return entries.stream()
-        .filter(e -> !hasSamePlaceholderStructure(
+        .filter(localeEntry -> !hasSamePlaceholderStructure(
             allNewPlaceholders.get(0),
-            extractPlaceholders(e.getValue().getNewContent())))
+            extractPlaceholders(localeEntry.getValue().getNewContent())))
         .map(Map.Entry::getKey)
         .toList();
   }
@@ -155,31 +179,60 @@ public class PlaceholderService {
     List<Placeholder> placeholders = new ArrayList<>();
 
     while (matcher.find()) {
-      placeholders.add(new Placeholder(Integer.parseInt(matcher.group(1)), 
-          matcher.group(2) == null ? null : matcher.group(2).trim(),
-          matcher.group(3) == null ? null : matcher.group(3).trim()));
+      int index = Integer.parseInt(matcher.group(1));
+      String format = trimIfNotNull(matcher.group(2));
+      String style = trimIfNotNull(matcher.group(3));
+
+      if (CHOICE_FORMAT.equals(format) && style != null) {
+        try {
+          new ChoiceFormat(style);
+        } catch (IllegalArgumentException e) {
+          Ivy.log().error("#Invalid ChoiceFormat style detected",  e);
+        }
+      }
+
+      placeholders.add(new Placeholder(index, format, style));
     }
 
     placeholders.sort(Comparator.comparingInt(Placeholder::getIndex));
     return placeholders;
   }
 
+  /**
+   * Compare placeholder structures between two contents.
+   *
+   * Rules:
+   * - Same size
+   * - Same index
+   * - Same format
+   * - Same style
+   *     For "choice": use ChoiceFormat semantic comparison
+   */
   public boolean hasSamePlaceholderStructure(List<Placeholder> originalPlaceholders,
       List<Placeholder> newPlaceholders) {
-    if (originalPlaceholders.size() != newPlaceholders.size())
+
+    if (originalPlaceholders.size() != newPlaceholders.size()) {
       return false;
+    }
 
     for (int i = 0; i < originalPlaceholders.size(); i++) {
-      Placeholder originalPlaceholder = originalPlaceholders.get(i);
-      Placeholder newPlaceholder = newPlaceholders.get(i);
+      Placeholder originalValue = originalPlaceholders.get(i);
+      Placeholder newValue = newPlaceholders.get(i);
 
-      if (originalPlaceholder.getIndex() != newPlaceholder.getIndex()) {
+      if (originalValue.getIndex() != newValue.getIndex()) {
         return false;
       }
 
-      if (CHOICE_FORMAT.equals(originalPlaceholder.getFormat()) || CHOICE_FORMAT.equals(newPlaceholder.getFormat())) {
-        if (!Objects.equals(originalPlaceholder.getFormat(), newPlaceholder.getFormat())
-            || !isChoiceStyleEqual(originalPlaceholder.getStyle(), newPlaceholder.getStyle())) {
+      if (!Objects.equals(originalValue.getFormat(), newValue.getFormat())) {
+        return false;
+      }
+
+      if (CHOICE_FORMAT.equals(originalValue.getFormat())) {
+        if (!isChoiceEqual(originalValue.getStyle(), newValue.getStyle())) {
+          return false;
+        }
+      } else {
+        if (!Objects.equals(originalValue.getStyle(), newValue.getStyle())) {
           return false;
         }
       }
@@ -187,19 +240,28 @@ public class PlaceholderService {
     return true;
   }
 
-  private boolean isChoiceStyleEqual(String originalStyle, String newStyle) {
-    if (Objects.equals(originalStyle, newStyle)) {
+  /**
+   * Compare two ChoiceFormat styles semantically (not just string).
+   */
+  private boolean isChoiceEqual(String orginalStyle, String newStyle) {
+    if (Objects.equals(orginalStyle, newStyle)) {
       return true;
     }
-    if (originalStyle == null || newStyle == null) {
+    if (orginalStyle == null || newStyle == null) {
       return false;
     }
-    List<String> originalStyleParts =
-        Arrays.stream(originalStyle.split(CommonConstants.VERTICAL_LINE_CHARACTER)).map(String::trim).sorted().toList();
-    List<String> newStyleParts =
-        Arrays.stream(newStyle.split(CommonConstants.VERTICAL_LINE_CHARACTER)).map(String::trim).sorted().toList();
 
-    return originalStyleParts.equals(newStyleParts);
+    try {
+      ChoiceFormat originalChoiceFormat = new ChoiceFormat(orginalStyle);
+      ChoiceFormat newChoiceFormat = new ChoiceFormat(newStyle);
+
+      return Arrays.equals(originalChoiceFormat.getLimits(), newChoiceFormat.getLimits())
+          && Arrays.equals(originalChoiceFormat.getFormats(), newChoiceFormat.getFormats());
+
+    } catch (IllegalArgumentException e) {
+      Ivy.log().error("#Failed to compare ChoiceFormat", e);
+      return false;
+    }
   }
 
   private boolean isEdited(SavedCms cms) {
@@ -208,10 +270,15 @@ public class PlaceholderService {
 
   private String validateMessageFormat(String pattern) {
     try {
-      new java.text.MessageFormat(pattern, java.util.Locale.ENGLISH);
+      new MessageFormat(pattern, Locale.ENGLISH);
       return null;
     } catch (IllegalArgumentException e) {
       return e.getMessage();
     }
   }
+
+  private String trimIfNotNull(String value) {
+    return value == null ? null : value.trim();
+  }
+
 }

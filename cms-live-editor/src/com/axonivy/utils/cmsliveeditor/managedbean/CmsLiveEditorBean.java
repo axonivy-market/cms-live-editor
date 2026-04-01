@@ -107,6 +107,7 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
+  @SuppressWarnings("unused")
   private String validationFailedLocaleIndicesJson;
 
   @PostConstruct
