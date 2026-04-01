@@ -41,7 +41,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.primefaces.PF;
-import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.model.StreamedContent;
@@ -133,7 +132,7 @@ public class CmsLiveEditorBean implements Serializable {
         invalidLocaleIndices =
             placeholderService.findInvalidLocaleIndices(errorLocales, selectedCms);
         FacesContext.getCurrentInstance().validationFailed();
-        PrimeFaces.current().ajax().addCallbackParam("validationFailed", true);
+        PF.current().ajax().addCallbackParam("validationFailed", true);
         PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID,
             CONTENT_FORM_CMS_VALIDATION_FAILED);
         return;
@@ -330,8 +329,8 @@ public class CmsLiveEditorBean implements Serializable {
     String target = content.getLocale().getLanguage().toUpperCase(Locale.ENGLISH);
     String newValue = TranslationService.translate(content.getContent(), src, target);
     content.setContent(newValue);
-    PrimeFaces.current().ajax().addCallbackParam("langIndex", content.getIndex());
-    PrimeFaces.current().ajax().addCallbackParam("newContent", newValue);
+    PF.current().ajax().addCallbackParam("langIndex", content.getIndex());
+    PF.current().ajax().addCallbackParam("newContent", newValue);
   }
 
   public void translateAll() {
@@ -505,7 +504,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   private void showDialog(String summary, String detail) {
     var message = new FacesMessage(SEVERITY_INFO, summary, detail);
-    PrimeFaces.current().dialog().showMessageDynamic(message, false);
+    PF.current().dialog().showMessageDynamic(message, false);
   }
 
   public void getAllChildren(String pmvName, ContentObject contentObject, List<Locale> locales) {

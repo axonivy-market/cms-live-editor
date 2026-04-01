@@ -14,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
@@ -57,7 +56,7 @@ public class PlaceholderService {
    * Locale strings are normalized before comparison.
    */
   public List<Integer> findInvalidLocaleIndices(List<String> invalidLocales, Cms selectedCms) {
-    if (selectedCms == null || CollectionUtils.isEmpty(selectedCms.getContents())) {
+    if (selectedCms == null || selectedCms.getContents() == null || selectedCms.getContents().isEmpty()) {
       return new ArrayList<>();
     }
 
@@ -78,7 +77,7 @@ public class PlaceholderService {
   public List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
     // 1. Validate placeholder structure
     List<String> placeholderErrors = findMismatchLocales(cmsLocales);
-    if (!CollectionUtils.isEmpty(placeholderErrors)) {
+    if (placeholderErrors != null && !placeholderErrors.isEmpty()) {
       return placeholderErrors;
     }
 

@@ -49,21 +49,29 @@ public class PlaceholderServiceTest {
 
   @Test
   public void testHasSamePlaceholderStructureNonChoiceShouldIgnoreFormatAndStyle() {
-    List<Placeholder> original = service.extractPlaceholders("{0} {1}");
-    List<Placeholder> changedFormat = service.extractPlaceholders("{0,number} {1,date}");
-    assertTrue(service.hasSamePlaceholderStructure(original, changedFormat));
+    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0} {1}");
+    List<Placeholder> changedFormatPlaceholders = service.extractPlaceholders("{0,number} {1,date}");
+    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, changedFormatPlaceholders));
   }
 
   @Test
   public void testHasSamePlaceholderStructureChoiceShouldRequireSameFormatAndStyleIgnoringOrder() {
-    List<Placeholder> original = service.extractPlaceholders("{0,choice,0#no|1#yes}");
-    List<Placeholder> reordered = service.extractPlaceholders("{0,choice,1#yes|0#no}");
-    List<Placeholder> different = service.extractPlaceholders("{0,choice,0#no|1#maybe}");
-    List<Placeholder> differentFormat = service.extractPlaceholders("{0,number,0#no|1#yes}");
+    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0,choice,0#no|1#yes}");
+    List<Placeholder> reorderedPlaceholders = service.extractPlaceholders("{0,choice,1#yes|0#no}");
+    List<Placeholder> differentPlaceholders = service.extractPlaceholders("{0,choice,0#no|1#maybe}");
+    List<Placeholder> differentFormatPlaceholders = service.extractPlaceholders("{0,number,0#no|1#yes}");
 
-    assertTrue(service.hasSamePlaceholderStructure(original, reordered));
-    assertFalse(service.hasSamePlaceholderStructure(original, different));
-    assertFalse(service.hasSamePlaceholderStructure(original, differentFormat));
+    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, reorderedPlaceholders));
+    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentPlaceholders));
+    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentFormatPlaceholders));
+  }
+
+  @Test
+  public void testHasSamePlaceholderStructureShouldDetectDifferentNumberStyle() {
+    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0,number,currency}");
+    List<Placeholder> differentStylePlaceholders = service.extractPlaceholders("{0,number,integer}");
+
+    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentStylePlaceholders));
   }
 
   @Test
@@ -103,8 +111,8 @@ public class PlaceholderServiceTest {
     cmsLocales.put("en", createSavedCms("Hello {0} {1}", "Hello {0} {1}"));
     cmsLocales.put("fr", createSavedCms("Bonjour {0} {1}", "Bonjour {0}"));
 
-    List<String> mismatched = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("fr"), new HashSet<>(mismatched));
+    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
+    assertEquals(Set.of("fr"), new HashSet<>(mismatchedLocales));
   }
 
   @Test
@@ -113,8 +121,8 @@ public class PlaceholderServiceTest {
     cmsLocales.put("en", createSavedCms("Hello", "Hello {0}"));
     cmsLocales.put("fr", createSavedCms("Bonjour", "Bonjour"));
 
-    List<String> mismatched = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("en", "fr"), new HashSet<>(mismatched));
+    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
+    assertEquals(Set.of("en", "fr"), new HashSet<>(mismatchedLocales));
   }
 
   @Test
@@ -124,8 +132,8 @@ public class PlaceholderServiceTest {
     cmsLocales.put("de", createSavedCms("Hallo", "Hallo {0}"));
     cmsLocales.put("fr", createSavedCms("Bonjour", "Bonjour {1}"));
 
-    List<String> mismatched = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("fr"), new HashSet<>(mismatched));
+    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
+    assertEquals(Set.of("fr"), new HashSet<>(mismatchedLocales));
   }
 
   @Test
@@ -136,7 +144,7 @@ public class PlaceholderServiceTest {
     cmsLocales.put("de", createSavedCms("Hallo {0}", "Hallo {0,invalid}"));
 
     List<String> invalidLocales = service.validateLocales(cmsLocales);
-    assertEquals(Set.of("fr"), new HashSet<>(invalidLocales));
+    assertEquals(Set.of("fr", "de"), new HashSet<>(invalidLocales));
   }
 
   @Test
