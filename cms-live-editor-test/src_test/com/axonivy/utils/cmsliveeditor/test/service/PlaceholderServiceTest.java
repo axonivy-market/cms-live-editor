@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
-import com.axonivy.utils.cmsliveeditor.model.Placeholder;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.PlaceholderService;
 
@@ -24,54 +23,37 @@ public class PlaceholderServiceTest {
   private final PlaceholderService service = PlaceholderService.getInstance();
 
   @Test
-  public void testExtractPlaceholdersBlankShouldReturnEmpty() {
-    assertTrue(service.extractPlaceholders(null).isEmpty());
-    assertTrue(service.extractPlaceholders("").isEmpty());
-    assertTrue(service.extractPlaceholders("   ").isEmpty());
+  public void areMessagePatternsCompatibleShouldTreatBlankAsIncompatible() {
+    assertFalse(service.areMessagePatternsCompatible("{0}", null));
+    assertFalse(service.areMessagePatternsCompatible("{0}", ""));
+    assertFalse(service.areMessagePatternsCompatible("{0}", "   "));
   }
 
   @Test
-  public void testExtractPlaceholdersShouldParseAndSortByIndex() {
-    List<Placeholder> placeholders = service.extractPlaceholders("Hello {1} and {0}!");
-    assertEquals(2, placeholders.size());
-    assertEquals(0, placeholders.get(0).getIndex());
-    assertEquals(1, placeholders.get(1).getIndex());
+  public void areMessagePatternsCompatibleShouldIgnoreTextAndArgumentOrder() {
+    assertTrue(service.areMessagePatternsCompatible("Hello {1} and {0}!", "Bonjour {0} et {1}!"));
   }
 
   @Test
-  public void testExtractPlaceholdersShouldTrimFormatAndStyle() {
-    List<Placeholder> placeholders = service.extractPlaceholders("{0, choice , 0#no | 1#yes }");
-    assertEquals(1, placeholders.size());
-    assertEquals(0, placeholders.get(0).getIndex());
-    assertEquals("choice", placeholders.get(0).getFormat());
-    assertEquals("0#no | 1#yes", placeholders.get(0).getStyle());
+  public void areMessagePatternsCompatibleShouldDetectMissingOrExtraArguments() {
+    assertFalse(service.areMessagePatternsCompatible("{0} {1}", "{0}"));
+    assertFalse(service.areMessagePatternsCompatible("{0}", "{0} {1}"));
   }
 
   @Test
-  public void testHasSamePlaceholderStructureNonChoiceShouldIgnoreFormatAndStyle() {
-    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0} {1}");
-    List<Placeholder> changedFormatPlaceholders = service.extractPlaceholders("{0,number} {1,date}");
-    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, changedFormatPlaceholders));
+  public void areMessagePatternsCompatibleShouldDetectFormatTypeChanges() {
+    assertFalse(service.areMessagePatternsCompatible("{0} {1}", "{0,number} {1,date}"));
   }
 
   @Test
-  public void testHasSamePlaceholderStructureChoiceShouldRequireSameFormatAndStyleIgnoringOrder() {
-    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0,choice,0#no|1#yes}");
-    List<Placeholder> reorderedPlaceholders = service.extractPlaceholders("{0,choice,1#yes|0#no}");
-    List<Placeholder> differentPlaceholders = service.extractPlaceholders("{0,choice,0#no|1#maybe}");
-    List<Placeholder> differentFormatPlaceholders = service.extractPlaceholders("{0,number,0#no|1#yes}");
-
-    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, reorderedPlaceholders));
-    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentPlaceholders));
-    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentFormatPlaceholders));
+  public void areMessagePatternsCompatibleChoiceShouldIgnoreChoiceTextsButRequireSameStructure() {
+    assertTrue(service.areMessagePatternsCompatible("{0,choice,0#no|1#yes}", "{0,choice,0#nein|1#ja}"));
+    assertFalse(service.areMessagePatternsCompatible("{0,choice,0#no|1#yes}", "{0,choice,1#yes|0#no}"));
   }
 
   @Test
-  public void testHasSamePlaceholderStructureShouldDetectDifferentNumberStyle() {
-    List<Placeholder> originalPlaceholders = service.extractPlaceholders("{0,number,currency}");
-    List<Placeholder> differentStylePlaceholders = service.extractPlaceholders("{0,number,integer}");
-
-    assertFalse(service.hasSamePlaceholderStructure(originalPlaceholders, differentStylePlaceholders));
+  public void areMessagePatternsCompatibleShouldDetectDifferentNumberStyle() {
+    assertFalse(service.areMessagePatternsCompatible("{0,number,currency}", "{0,number,integer}"));
   }
 
   @Test
@@ -106,34 +88,13 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void testFindMismatchLocalesWithOriginalPlaceholdersShouldFlagEditedLocalesNotMatchingStructure() {
+  public void validateLocalesShouldFlagEditedLocalesNotMatchingStructure() {
     Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
     cmsLocales.put("en", createSavedCms("Hello {0} {1}", "Hello {0} {1}"));
     cmsLocales.put("fr", createSavedCms("Bonjour {0} {1}", "Bonjour {0}"));
 
-    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("fr"), new HashSet<>(mismatchedLocales));
-  }
-
-  @Test
-  public void testFindMismatchLocalesWithoutOriginalPlaceholdersMixedPlaceholderPresenceShouldFlagAllLocales() {
-    Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
-    cmsLocales.put("en", createSavedCms("Hello", "Hello {0}"));
-    cmsLocales.put("fr", createSavedCms("Bonjour", "Bonjour"));
-
-    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("en", "fr"), new HashSet<>(mismatchedLocales));
-  }
-
-  @Test
-  public void testFindMismatchLocalesWithoutOriginalPlaceholdersAllHavePlaceholdersShouldShareStructure() {
-    Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
-    cmsLocales.put("en", createSavedCms("Hello", "Hello {0}"));
-    cmsLocales.put("de", createSavedCms("Hallo", "Hallo {0}"));
-    cmsLocales.put("fr", createSavedCms("Bonjour", "Bonjour {1}"));
-
-    List<String> mismatchedLocales = service.findMismatchLocales(cmsLocales);
-    assertEquals(Set.of("fr"), new HashSet<>(mismatchedLocales));
+    List<String> invalidLocales = service.validateLocales(cmsLocales);
+    assertEquals(Set.of("fr"), new HashSet<>(invalidLocales));
   }
 
   @Test
@@ -155,6 +116,18 @@ public class PlaceholderServiceTest {
 
     List<String> invalidLocales = service.validateLocales(cmsLocales);
     assertEquals(Set.of("en"), new HashSet<>(invalidLocales));
+  }
+
+  @Test
+  void testAreMessagePatternsCompatible() {
+    assertTrue(service.areMessagePatternsCompatible("There {0,choice,0#no|1#one|1<{0,number,integer} files}",
+        "Co {0,choice,0#here|1#there|1<{0,number,integer} files}"));
+    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
+        "There {0,choice,1<{0,number,currency} files}"));
+    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
+        "There {0,choice,1<files}"));
+    assertFalse(service.areMessagePatternsCompatible("{0,choice,1#{1,choice,1<{1,number,integer}}}",
+        "{0,choice,1#{1,choice,1<{1}}}"));
   }
 
   private static SavedCms createSavedCms(String original, String updated) {
