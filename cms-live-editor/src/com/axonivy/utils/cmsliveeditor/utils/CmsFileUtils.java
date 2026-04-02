@@ -11,6 +11,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_N
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,32 @@ public class CmsFileUtils {
 
     Ivy.log().fatal(workbooks.entrySet().toArray());
     return convertToZip(projectName, applicationName, workbooks);
+  }
+
+  /**
+   * Creates a ZIP download from arbitrary text files (e.g. cms_en.yaml, cms_de.yaml).
+   *
+   * @param zipFileName Name of the ZIP file that will be downloaded.
+   * @param files       Map of zipEntryName -> file content (UTF-8).
+   */
+  public static StreamedContent writeCmsToZipStreamedContent(String zipFileName, Map<String, String> files)
+      throws Exception {
+    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
+      for (Entry<String, String> entry : files.entrySet()) {
+        zipOut.putNextEntry(new ZipEntry(entry.getKey()));
+        zipOut.write(entry.getValue().getBytes(StandardCharsets.UTF_8));
+        zipOut.closeEntry();
+      }
+
+      // Ensure the central directory is written before reading bytes
+      zipOut.finish();
+      byte[] zipBytes = baos.toByteArray();
+      return DefaultStreamedContent.builder()
+          .name(zipFileName)
+          .contentType(ZIP_CONTENT_TYPE)
+          .stream(() -> new ByteArrayInputStream(zipBytes))
+          .build();
+    }
   }
 
   public static StreamedContent writeCmsToExcel(String projectName, Map<String, PmvCms> cmsPmvMap)

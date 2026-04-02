@@ -16,6 +16,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +26,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -63,6 +68,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.ivyteam.config.IConfig;
 import ch.ivyteam.ivy.application.ActivityState;
 import ch.ivyteam.ivy.application.IActivity;
 import ch.ivyteam.ivy.application.IApplication;
@@ -93,6 +99,7 @@ public class CmsLiveEditorBean implements Serializable {
   private String searchKey;
   private StreamedContent fileDownload;
   private StreamedContent excelFileDownload;
+  private StreamedContent yamlFileDownload;
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
@@ -113,6 +120,7 @@ public class CmsLiveEditorBean implements Serializable {
           .filter(CmsLiveEditorBean::isActive)
           .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
     }
+  
     onAppChange();
     initLocales();
   }
@@ -532,6 +540,158 @@ public class CmsLiveEditorBean implements Serializable {
     String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
     this.excelFileDownload = CmsFileUtils.writeCmsToExcel(selectedProjectName, this.pmvCmsMap);
   }
+  
+  public void exportCmsToYaml() {
+    try {
+      String projectName = StringUtils.isBlank(selectedProjectName)
+          ? Ivy.cms().co("/Labels/AllProjects")
+          : selectedProjectName;
+
+      Map<String, String> files = new TreeMap<>();
+
+      if (StringUtils.isBlank(selectedProjectName)) {
+        // Export all projects: keep values separated per project (like ZIP export)
+        for (var entry : pmvCmsMap.entrySet()) {
+          String pmvName = entry.getKey();
+          PmvCms pmvCms = entry.getValue();
+          addYamlFilesForProject(files, pmvName, pmvCms, true);
+        }
+      } else {
+        PmvCms pmvCms = pmvCmsMap.get(selectedProjectName);
+        if (pmvCms != null) {
+          addYamlFilesForProject(files, selectedProjectName, pmvCms, false);
+        }
+      }
+
+      String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
+      this.yamlFileDownload = CmsFileUtils.writeCmsToZipStreamedContent(
+          String.format("%s_%s_%s_yaml.zip", Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName),
+          files);
+    } catch (Exception e) {
+      Ivy.log().error("Failed to export CMS to YAML", e);
+      showDialog(Ivy.cms().co("/Labels/Error"), e.getMessage());
+    }
+  }
+
+  private void addYamlFilesForProject(Map<String, String> files, String projectName, PmvCms pmvCms,
+      boolean includeProjectFolder) {
+    if (pmvCms == null) {
+      return;
+    }
+
+    List<Locale> locales = pmvCms.getLocales().stream().filter(l -> isNotBlank(l.getLanguage())).toList();
+    for (Locale locale : locales) {
+      Map<String, String> flat = new HashMap<>();
+
+      for (Cms cmsEntry : pmvCms.getCmsList()) {
+        if (cmsEntry == null || cmsEntry.isFile()) {
+          continue;
+        }
+        String value = cmsEntry.getContents().stream()
+            .filter(c -> c != null && locale.equals(c.getLocale()))
+            .findFirst()
+            .map(CmsContent::getContent)
+            .orElse(StringUtils.EMPTY);
+        flat.put(cmsEntry.getUri(), value);
+      }
+
+      String yaml = buildYaml(flat);
+      String fileName = "cms_" + locale.getLanguage() + ".yaml";
+      String zipEntryName = includeProjectFolder ? projectName + "/" + fileName : fileName;
+      files.put(zipEntryName, yaml);
+    }
+  }
+  
+  private String buildYaml(Map<String, String> flatMap) {
+    Map<String, Object> tree = new TreeMap<>(); // sorted luôn
+
+    for (var entry : flatMap.entrySet()) {
+      insert(tree, entry.getKey(), entry.getValue());
+    }
+
+    StringBuilder yaml = new StringBuilder();
+    renderYaml(tree, yaml, 0);
+
+    return yaml.toString();
+  }
+  
+  @SuppressWarnings("unchecked")
+  private void insert(Map<String, Object> root, String key, String value) {
+    // CMS URIs are slash-separated (e.g. /Labels/Foo/Bar)
+    String normalized = StringUtils.removeStart(key, "/");
+    if (StringUtils.isBlank(normalized)) {
+      return;
+    }
+    String[] parts = normalized.split("/");
+    Map<String, Object> current = root;
+
+    for (int i = 0; i < parts.length; i++) {
+      if (i == parts.length - 1) {
+        current.put(parts[i], value);
+      } else {
+        current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new TreeMap<>());
+      }
+    }
+  }
+  
+  @SuppressWarnings("unchecked")
+  private void renderYaml(Map<String, Object> map,
+                          StringBuilder yaml,
+                          int indent) {
+
+    String space = "  ".repeat(indent);
+
+    for (var entry : map.entrySet()) {
+      if (entry.getValue() instanceof Map) {
+        yaml.append(space).append(entry.getKey()).append(":\n");
+        renderYaml((Map<String, Object>) entry.getValue(), yaml, indent + 1);
+      } else {
+        String value = entry.getValue() == null ? "" : entry.getValue().toString();
+        if (value.contains("\n") || value.contains("\r")) {
+          yaml.append(space).append(entry.getKey()).append(": |-")
+              .append("\n");
+          String[] lines = value.replace("\r\n", "\n").replace("\r", "\n").split("\n", -1);
+          String blockIndent = "  ".repeat(indent + 1);
+          for (String line : lines) {
+            yaml.append(blockIndent).append(line).append("\n");
+          }
+        } else {
+          yaml.append(space)
+              .append(entry.getKey())
+              .append(": ")
+              .append(escape(value))
+              .append("\n");
+        }
+      }
+    }
+  }
+  
+  private String escape(String value) {
+    if (value == null) {
+      return "\"\"";
+    }
+
+    boolean needsQuoting = value.isEmpty()
+        || value.startsWith(" ")
+        || value.endsWith(" ")
+        || value.startsWith("-")
+        || value.startsWith("?")
+        || value.startsWith(":")
+        || value.contains(":")
+        || value.contains("#")
+        || value.contains("\t")
+        || value.contains("\\\\")
+        || value.contains("\"");
+
+    if (needsQuoting) {
+      String escaped = value
+          .replace("\\\\", "\\\\\\\\")
+          .replace("\"", "\\\\\"")
+          .replace("\t", "\\\\t");
+      return "\"" + escaped + "\"";
+    }
+    return value;
+  }
 
   public void downloadFinished() {
     showDialog(cms().co("/Labels/Message"), cms().co("/Labels/CmsDownloaded"));
@@ -703,6 +863,10 @@ public class CmsLiveEditorBean implements Serializable {
 
   public StreamedContent getExcelFileDownload() {
     return excelFileDownload;
+  }
+
+  public StreamedContent getYamlFileDownload() {
+    return yamlFileDownload;
   }
 
   public void setExcelFileDownload(StreamedContent excelFileDownload) {

@@ -220,8 +220,11 @@
                           onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" >
                            <p:fileDownload value="#{cmsLiveEditorBean.excelFileDownload}" />
                           </p:menuitem>
-                        <p:menuitem value="YAML" icon="pi pi-times"
-                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" />
+                        <p:menuitem value="YAML" icon="pi pi-times" actionListener="#{cmsLiveEditorBean.exportCmsToYaml}"
+                          ajax="false"
+                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" >
+                          <p:fileDownload value="#{cmsLiveEditorBean.yamlFileDownload}" />
+                        </p:menuitem>
 
                       </p:menuButton>
 
