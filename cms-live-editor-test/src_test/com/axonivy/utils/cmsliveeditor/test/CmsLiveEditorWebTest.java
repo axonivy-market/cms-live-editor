@@ -250,7 +250,7 @@ public class CmsLiveEditorWebTest {
     var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
     editors.filter(visible).shouldHave(sizeGreaterThanOrEqual(2));
 
-    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are many files}");
+    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}");
     saveAndUndoCmsChanges();
   }
 
@@ -316,7 +316,7 @@ public class CmsLiveEditorWebTest {
   }
 
   private void saveAndUndoCmsChanges() {
-    $(By.id(SAVE_BUTTON_ID)).click();
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
 
     var undoButton = $(By.id("content-form:undo-change-path"));
