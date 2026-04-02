@@ -1,7 +1,10 @@
 package com.axonivy.utils.cmsliveeditor.service;
 
+import java.text.ChoiceFormat;
+import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,150 +44,145 @@ public class PlaceholderService {
         .toList();
   }
 
-  public static List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
+  public List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
     if (cmsLocales == null || cmsLocales.isEmpty()) {
       return new ArrayList<>();
     }
 
-    String referenceOriginal = cmsLocales.values().stream()
+    String originalValue = cmsLocales.values().stream()
         .map(SavedCms::getOriginalContent)
-        .filter(s -> s != null && !s.isBlank())
-        .max(Comparator.comparingInt(PlaceholderService::countArguments))
+        .filter(value -> value != null && !value.isBlank())
+        .max(Comparator.comparingInt(PlaceholderService::countArgumentNumbers))
         .orElse(null);
 
-    if (referenceOriginal == null || referenceOriginal.isBlank()) {
+    if (originalValue == null || originalValue.isBlank()) {
       return new ArrayList<>();
     }
 
     return cmsLocales.entrySet().stream()
-        .filter(e -> isEdited(e.getValue()))
-        .filter(e -> !areFormatCompatible(referenceOriginal,
-            e.getValue().getNewContent()))
+        .filter(localeEntry -> isEdited(localeEntry.getValue()))
+        .filter(localeEntry -> !areMessagePatternsCompatible(originalValue, localeEntry.getValue().getNewContent()))
         .map(Map.Entry::getKey)
         .toList();
   }
 
-  public static boolean areFormatCompatible(String template, String message) {
-      return areFormatCompatibleStrict(template, message) && areFormatCompatibleRelax(template, message);
-  }
-
-  public static boolean areFormatCompatibleRelax(String template, String message) {
+  /**
+   * Checks whether two MessageFormat patterns are structurally compatible.
+   *
+   * This ignores plain text differences (translations), but enforces:
+   * - Same argument indices
+   * - Same format types (number, date, etc.)
+   * - Same format styles (e.g. integer vs currency)
+   * - Same ChoiceFormat structure
+   * - Same nested placeholder(s) (recursively)
+   */
+  public boolean areMessagePatternsCompatible(String originalValue, String newValue) {
     try {
-      MessageFormat mf1 = new MessageFormat(template, Locale.ENGLISH);
-      MessageFormat mf2 = new MessageFormat(message, Locale.ENGLISH);
+      MessageFormat originalMessageFormat = new MessageFormat(originalValue, Locale.ENGLISH);
+      MessageFormat newMessageFormat = new MessageFormat(newValue, Locale.ENGLISH);
 
-      Format[] f1 = mf1.getFormatsByArgumentIndex();
-      Format[] f2 = mf2.getFormatsByArgumentIndex();
-
-      if (f1.length != f2.length) {
-        return false;
-      }
-
-      for (int i = 0; i < f1.length; i++) {
-        Format format1 = f1[i];
-        Format format2 = f2[i];
-
-        // both null = ok
-        if (format1 == null && format2 == null) {
-          continue;
-        }
-
-        // one null = mismatch
-        if (format1 == null || format2 == null) {
-          return false;
-        }
-
-        // type mismatch
-        if (!sameFormatType(format1, format2)) {
-          return false;
-        }
-      }
-
-      return true;
+      return hasSameMessageFormatStructure(originalMessageFormat, newMessageFormat);
 
     } catch (Exception e) {
       return false;
     }
   }
 
-  public static boolean areFormatCompatibleStrict(String template, String message) {
-    try {
-      MessageFormat mf1 = new MessageFormat(template, Locale.ENGLISH);
-      MessageFormat mf2 = new MessageFormat(message, Locale.ENGLISH);
+  /**
+   * Compares two MessageFormat objects at the top level.
+   *
+   * Rules:
+   * - They have the same number of arguments
+   * - Each argument uses the same format type and structure
+   */
+  private boolean hasSameMessageFormatStructure(MessageFormat originalMessageFormat, MessageFormat newMessageFormat) {
+    Format[] originalFormat = originalMessageFormat.getFormatsByArgumentIndex();
+    Format[] newFormat = newMessageFormat.getFormatsByArgumentIndex();
 
-      Format[] f1 = mf1.getFormats();
-      Format[] f2 = mf2.getFormats();
+    if (originalFormat.length != newFormat.length) {
+      return false;
+    }
 
-      if (f1.length != f2.length) {
+    for (int i = 0; i < originalFormat.length; i++) {
+      if (!hasSameFormatComponent(originalFormat[i], newFormat[i])) {
         return false;
       }
+    }
 
-      for (int i = 0; i < f1.length; i++) {
-        Format format1 = f1[i];
-        Format format2 = f2[i];
+    return true;
+  }
 
-        if (format1 == null && format2 == null) continue;
-
-        if (format1 == null || format2 == null) {
-          return false;
-        }
-
-        if (!sameFormatType(format1, format2)) {
-          return false;
-        }
-      }
-
-      List<Integer> idx1 = extractArgumentIndices(template);
-      List<Integer> idx2 = extractArgumentIndices(message);
-
-      if (!idx1.equals(idx2)) {
-        return false;
-      }
-
+  /**
+   * Recursively compares two Format components.
+   * 
+   * Supported cases:
+   * - ChoiceFormat → compares limits and recursively validates each branch
+   * - DecimalFormat → compares numeric pattern (e.g. integer vs currency)
+   * - SimpleDateFormat → compares date pattern
+   * - Fallback → uses equals() to compare choiceFormats and choiceLimits
+   *
+   * Important:
+   * - Text differences are ignored
+   * - Structural or type changes are NOT allowed
+   * - Nested MessageFormats inside ChoiceFormat are validated recursively
+   */
+  private boolean hasSameFormatComponent(Format originalFormat, Format newFormat) {
+    if (originalFormat == null && newFormat == null) {
       return true;
-
-    } catch (Exception e) {
-      return false;
     }
-  }
-
-  private static List<Integer> extractArgumentIndices(String pattern) {
-    List<Integer> indices = new ArrayList<>();
-
-    // Regex match {0}, {1,number}, {2,date,short}
-    String regex = "\\{\\s*(\\d+)\\s*(?:,.*?)?\\}";
-    java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(regex).matcher(pattern);
-
-    while (matcher.find()) {
-      indices.add(Integer.parseInt(matcher.group(1)));
-    }
-
-    return indices;
-  }
-
-  private static boolean sameFormatType(Format f1, Format f2) {
-    if (f1 == null && f2 == null) return true;
-    if (f1 == null || f2 == null) return false;
-
-    if (!f1.getClass().equals(f2.getClass())) {
+    if (originalFormat == null || newFormat == null) {
       return false;
     }
 
-    if (f1 instanceof java.text.DecimalFormat d1 && f2 instanceof java.text.DecimalFormat d2) {
-      return Objects.equals(d1.toPattern(), d2.toPattern());
+    if (!originalFormat.getClass().equals(newFormat.getClass())) {
+      return false;
     }
 
-    if (f1 instanceof java.text.SimpleDateFormat d1 && f2 instanceof java.text.SimpleDateFormat d2) {
-      return Objects.equals(d1.toPattern(), d2.toPattern());
+    if (originalFormat instanceof ChoiceFormat originalChoiceFormat && newFormat instanceof ChoiceFormat newChoiceFormat) {
+      return areChoiceFormatsEquivalent(originalChoiceFormat, newChoiceFormat);
     }
 
-    return f1.equals(f2);
+    if (originalFormat instanceof DecimalFormat originalDecimalFormat && newFormat instanceof DecimalFormat newDecimalFormat) {
+      return Objects.equals(originalDecimalFormat.toPattern(), newDecimalFormat.toPattern());
+    }
+
+    if (originalFormat instanceof SimpleDateFormat originalDateFormat && newFormat instanceof SimpleDateFormat newDateFormat) {
+      return Objects.equals(originalDateFormat.toPattern(), newDateFormat.toPattern());
+    }
+
+    return originalFormat.equals(newFormat);
   }
 
-  private static int countArguments(String pattern) {
+  private boolean areChoiceFormatsEquivalent(ChoiceFormat originalChoiceFormat, ChoiceFormat newChoiceFormat) {
+    if (!Arrays.equals(originalChoiceFormat.getLimits(), newChoiceFormat.getLimits())) {
+      return false;
+    }
+
+    Object[] originalChoiceFormats = originalChoiceFormat.getFormats();
+    Object[] newChoiceFormats = newChoiceFormat.getFormats();
+
+    if (originalChoiceFormats.length != newChoiceFormats.length) {
+      return false;
+    }
+
+    for (int i = 0; i < originalChoiceFormats.length; i++) {
+      String originalPatternPart = String.valueOf(originalChoiceFormats[i]);
+      String newPatternPart = String.valueOf(newChoiceFormats[i]);
+
+      MessageFormat originalNestedMessageFormat = new MessageFormat(originalPatternPart, Locale.ENGLISH);
+      MessageFormat newNestedMessageFormat = new MessageFormat(newPatternPart, Locale.ENGLISH);
+
+      if (!hasSameMessageFormatStructure(originalNestedMessageFormat, newNestedMessageFormat)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static int countArgumentNumbers(String pattern) {
     try {
-      MessageFormat mf = new MessageFormat(pattern, Locale.ENGLISH);
-      return mf.getFormatsByArgumentIndex().length;
+      MessageFormat messageFormat = new MessageFormat(pattern, Locale.ENGLISH);
+      return messageFormat.getFormatsByArgumentIndex().length;
     } catch (Exception e) {
       return -1;
     }
