@@ -129,7 +129,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     window.cmsInitialContents[languageIndex] = initialContents;
     window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
   } catch (e) {
-    window.cmsInitialContents[languageIndex] = "";
+    window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
@@ -157,7 +157,7 @@ function markDirtyIfChanged() {
     };
   }
 
-    // Handle fast typing
+  // Handle fast typing
   editor.onChange = debounce(() => {
     markDirtyIfChanged();
   }, 200);
@@ -246,7 +246,7 @@ function saveAllEditors() {
   destroyEditors();
   saveAllValue([{
     name: 'values',
-    value: JSON.stringify(values),
+    value: JSON.stringify(values)
   }]);
 
   return true;
@@ -268,7 +268,7 @@ function validateNotEmpty(editor, languageIndex) {
 * - If all locales are edited → ensure placeholders are consistent across locales.
 * - If only some locales edited → ensure placeholder numbers match the original of this locale.
 */
-function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expectedPlaceholders }) {
+function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
   const newPlaceholders = extractPlaceholders(contents).sort();
 
   if (allLocalesEdited) {
@@ -359,28 +359,28 @@ function bindCmsWarning(hoverId, warningId) {
   const targetElement = document.getElementById(warningId);
   if (!hoverElement || !targetElement) return;
 
-    let hideTimeout;
+  let hideTimeout;
 
-    function showWarning() {
-      clearTimeout(hideTimeout);
-      targetElement.style.display = "block";
+  function showWarning() {
+    clearTimeout(hideTimeout);
+    targetElement.style.display = "block";
+  }
+
+  function hideWarning() {
+    if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
+      return;
     }
+    hideTimeout = setTimeout(function() {
+      targetElement.style.display = "none";
+    }, 500);
+  }
 
-    function hideWarning() {
-      if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
-        return;
-      }
-      hideTimeout = setTimeout(function() {
-        targetElement.style.display = "none";
-      }, 500);
-    }
-
-    hoverElement.addEventListener("mouseenter", showWarning);
-    hoverElement.addEventListener("mouseleave", hideWarning);
-    targetElement.addEventListener("mouseenter", function() {
-      clearTimeout(hideTimeout);
-    });
-    targetElement.addEventListener("mouseleave", hideWarning);
+  hoverElement.addEventListener("mouseenter", showWarning);
+  hoverElement.addEventListener("mouseleave", hideWarning);
+  targetElement.addEventListener("mouseenter", function() {
+    clearTimeout(hideTimeout);
+  });
+  targetElement.addEventListener("mouseleave", hideWarning);
 }
 
 function setErrorMessageVisible(isVisible) {
