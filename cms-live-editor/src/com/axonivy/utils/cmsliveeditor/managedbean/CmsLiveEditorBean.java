@@ -241,6 +241,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void search() {
+	  Ivy.log().warn("search");
     if (isEditing()) {
       return;
     }
@@ -312,6 +313,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onAppChange() {
+	  Ivy.cms().co("onAppChange");
     if (isEditing()) {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
@@ -333,6 +335,8 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void rowSelect() {
     isEditableCms = false;
+	  Ivy.cms().co("rowSelect");
+
     if (isEditing()) {
       isEditableCms = true;
       selectedCms = lastSelectedCms; // Revert to last valid selection
@@ -410,16 +414,13 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void checkIsEditingAndShowMessage() {
-    isEditing();
-  }
-
   private boolean isEditing() {
     if (lastSelectedCms == null) {
       return false;
     }
     var isEditing = lastSelectedCms.isEditing();
     if (isEditing) {
+    	Ivy.log().warn("isEditing()");
       showHaveNotBeenSavedDialog();
       PF.current().ajax().update(CONTENT_FORM_TABLE_CMS_KEYS);
     }
@@ -427,16 +428,17 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private void showHaveNotBeenSavedDialog() {
+  	Ivy.log().error("showHaveNotBeenSavedDialog");
+
     var editingCmsList = lastSelectedCms.getContents().stream().filter(CmsContent::isEditing).map(CmsContent::getLocale)
         .map(Locale::getDisplayLanguage).collect(Collectors.toList());
-    var detail = Utils.convertListToHTMLList(editingCmsList);
-    showContentHaveNotBeenSaveDialog(detail);
+    dialogDetail = Utils.convertListToHTMLList(editingCmsList);
+    showContentHaveNotBeenSaveDialog();
   }
 
-  private void showContentHaveNotBeenSaveDialog(String detail) {
-    this.dialogDetail = detail;
-    PrimeFaces.current().ajax().update(CONTENT_FORM + ":content-not-been-save-dlg", "content-not-been-save-dlg");
+  private void showContentHaveNotBeenSaveDialog() {
     PrimeFaces.current().executeScript("PF('content-not-been-save-dlg').show();");
+    PrimeFaces.current().ajax().update(CONTENT_FORM + ":content-not-been-save-dlg", "content-not-been-save-dlg");
   }
 
   private void showDialog(String summary, String detail) {
