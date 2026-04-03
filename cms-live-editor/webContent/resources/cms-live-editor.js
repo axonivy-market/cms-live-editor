@@ -14,23 +14,6 @@ function debounce(fn, delay) {
   };
 }
 
-/** Mark an editor as dirty (or not) and notify the server of changes */
-function markDirty(editor, languageIndex) {
-  const currentContent = editor.getContents();
-  const originalContents = window.cmsInitialContents[languageIndex] || "";
-  if (currentContent === originalContents) {
-    // Back to original -> not dirty anymore
-    window.cmsDirtyEditors.delete(languageIndex);
-    setEditorError(languageIndex, false);
-  } else {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: "languageIndex", value: languageIndex },
-      { name: "content", value: currentContent }
-    ]);
-  }
-}
-
 /** Create a clone of a toolbar button for floating placement */
 function createCloneFromBtn(btn, sunEditor, commandName) {
   const clone = btn.cloneNode(true);
@@ -93,31 +76,6 @@ function refreshClone(currentClone, sunEditor, commandName) {
   }
 }
 
-/** Setup hover handlers for CMS warnings */
-function setupCmsWarning(hoverElement, targetElement) {
-  let hideTimeout;
-
-  function showWarning() {
-    clearTimeout(hideTimeout);
-    targetElement.style.display = "block";
-  }
-
-  function hideWarning() {
-    if (targetElement.dataset && targetElement.dataset.forceVisible === "true") {
-      return;
-    }
-    hideTimeout = setTimeout(function () {
-      targetElement.style.display = "none";
-    }, 500);
-  }
-
-  hoverElement.addEventListener("mouseenter", showWarning);
-  hoverElement.addEventListener("mouseleave", hideWarning);
-  targetElement.addEventListener("mouseenter", function () {
-    clearTimeout(hideTimeout);
-  });
-  targetElement.addEventListener("mouseleave", hideWarning);
-}
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 const ENTER_KEY = 'Enter';
@@ -191,19 +149,15 @@ function markDirtyIfChanged() {
   }
 }
 
-    function debounce(fn, delay) {
-      let timer;
-      return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), delay);
-      };
-    }
+  function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
 
     // Handle fast typing
-    editor.onChange = debounce(() => {
-      markDirtyIfChanged();
-    }, 200);
-  // Handle fast typing and blur using shared top-level helpers
   editor.onChange = debounce(() => {
     markDirtyIfChanged();
   }, 200);
@@ -291,9 +245,9 @@ function saveAllEditors() {
   setErrorMessageVisible(false);
   destroyEditors();
   saveAllValue([{
-      name: "values",
-      value: JSON.stringify(values),
-    }]);
+    name: 'values',
+    value: JSON.stringify(values),
+  }]);
 
   return true;
 }
@@ -311,9 +265,9 @@ function validateNotEmpty(editor, languageIndex) {
 }
 
 /** Placeholder validation:
- * - If all locales are edited → ensure placeholders are consistent across locales.
- * - If only some locales edited → ensure placeholder numbers match the original of this locale.
- */
+* - If all locales are edited → ensure placeholders are consistent across locales.
+* - If only some locales edited → ensure placeholder numbers match the original of this locale.
+*/
 function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expectedPlaceholders }) {
   const newPlaceholders = extractPlaceholders(contents).sort();
 
@@ -331,7 +285,8 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
     };
   }
 
-  const originalPlaceholders = window.cmsOriginalPlaceholders[languageIndex] || [];
+  const originalPlaceholders 
+    window.cmsOriginalPlaceholders[languageIndex] || [];
 
   return {
     valid: arePlaceholderListsEqual(originalPlaceholders, newPlaceholders),
@@ -368,8 +323,8 @@ function getEditorContainer(languageIndex) {
 }
 
 /** Extracts numbered placeholders from the editing content.
- * A placeholder is defined as format {number}, e.g. {0}, {1}
- */
+* A placeholder is defined as format {number}, e.g. {0}, {1}
+*/
 function extractPlaceholders(content) {
   if (!content) {
     return [];
@@ -379,10 +334,10 @@ function extractPlaceholders(content) {
 }
 
 /** Compares two placeholder lists for exact equality.
- * The lists must:
- * - Have the same length
- * - Contain the same elements
- */
+* The lists must:
+* - Have the same length
+* - Contain the same elements
+*/
 function arePlaceholderListsEqual(a, b) {
   if (a.length !== b.length) {
     return false;
@@ -396,16 +351,36 @@ function arePlaceholderListsEqual(a, b) {
 }
 
 function removeNonPrintableChars(str) {
-  return str.replace(/[\u00A0\u0000\u200B]/g, "");
+  return str.replace(/[\u00A0\u0000\u200B]/g, '');
 }
 
 function bindCmsWarning(hoverId, warningId) {
   const hoverElement = document.getElementById(hoverId);
   const targetElement = document.getElementById(warningId);
-  if (!hoverElement || !targetElement) {
-    return;
-  }
-  setupCmsWarning(hoverElement, targetElement);
+  if (!hoverElement || !targetElement) return;
+
+    let hideTimeout;
+
+    function showWarning() {
+      clearTimeout(hideTimeout);
+      targetElement.style.display = "block";
+    }
+
+    function hideWarning() {
+      if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
+        return;
+      }
+      hideTimeout = setTimeout(function() {
+        targetElement.style.display = "none";
+      }, 500);
+    }
+
+    hoverElement.addEventListener("mouseenter", showWarning);
+    hoverElement.addEventListener("mouseleave", hideWarning);
+    targetElement.addEventListener("mouseenter", function() {
+      clearTimeout(hideTimeout);
+    });
+    targetElement.addEventListener("mouseleave", hideWarning);
 }
 
 function setErrorMessageVisible(isVisible) {
@@ -413,8 +388,8 @@ function setErrorMessageVisible(isVisible) {
   if (!element) {
     return;
   }
-  element.dataset.forceVisible = isVisible ? "true" : "false";
-  element.style.display = isVisible ? "block" : "none";
+  element.dataset.forceVisible = isVisible ? 'true' : 'false';
+  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {
@@ -535,9 +510,7 @@ function createFloatingButton(languageIndex, editorId, commandName) {
 }
 
 function updateEditorContent(xhr, status, args) {
-  if (!args) {
-    return;
-  }
+  if (!args) return;
 
   const { langIndex, newContent } = args;
   const editor = window.cmsLiveEditors[langIndex];
@@ -552,23 +525,25 @@ function updateEditorContent(xhr, status, args) {
 }
 
 function showSaveSuccess() {
-  const bar = document.getElementById("content-form:save-success-bar");
+  const bar = document.getElementById('content-form:save-success-ba'");
   if (!bar) {
     return;
-  }
-  bar.classList.add("show");
+  };
+  bar.classList.add('show');
   if (bar.hideTimeout) {
     clearTimeout(bar.hideTimeout);
   }
   bar.hideTimeout = setTimeout(() => {
-    bar.classList.remove("show");
+    bar.classList.remove('show');
   }, 3500);
 }
 
 let pathPanelScrollTop = 0;
 
 function getPathPanel() {
-  return document.querySelector("#content-form\\:path-column .panel");
+  return document.querySelector(
+    '#content-form\\:path-column .panel'
+  );
 }
 
 function savePathPanelScroll() {
