@@ -201,25 +201,15 @@
 
                     <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
                       <p:menuButton value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
-                        buttonStyleClass="w-full mt-3 cms-download-btn">
+                        styleClass="w-full mt-3" buttonStyleClass="cms-download-btn w-full" menuStyleClass="cms-download-menu">
                         <c:forEach items="#{cmsLiveEditorBean.exportOptions}" var="option">
-                        <div>#{option.type}</div>
-                          <p:menuitem value="#{option.label}" icon="#{option.icon}" actionListener="#{cmsLiveEditorBean.exportCms(option.type)}"
-                            ajax="false" onstart="initCmsWarnings();"
-                            onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                            <p:fileDownload value="#{cmsLiveEditorBean.getFile(option.type)}" />
-                          </p:menuitem>
-                        </c:forEach> 
-
-                        <!-- <ui:repeat value="#{cmsLiveEditorBean.exportOptions}" var="option">
                           <p:menuitem value="#{option.label}" icon="#{option.icon}"
                             actionListener="#{cmsLiveEditorBean.exportCms(option.type)}" ajax="false"
                             onstart="initCmsWarnings();"
                             onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-
                             <p:fileDownload value="#{cmsLiveEditorBean.getFile(option.type)}" />
                           </p:menuitem>
-                        </ui:repeat> -->
+                        </c:forEach>
                       </p:menuButton>
 
                       <p:commandButton id="edit-button" value="#{ivy.cms.co('/Labels/Edit')}" icon="pi pi-pencil"

@@ -111,16 +111,20 @@ public class CmsLiveEditorBean implements Serializable {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
     pmvCmsMap = new HashMap<>();
-    exportOptions = List.of(new ExportOption("XLSX", "pi pi-save", ExportType.EXCEL),
-        new ExportOption("YAML", "pi pi-file", ExportType.YAML));
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
           .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
     }
-  
+
+    initExportOptions();
     onAppChange();
     initLocales();
+  }
+
+  private void initExportOptions() {
+    exportOptions = List.of(new ExportOption(Ivy.cm().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
+        new ExportOption(Ivy.cm().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML));
   }
 
   public void exportCms(ExportType type) {

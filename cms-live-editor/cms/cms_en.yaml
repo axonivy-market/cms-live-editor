@@ -18,6 +18,7 @@ Labels:
   EditCmsInformation: Edit CMS Information
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
+  ExcelFormat: Excel (.xlsx)
   FileCannotBeTranslated: This CMS can't be translated since it is file type
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.
@@ -49,6 +50,7 @@ Labels:
   Translations: Translations
   UndoChanges: Undo changes
   Warning: Warning
+  YamlFormat: YAML (.yaml)
 Processes:
   CMSLiveEditor:
     description: Use this process to translate the current CMS and export it to an Excel file.

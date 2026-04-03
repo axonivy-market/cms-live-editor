@@ -6,6 +6,8 @@ import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +38,11 @@ import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
+  private static final String SLASH = "/";
+  private static final String DOUBLE_QUOTE = "\"";
+  private static final List<String> YAML_PREFIXES = List.of(SPACE, HYPHEN, "?", ":");
+  private static final List<String> YAML_SPECIALS = List.of(":", "#", "\t", "\\", DOUBLE_QUOTE);
+
   /**
    * Unified export method for Excel and YAML
    */
@@ -150,96 +157,136 @@ public class CmsFileUtils {
   private static Map<String, String> collectYamlFiles(String projectName, Map<String, PmvCms> pmvCmsMap) {
     Map<String, String> files = new TreeMap<>();
     if (StringUtils.isBlank(projectName)) {
-      pmvCmsMap.forEach((pmvName, pmvCms) -> addYamlFilesForProject(files, pmvName, pmvCms, true));
+      pmvCmsMap.forEach((pmvName, pmvCms) -> addCmsYamlFilesToArchive(files, pmvName, pmvCms, true));
     } else {
-      addYamlFilesForProject(files, projectName, pmvCmsMap.get(projectName), false);
+      addCmsYamlFilesToArchive(files, projectName, pmvCmsMap.get(projectName), false);
     }
     return files;
   }
 
-  private static void addYamlFilesForProject(Map<String, String> files, String projectName, PmvCms pmvCms,
-      boolean includeProjectFolder) {
-    if (pmvCms == null)
+  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, String projectName, PmvCms cmsData,
+      boolean includeProjectFolderInPath) {
+    if (cmsData == null)
       return;
 
-    List<Locale> locales = pmvCms.getLocales().stream().filter(l -> StringUtils.isNotBlank(l.getLanguage())).toList();
+    List<Locale> validLocales =
+        cmsData.getLocales().stream().filter(locale -> StringUtils.isNotBlank(locale.getLanguage())).toList();
 
-    for (Locale locale : locales) {
-      Map<String, String> flat = new HashMap<>();
-      for (Cms cmsEntry : pmvCms.getCmsList()) {
+    for (Locale locale : validLocales) {
+      Map<String, String> uriToContentMap = new HashMap<>();
+
+      for (Cms cmsEntry : cmsData.getCmsList()) {
         if (cmsEntry == null || cmsEntry.isFile())
           continue;
-        flat.put(cmsEntry.getUri(), getContentValue(cmsEntry, locale.getLanguage()));
+
+        uriToContentMap.put(cmsEntry.getUri(), getContentValue(cmsEntry, locale.getLanguage()));
       }
-      String yaml = buildYaml(flat);
+
+      String yamlContent = convertFlatMapToYaml(uriToContentMap);
       String fileName = "cms_" + locale.getLanguage() + ".yaml";
-      String zipEntryName = includeProjectFolder ? projectName + "/" + fileName : fileName;
-      files.put(zipEntryName, yaml);
+
+      String archiveEntryPath = includeProjectFolderInPath ? projectName + SLASH + fileName : fileName;
+
+      archiveFiles.put(archiveEntryPath, yamlContent);
     }
   }
 
-  private static String buildYaml(Map<String, String> flatMap) {
-    Map<String, Object> tree = new TreeMap<>();
-    flatMap.forEach((key, value) -> insert(tree, key, value));
+  private static String convertFlatMapToYaml(Map<String, String> flatKeyValueMap) {
+    Map<String, Object> hierarchicalMap = new TreeMap<>();
+    flatKeyValueMap.forEach((key, value) -> insertPathIntoTree(hierarchicalMap, key, value));
 
-    StringBuilder yaml = new StringBuilder();
-    renderYaml(tree, yaml, 0);
-    return yaml.toString();
+    StringBuilder yamlBuilder = new StringBuilder();
+    buildYamlString(hierarchicalMap, yamlBuilder, 0);
+    return yamlBuilder.toString();
   }
 
   @SuppressWarnings("unchecked")
-  private static void insert(Map<String, Object> root, String key, String value) {
-    String normalized = key;
-    if (StringUtils.isNotEmpty(normalized) && normalized.startsWith("/")) {
-      normalized = normalized.substring(1);
+  private static void insertPathIntoTree(Map<String, Object> rootMap, String path, String value) {
+    String normalizedPath = path;
+
+    if (StringUtils.isNotEmpty(normalizedPath) && normalizedPath.startsWith(SLASH)) {
+      normalizedPath = normalizedPath.substring(1);
     }
-    if (StringUtils.isBlank(normalized))
+
+    if (StringUtils.isBlank(normalizedPath))
       return;
 
-    String[] parts = normalized.split("/");
-    Map<String, Object> current = root;
-    for (int i = 0; i < parts.length; i++) {
-      if (i == parts.length - 1) {
-        current.put(parts[i], value);
+    String[] pathSegments = normalizedPath.split(SLASH);
+    Map<String, Object> currentNode = rootMap;
+
+    for (int i = 0; i < pathSegments.length; i++) {
+      String segment = pathSegments[i];
+
+      if (i == pathSegments.length - 1) {
+        currentNode.put(segment, value);
       } else {
-        current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new TreeMap<>());
+        currentNode = (Map<String, Object>) currentNode.computeIfAbsent(segment, key -> new TreeMap<>());
       }
     }
   }
 
   @SuppressWarnings("unchecked")
-  private static void renderYaml(Map<String, Object> map, StringBuilder yaml, int indent) {
-    String space = "  ".repeat(indent);
-    for (var entry : map.entrySet()) {
-      if (entry.getValue() instanceof Map) {
-        yaml.append(space).append(entry.getKey()).append(":\n");
-        renderYaml((Map<String, Object>) entry.getValue(), yaml, indent + 1);
+  private static void buildYamlString(Map<String, Object> currentMap, StringBuilder yamlBuilder, int indentLevel) {
+    String indentSpaces = generateIndent(indentLevel);
+
+    for (var entry : currentMap.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value instanceof Map<?, ?> nestedMap) {
+        yamlBuilder.append(indentSpaces).append(key).append(":\n");
+        buildYamlString((Map<String, Object>) nestedMap, yamlBuilder, indentLevel + 1);
       } else {
-        String value = entry.getValue() == null ? "" : entry.getValue().toString();
-        if (value.contains("\n") || value.contains("\r")) {
-          yaml.append(space).append(entry.getKey()).append(": |-").append("\n");
-          String blockIndent = "  ".repeat(indent + 1);
-          for (String line : value.replace("\r\n", "\n").replace("\r", "\n").split("\n", -1)) {
-            yaml.append(blockIndent).append(line).append("\n");
+        String stringValue = value == null ? EMPTY : value.toString();
+
+        if (containsLineBreak(stringValue)) {
+          yamlBuilder.append(indentSpaces).append(key).append(": |-").append(LF);
+
+          String blockIndent = generateIndent(indentLevel + 1);
+          for (String line : splitIntoLines(stringValue)) {
+            yamlBuilder.append(blockIndent).append(line).append(LF);
           }
         } else {
-          yaml.append(space).append(entry.getKey()).append(": ").append(escape(value)).append("\n");
+          yamlBuilder.append(indentSpaces).append(key).append(": ").append(escapeYamlValue(stringValue)).append(LF);
         }
       }
     }
   }
 
-  private static String escape(String value) {
+  private static boolean containsLineBreak(String value) {
+    return value.contains(LF) || value.contains(CR);
+  }
+
+  private static String[] splitIntoLines(String value) {
+    String normalized = value.replace("\r\n", LF).replace(CR, LF);
+
+    return normalized.split(LF, INDEX_NOT_FOUND);
+  }
+
+  private static String generateIndent(int indentLevel) {
+    return StringUtils.repeat(SPACE, indentLevel);
+  }
+
+  private static String escapeYamlValue(String value) {
     if (value == null)
       return "\"\"";
-    boolean needsQuoting = value.isEmpty() || value.startsWith(" ") || value.endsWith(" ") || value.startsWith("-")
-        || value.startsWith("?") || value.startsWith(":") || value.contains(":") || value.contains("#")
-        || value.contains("\t") || value.contains("\\") || value.contains("\"");
-    if (needsQuoting) {
-      String escaped = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t");
-      return "\"" + escaped + "\"";
+
+    if (!requiresQuoting(value))
+      return value;
+
+    return DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
+  }
+
+  private static boolean requiresQuoting(String value) {
+    if (value.isEmpty() || value.endsWith(SPACE) || YAML_PREFIXES.stream().anyMatch(value::startsWith)) {
+      return true;
     }
-    return value;
+
+    return YAML_SPECIALS.stream().anyMatch(value::contains);
+  }
+
+  private static String escapeYamlSpecialCharacters(String value) {
+    return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t");
   }
 
   private static StreamedContent convertToZipYaml(String projectName, String applicationName,

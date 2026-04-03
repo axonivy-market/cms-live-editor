@@ -227,6 +227,10 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 }
 
 /* Common icon styling */
+.cms-download-menu {
+  width: 250px;
+}
+
 .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
   .cms-cancel-button span.ui-icon, .cms-save-button span.ui-icon,
   .cms-download-btn span.ui-icon, .cms-edit-button span.ui-icon,
