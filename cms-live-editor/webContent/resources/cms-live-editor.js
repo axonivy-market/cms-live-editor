@@ -26,20 +26,20 @@ function markDirty(editor, languageIndex) {
     window.cmsDirtyEditors.add(languageIndex);
     setValueChanged([
       { name: "languageIndex", value: languageIndex },
-      { name: "content", value: currentContent },
+      { name: "content", value: currentContent }
     ]);
   }
 }
 
 /** Create a clone of a toolbar button for floating placement */
-function createCloneFromBtn(btn, sun, commandName) {
+function createCloneFromBtn(btn, sunEditor, commandName) {
   const clone = btn.cloneNode(true);
   clone.classList.add("cms-floating-btn");
 
   clone.addEventListener("click", function (ev) {
     ev.preventDefault();
     try {
-      const current = findToolbarBtnFor(sun, commandName);
+      const current = findToolbarBtnFor(sunEditor, commandName);
       if (current) {
         current.click();
       } else {
@@ -48,7 +48,7 @@ function createCloneFromBtn(btn, sun, commandName) {
     } catch (e) {
       // ignore: click execution is best-effort
     }
-    setTimeout(() => refreshClone(clone, sun, commandName), 50);
+    setTimeout(() => refreshClone(clone, sunEditor, commandName), 50);
   });
 
   // remove title attributes to avoid tooltip on the clone
@@ -64,8 +64,8 @@ function createCloneFromBtn(btn, sun, commandName) {
 }
 
 /** Refresh a previously created floating clone to reflect the toolbar button state */
-function refreshClone(currentClone, sun, commandName) {
-  const btn = findToolbarBtnFor(sun, commandName);
+function refreshClone(currentClone, sunEditor, commandName) {
+  const btn = findToolbarBtnFor(sunEditor, commandName);
   if (!btn || !currentClone) {
     return;
   }
@@ -150,10 +150,10 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   const editor = SUNEDITOR.create(textarea, {
     buttonList: isHtml ? FULL_TOOLBAR : ["fullScreen"],
     attributesWhitelist: {
-      all: "style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target",
+      all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
-    defaultStyle: "font-family: Inter;",
-    font: ["Inter", "Arial", "Tahoma", "Courier New", "Times New Roman", "Verdana", "Georgia", "Trebuchet MS", "Impact", "Comic Sans MS"],
+    defaultStyle: 'font-family: Inter;',
+    font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
   restrictActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
@@ -174,14 +174,43 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     window.cmsInitialContents[languageIndex] = "";
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
+
+function markDirtyIfChanged() {
+  const currentContent = editor.getContents();
+  const originalContents = window.cmsInitialContents[languageIndex] || '';
+  if (currentContent === originalContents) {
+    // Back to original -> not dirty anymore
+    window.cmsDirtyEditors.delete(languageIndex);
+    setEditorError(languageIndex, false);
+  } else {
+    window.cmsDirtyEditors.add(languageIndex);
+    setValueChanged([
+      { name: 'languageIndex', value: languageIndex },
+      { name: 'content', value: currentContent }
+    ]);
+  }
+}
+
+    function debounce(fn, delay) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    // Handle fast typing
+    editor.onChange = debounce(() => {
+      markDirtyIfChanged();
+    }, 200);
   // Handle fast typing and blur using shared top-level helpers
   editor.onChange = debounce(() => {
-    markDirty(editor, languageIndex);
+    markDirtyIfChanged();
   }, 200);
 
   // Handle quick CMS switching (click outside editor)
   editor.onBlur = () => {
-    markDirty(editor, languageIndex);
+    markDirtyIfChanged();
   };
 }
 
@@ -215,7 +244,8 @@ function saveAllEditors() {
   }
 
   const editorKeys = Object.keys(window.cmsLiveEditors || {});
-  const allLocalesEdited = editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
+  const allLocalesEdited =
+    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
   const values = [];
   let placeholderError = false;
   let hasAnyError = false;
@@ -234,7 +264,7 @@ function saveAllEditors() {
       languageIndex,
       contents,
       allLocalesEdited,
-      expectedPlaceholders,
+      expectedPlaceholders
     });
 
     if (!validationResult.valid) {
@@ -249,7 +279,7 @@ function saveAllEditors() {
 
     values.push({
       languageIndex: Number(languageIndex),
-      contents: contents,
+      contents: contents
     });
   }
 
@@ -260,12 +290,10 @@ function saveAllEditors() {
 
   setErrorMessageVisible(false);
   destroyEditors();
-  saveAllValue([
-    {
+  saveAllValue([{
       name: "values",
       value: JSON.stringify(values),
-    },
-  ]);
+    }]);
 
   return true;
 }
@@ -293,13 +321,13 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
     if (expectedPlaceholders === null) {
       return {
         valid: true,
-        expectedPlaceholders: newPlaceholders,
+        expectedPlaceholders: newPlaceholders
       };
     }
 
     return {
       valid: arePlaceholderListsEqual(expectedPlaceholders, newPlaceholders),
-      expectedPlaceholders,
+      expectedPlaceholders
     };
   }
 
@@ -307,7 +335,7 @@ function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expec
 
   return {
     valid: arePlaceholderListsEqual(originalPlaceholders, newPlaceholders),
-    expectedPlaceholders,
+    expectedPlaceholders
   };
 }
 
@@ -317,7 +345,7 @@ function setEditorError(languageIndex, hasError) {
     return;
   }
 
-  container.classList.toggle("cms-editor-error", hasError);
+  container.classList.toggle('cms-editor-error', hasError);
 }
 
 function getEditorContainer(languageIndex) {
@@ -333,8 +361,10 @@ function getEditorContainer(languageIndex) {
 
   // SunEditor creates .sun-editor next to textarea
   return (
-    (textarea.nextElementSibling?.classList.contains("sun-editor") ? textarea.nextElementSibling : textarea.parentElement?.querySelector(".sun-editor")) || null
-  );
+    textarea.nextElementSibling?.classList.contains('sun-editor')
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector('.sun-editor')
+  ) || null;
 }
 
 /** Extracts numbered placeholders from the editing content.
@@ -441,11 +471,11 @@ function safeLower(s) {
 }
 
 /** Find a toolbar button inside a SunEditor instance */
-function findToolbarBtnFor(sun, commandName) {
-  let btn = sun.querySelector(`.se-toolbar .se-btn[data-command='${commandName}']`);
+function findToolbarBtnFor(sunEditor, commandName) {
+  let btn = sunEditor.querySelector(`.se-toolbar .se-btn[data-command='${commandName}']`);
   if (btn) return btn;
   const lowerCmd = safeLower(commandName);
-  const buttons = Array.from(sun.querySelectorAll(".se-toolbar .se-btn"));
+  const buttons = Array.from(sunEditor.querySelectorAll(".se-toolbar .se-btn"));
   return (
     buttons.find((b) => {
       const title = safeLower(b.getAttribute("title"));
@@ -460,31 +490,31 @@ function createFloatingButton(languageIndex, editorId, commandName) {
   if (!textarea) {
     return;
   }
-  const sun =
+  const sunEditor =
     textarea.nextElementSibling && textarea.nextElementSibling.classList.contains("sun-editor")
       ? textarea.nextElementSibling
       : textarea.parentElement?.querySelector(".sun-editor");
-  if (!sun) {
+  if (!sunEditor) {
     return;
   }
 
   // ensure editor container is positioned for absolute children
-  if (getComputedStyle(sun).position === "static") {
-    sun.style.position = "relative";
+  if (getComputedStyle(sunEditor).position === "static") {
+    sunEditor.style.position = "relative";
   }
 
-  const toolbar = sun.querySelector(".se-toolbar");
+  const toolbar = sunEditor.querySelector(".se-toolbar");
   if (!toolbar) {
     return;
   }
 
-  const originalBtn = findToolbarBtnFor(sun, commandName);
+  const originalBtn = findToolbarBtnFor(sunEditor, commandName);
   if (!originalBtn) {
     return;
   }
-  let clone = createCloneFromBtn(originalBtn, sun, commandName);
-  const editable = sun.querySelector(".sun-editor-editable") || sun.querySelector(".se-editable");
-  const appendTarget = editable || sun;
+  let clone = createCloneFromBtn(originalBtn, sunEditor, commandName);
+  const editable = sunEditor.querySelector(".sun-editor-editable") || sunEditor.querySelector(".se-editable");
+  const appendTarget = editable || sunEditor;
   appendTarget.appendChild(clone);
   window.cmsClonedButtons[languageIndex] = clone;
 
@@ -498,7 +528,7 @@ function createFloatingButton(languageIndex, editorId, commandName) {
   }
 
   const observer = new MutationObserver(() => {
-    refreshClone(clone, sun, commandName);
+    refreshClone(clone, sunEditor, commandName);
   });
   observer.observe(toolbar, { childList: true, subtree: true });
   clone._cmsToolbarObserver = observer;
