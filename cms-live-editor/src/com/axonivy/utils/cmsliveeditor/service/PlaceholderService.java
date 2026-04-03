@@ -6,6 +6,8 @@ import java.text.Format;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
@@ -55,15 +57,48 @@ public class PlaceholderService {
         .max(Comparator.comparingInt(PlaceholderService::countArgumentNumbers))
         .orElse(null);
 
-    if (originalValue == null || originalValue.isBlank()) {
+    // CASE 1: original has NO placeholders → compare among edited locales
+    if (originalValue == null || countArgumentNumbers(originalValue) <= 0) {
+      return validateAmongEditedLocales(cmsLocales);
+    }
+
+    // CASE 2: original has placeholders
+    return cmsLocales.entrySet().stream()
+        .filter(localeEntry -> isEdited(localeEntry.getValue()))
+        .filter(localeEntry -> !areMessagePatternsCompatible(
+            originalValue,
+            localeEntry.getValue().getNewContent()))
+        .map(Map.Entry::getKey)
+        .toList();
+  }
+
+  private List<String> validateAmongEditedLocales(Map<String, SavedCms> cmsLocales) {
+    List<Map.Entry<String, SavedCms>> editedLocales = cmsLocales.entrySet().stream()
+        .filter(entry -> isEdited(entry.getValue()))
+        .toList();
+
+    if (editedLocales.size() <= 1) {
       return new ArrayList<>();
     }
 
-    return cmsLocales.entrySet().stream()
-        .filter(localeEntry -> isEdited(localeEntry.getValue()))
-        .filter(localeEntry -> !areMessagePatternsCompatible(originalValue, localeEntry.getValue().getNewContent()))
+    // Use first edited locale as baseline
+    String base = editedLocales.get(0).getValue().getNewContent();
+
+    return editedLocales.stream()
+        .filter(entry -> !areMessagePatternsCompatible(base, entry.getValue().getNewContent()))
         .map(Map.Entry::getKey)
         .toList();
+  }
+
+  private Set<Integer> extractArgumentIndices(String pattern) {
+    Set<Integer> indices = new HashSet<>();
+
+    Matcher matcher = Pattern.compile("\\{(\\d+)").matcher(pattern);
+    while (matcher.find()) {
+      indices.add(Integer.parseInt(matcher.group(1)));
+    }
+
+    return indices;
   }
 
   /**
@@ -78,6 +113,13 @@ public class PlaceholderService {
    */
   public boolean areMessagePatternsCompatible(String originalValue, String newValue) {
     try {
+      Set<Integer> originalArgs = extractArgumentIndices(originalValue);
+      Set<Integer> newArgs = extractArgumentIndices(newValue);
+
+      if (!originalArgs.equals(newArgs)) {
+        return false;
+      }
+
       MessageFormat originalMessageFormat = new MessageFormat(originalValue, Locale.ENGLISH);
       MessageFormat newMessageFormat = new MessageFormat(newValue, Locale.ENGLISH);
 
