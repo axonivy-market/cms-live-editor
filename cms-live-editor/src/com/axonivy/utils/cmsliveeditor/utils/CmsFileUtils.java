@@ -1,7 +1,6 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
-import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTENSION_FORMAT;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,9 +34,6 @@ import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
-
-
-
   public static StreamedContent writeCmsToZipStreamedContent(String projectName, String applicationName,
       Map<String, PmvCms> cmsPmvMap) throws Exception {
     var workbooks = new HashMap<String, Workbook>();
@@ -80,31 +75,6 @@ public class CmsFileUtils {
           .contentType(ZIP_CONTENT_TYPE)
           .stream(() -> new ByteArrayInputStream(zipBytes))
           .build();
-    }
-  }
-
-  public static StreamedContent writeCmsToExcel(String projectName, Map<String, PmvCms> cmsPmvMap)
-      throws Exception {
-    if (StringUtils.isEmpty(projectName)) {
-      return null;
-    }
-
-    PmvCms pmvCms = cmsPmvMap.get(projectName);
-    var workbook = createWorkbookFromPmvCms(pmvCms);
-    if (workbook == null) {
-      return null;
-    }
-
-    try {
-      byte[] bytes = convertWorkbookToByteArray(workbook);
-      var fileName = String.format(EXCEL_FILE_NAME, projectName);
-      return DefaultStreamedContent.builder()
-          .name(fileName)
-          .contentType(EXCEL_CONTENT_TYPE)
-          .stream(() -> new ByteArrayInputStream(bytes))
-          .build();
-    } finally {
-      closeWorkbook(workbook);
     }
   }
 

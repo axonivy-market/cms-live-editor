@@ -16,8 +16,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +27,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -68,7 +64,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.ivyteam.config.IConfig;
 import ch.ivyteam.ivy.application.ActivityState;
 import ch.ivyteam.ivy.application.IActivity;
 import ch.ivyteam.ivy.application.IApplication;
@@ -98,7 +93,6 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedProjectName;
   private String searchKey;
   private StreamedContent fileDownload;
-  private StreamedContent excelFileDownload;
   private StreamedContent yamlFileDownload;
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
@@ -535,12 +529,7 @@ public class CmsLiveEditorBean implements Serializable {
     String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
     this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
   }
-  
-  public void handleBeforeDownloadExcelFile() throws Exception {
-    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.excelFileDownload = CmsFileUtils.writeCmsToExcel(selectedProjectName, this.pmvCmsMap);
-  }
-  
+
   public void exportCmsToYaml() {
     try {
       String projectName = StringUtils.isBlank(selectedProjectName)
@@ -861,16 +850,8 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
-  public StreamedContent getExcelFileDownload() {
-    return excelFileDownload;
-  }
-
   public StreamedContent getYamlFileDownload() {
     return yamlFileDownload;
-  }
-
-  public void setExcelFileDownload(StreamedContent excelFileDownload) {
-    this.excelFileDownload = excelFileDownload;
   }
 
 }

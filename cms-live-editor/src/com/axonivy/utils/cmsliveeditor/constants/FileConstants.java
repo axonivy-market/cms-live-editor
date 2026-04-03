@@ -8,7 +8,6 @@ public class FileConstants {
   public static final String SHEET_NAME = "cms";
   public static final String URI_HEADER = "Uri";
   public static final String ZIP_CONTENT_TYPE = "application/zip";
-  public static final String EXCEL_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   public static final String EXCEL_FILE_NAME = "%s.xlsx";
   public static final String ZIP_FILE_NAME = "%s_%s_%s.zip";
   public static final String CMS_FILE_FORMAT = "%s_%s.%s";

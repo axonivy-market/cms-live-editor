@@ -209,20 +209,14 @@
 
                       <p:menuButton value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
                         buttonStyleClass="w-full mt-3 cms-download-btn">
-                        <p:menuitem value="ZIP" actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
+                        <p:menuitem value="XLSX" actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
                           icon="pi pi-save" onstart="initCmsWarnings();" ajax="false"
                           onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
                           <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
-                          </p:menuitem>
-                        <p:menuitem value="XLSX" icon="pi pi-refresh"
-                          actionListener="#{cmsLiveEditorBean.handleBeforeDownloadExcelFile}" ajax="false"
-                          disabled="#{empty cmsLiveEditorBean.selectedProjectName}"
-                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" >
-                           <p:fileDownload value="#{cmsLiveEditorBean.excelFileDownload}" />
-                          </p:menuitem>
-                        <p:menuitem value="YAML" icon="pi pi-times" actionListener="#{cmsLiveEditorBean.exportCmsToYaml}"
-                          ajax="false"
-                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));" >
+                        </p:menuitem>
+                        <p:menuitem value="YAML" icon="pi pi-times"
+                          actionListener="#{cmsLiveEditorBean.exportCmsToYaml}" ajax="false"
+                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
                           <p:fileDownload value="#{cmsLiveEditorBean.yamlFileDownload}" />
                         </p:menuitem>
 
