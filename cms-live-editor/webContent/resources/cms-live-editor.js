@@ -285,7 +285,7 @@ function validatePlaceholders({languageIndex, contents, allLocalesEdited, expect
     };
   }
 
-  const originalPlaceholders 
+  const originalPlaceholders =
     window.cmsOriginalPlaceholders[languageIndex] || [];
 
   return {
