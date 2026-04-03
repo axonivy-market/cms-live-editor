@@ -58,7 +58,7 @@
   position: absolute !important;
   right: 8px;
   bottom: 8px;
-  z-index: 9999;
+  z-index: 1;
   margin: 0;
   padding: 6px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12);

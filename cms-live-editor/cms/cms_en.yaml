@@ -17,7 +17,7 @@ Labels:
   Edit: Edit
   EmptyContent: The content is empty. Click here to edit it.
   Error: Error
-  FieldHasNotBeenSaveMeassge: 'The following fields have not been saved yet:'
+  FieldHasNotBeenSavedMessage: 'The following fields have not been saved yet:'
   FileCannotBeTranslated: This CMS can't be translated since it is file type
   InvalidFileSizeMessage: The file size must not be larger than {0} MB.
   InvalidFileTypeMessage: The file type is invalid.

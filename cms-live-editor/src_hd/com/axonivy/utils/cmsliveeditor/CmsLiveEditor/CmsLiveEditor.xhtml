@@ -376,8 +376,8 @@
         </div>
       </p:dialog>
 
-      <p:dialog id="contentNotBeenSaveDlg" widgetVar="contentNotBeenSaveDlg" modal="true" closable="true" draggable="false"
-        resizable="false" showHeader="true" styleClass="custom-message-dialog" width="420">
+      <p:dialog id="content-not-been-save-dlg" widgetVar="content-not-been-save-dlg" modal="true" closable="true"
+        draggable="false" resizable="false" showHeader="true" styleClass="custom-message-dialog" width="420">
         <f:facet name="header">
           <span class="align-items-center gap-2">
             <i class="si-road-sign-warning" />
@@ -386,7 +386,7 @@
         </f:facet>
       
         <div class="mb-3 ml-4">
-          <h:outputText value="#{ivy.cms.co('/Labels/FieldHasNotBeenSaveMeassge')}"/>
+          <h:outputText value="#{ivy.cms.co('/Labels/FieldHasNotBeenSavedMessage')}" />
           <h:outputText value="#{cmsLiveEditorBean.dialogDetail}" escape="false" />
         </div>
       </p:dialog>
