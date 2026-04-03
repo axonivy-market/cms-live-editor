@@ -525,7 +525,7 @@ function updateEditorContent(xhr, status, args) {
 }
 
 function showSaveSuccess() {
-  const bar = document.getElementById('content-form:save-success-ba'");
+  const bar = document.getElementById('content-form:save-success-bar');
   if (!bar) {
     return;
   };
