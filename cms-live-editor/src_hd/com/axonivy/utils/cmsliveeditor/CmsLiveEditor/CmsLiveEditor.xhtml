@@ -200,7 +200,7 @@
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
-                      <p:menuButton value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
+                      <p:menuButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
                         styleClass="w-full mt-3" buttonStyleClass="cms-download-btn w-full" menuStyleClass="cms-download-menu">
                         <c:forEach items="#{cmsLiveEditorBean.exportOptions}" var="option">
                           <p:menuitem value="#{option.label}" icon="#{option.icon}"
