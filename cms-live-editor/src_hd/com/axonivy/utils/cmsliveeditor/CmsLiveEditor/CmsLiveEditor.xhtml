@@ -3,7 +3,8 @@
   xmlns:h="http://xmlns.jcp.org/jsf/html"
   xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
   xmlns:ic="http://ivyteam.ch/jsf/component"
-  xmlns:p="http://primefaces.org/ui">
+  xmlns:p="http://primefaces.org/ui"
+  xmlns:c="http://java.sun.com/jsp/jstl/core">
 <h:body>
   <ui:composition template="/layouts/frame-10-full-width.xhtml">
     <ui:define name="title">#{ivy.cms.co('/Labels/CMSLiveEditor/name')}</ui:define>
@@ -199,29 +200,27 @@
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
-                      <!-- <p:commandButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}"
-                        icon="pi pi-download" ajax="false"
-                        actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
-                        styleClass="w-full mt-3 cms-download-btn" onstart="initCmsWarnings();"
-                        onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                        <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
-                      </p:commandButton> -->
-
                       <p:menuButton value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
                         buttonStyleClass="w-full mt-3 cms-download-btn">
-                        <p:menuitem value="XLSX" actionListener="#{cmsLiveEditorBean.handleBeforeDownloadFile}"
-                          icon="pi pi-save" onstart="initCmsWarnings();" ajax="false"
-                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                          <p:fileDownload value="#{cmsLiveEditorBean.fileDownload}" />
-                        </p:menuitem>
-                        <p:menuitem value="YAML" icon="pi pi-times"
-                          actionListener="#{cmsLiveEditorBean.exportCmsToYaml}" ajax="false"
-                          onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                          <p:fileDownload value="#{cmsLiveEditorBean.yamlFileDownload}" />
-                        </p:menuitem>
+                        <c:forEach items="#{cmsLiveEditorBean.exportOptions}" var="option">
+                        <div>#{option.type}</div>
+                          <p:menuitem value="#{option.label}" icon="#{option.icon}" actionListener="#{cmsLiveEditorBean.exportCms(option.type)}"
+                            ajax="false" onstart="initCmsWarnings();"
+                            onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
+                            <p:fileDownload value="#{cmsLiveEditorBean.getFile(option.type)}" />
+                          </p:menuitem>
+                        </c:forEach> 
 
+                        <!-- <ui:repeat value="#{cmsLiveEditorBean.exportOptions}" var="option">
+                          <p:menuitem value="#{option.label}" icon="#{option.icon}"
+                            actionListener="#{cmsLiveEditorBean.exportCms(option.type)}" ajax="false"
+                            onstart="initCmsWarnings();"
+                            onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
+
+                            <p:fileDownload value="#{cmsLiveEditorBean.getFile(option.type)}" />
+                          </p:menuitem>
+                        </ui:repeat> -->
                       </p:menuButton>
-
 
                       <p:commandButton id="edit-button" value="#{ivy.cms.co('/Labels/Edit')}" icon="pi pi-pencil"
                         process="@this" update="cms-columns" oncomplete="initCmsWarnings(); restorePathPanelScroll();"

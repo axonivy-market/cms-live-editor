@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,8 +47,10 @@ import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
+import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.model.ExportOption;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
@@ -103,12 +104,15 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-
+  private List<ExportOption> exportOptions;
+  
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
     pmvCmsMap = new HashMap<>();
+    exportOptions = List.of(new ExportOption("XLSX", "pi pi-save", ExportType.EXCEL),
+        new ExportOption("YAML", "pi pi-file", ExportType.YAML));
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
@@ -118,6 +122,25 @@ public class CmsLiveEditorBean implements Serializable {
     onAppChange();
     initLocales();
   }
+
+  public void exportCms(ExportType type) {
+      try {
+        String applicationName = currentApplicationName();
+          switch (type) {
+          case EXCEL -> fileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+          case YAML -> yamlFileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+          }
+      } catch (Exception ex) {
+          Ivy.log().error("CMS export failed", ex);
+      }
+  }
+  
+  public StreamedContent getFile(ExportType type) {
+    return switch (type) {
+        case EXCEL -> fileDownload;
+        case YAML -> yamlFileDownload;
+    };
+}
 
   public void writeCmsToApplication() {
     isEditableCms = false;
@@ -525,161 +548,8 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void handleBeforeDownloadFile() throws Exception {
-    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
-  }
-
-  public void exportCmsToYaml() {
-    try {
-      String projectName = StringUtils.isBlank(selectedProjectName)
-          ? Ivy.cms().co("/Labels/AllProjects")
-          : selectedProjectName;
-
-      Map<String, String> files = new TreeMap<>();
-
-      if (StringUtils.isBlank(selectedProjectName)) {
-        // Export all projects: keep values separated per project (like ZIP export)
-        for (var entry : pmvCmsMap.entrySet()) {
-          String pmvName = entry.getKey();
-          PmvCms pmvCms = entry.getValue();
-          addYamlFilesForProject(files, pmvName, pmvCms, true);
-        }
-      } else {
-        PmvCms pmvCms = pmvCmsMap.get(selectedProjectName);
-        if (pmvCms != null) {
-          addYamlFilesForProject(files, selectedProjectName, pmvCms, false);
-        }
-      }
-
-      String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-      this.yamlFileDownload = CmsFileUtils.writeCmsToZipStreamedContent(
-          String.format("%s_%s_%s_yaml.zip", Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName),
-          files);
-    } catch (Exception e) {
-      Ivy.log().error("Failed to export CMS to YAML", e);
-      showDialog(Ivy.cms().co("/Labels/Error"), e.getMessage());
-    }
-  }
-
-  private void addYamlFilesForProject(Map<String, String> files, String projectName, PmvCms pmvCms,
-      boolean includeProjectFolder) {
-    if (pmvCms == null) {
-      return;
-    }
-
-    List<Locale> locales = pmvCms.getLocales().stream().filter(l -> isNotBlank(l.getLanguage())).toList();
-    for (Locale locale : locales) {
-      Map<String, String> flat = new HashMap<>();
-
-      for (Cms cmsEntry : pmvCms.getCmsList()) {
-        if (cmsEntry == null || cmsEntry.isFile()) {
-          continue;
-        }
-        String value = cmsEntry.getContents().stream()
-            .filter(c -> c != null && locale.equals(c.getLocale()))
-            .findFirst()
-            .map(CmsContent::getContent)
-            .orElse(StringUtils.EMPTY);
-        flat.put(cmsEntry.getUri(), value);
-      }
-
-      String yaml = buildYaml(flat);
-      String fileName = "cms_" + locale.getLanguage() + ".yaml";
-      String zipEntryName = includeProjectFolder ? projectName + "/" + fileName : fileName;
-      files.put(zipEntryName, yaml);
-    }
-  }
-  
-  private String buildYaml(Map<String, String> flatMap) {
-    Map<String, Object> tree = new TreeMap<>(); // sorted luôn
-
-    for (var entry : flatMap.entrySet()) {
-      insert(tree, entry.getKey(), entry.getValue());
-    }
-
-    StringBuilder yaml = new StringBuilder();
-    renderYaml(tree, yaml, 0);
-
-    return yaml.toString();
-  }
-  
-  @SuppressWarnings("unchecked")
-  private void insert(Map<String, Object> root, String key, String value) {
-    // CMS URIs are slash-separated (e.g. /Labels/Foo/Bar)
-    String normalized = StringUtils.removeStart(key, "/");
-    if (StringUtils.isBlank(normalized)) {
-      return;
-    }
-    String[] parts = normalized.split("/");
-    Map<String, Object> current = root;
-
-    for (int i = 0; i < parts.length; i++) {
-      if (i == parts.length - 1) {
-        current.put(parts[i], value);
-      } else {
-        current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new TreeMap<>());
-      }
-    }
-  }
-  
-  @SuppressWarnings("unchecked")
-  private void renderYaml(Map<String, Object> map,
-                          StringBuilder yaml,
-                          int indent) {
-
-    String space = "  ".repeat(indent);
-
-    for (var entry : map.entrySet()) {
-      if (entry.getValue() instanceof Map) {
-        yaml.append(space).append(entry.getKey()).append(":\n");
-        renderYaml((Map<String, Object>) entry.getValue(), yaml, indent + 1);
-      } else {
-        String value = entry.getValue() == null ? "" : entry.getValue().toString();
-        if (value.contains("\n") || value.contains("\r")) {
-          yaml.append(space).append(entry.getKey()).append(": |-")
-              .append("\n");
-          String[] lines = value.replace("\r\n", "\n").replace("\r", "\n").split("\n", -1);
-          String blockIndent = "  ".repeat(indent + 1);
-          for (String line : lines) {
-            yaml.append(blockIndent).append(line).append("\n");
-          }
-        } else {
-          yaml.append(space)
-              .append(entry.getKey())
-              .append(": ")
-              .append(escape(value))
-              .append("\n");
-        }
-      }
-    }
-  }
-  
-  private String escape(String value) {
-    if (value == null) {
-      return "\"\"";
-    }
-
-    boolean needsQuoting = value.isEmpty()
-        || value.startsWith(" ")
-        || value.endsWith(" ")
-        || value.startsWith("-")
-        || value.startsWith("?")
-        || value.startsWith(":")
-        || value.contains(":")
-        || value.contains("#")
-        || value.contains("\t")
-        || value.contains("\\\\")
-        || value.contains("\"");
-
-    if (needsQuoting) {
-      String escaped = value
-          .replace("\\\\", "\\\\\\\\")
-          .replace("\"", "\\\\\"")
-          .replace("\t", "\\\\t");
-      return "\"" + escaped + "\"";
-    }
-    return value;
+  private static String currentApplicationName() {
+    return IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
   }
 
   public void downloadFinished() {
@@ -850,8 +720,25 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
+  public List<ExportOption> getExportOptions() {
+    return exportOptions;
+  }
+
+  public void setExportOptions(List<ExportOption> exportOptions) {
+    this.exportOptions = exportOptions;
+  }
+
   public StreamedContent getYamlFileDownload() {
     return yamlFileDownload;
   }
 
+  public void setYamlFileDownload(StreamedContent yamlFileDownload) {
+    this.yamlFileDownload = yamlFileDownload;
+  }
+
+  public void setFileDownload(StreamedContent fileDownload) {
+    this.fileDownload = fileDownload;
+  }
+  
+  
 }
