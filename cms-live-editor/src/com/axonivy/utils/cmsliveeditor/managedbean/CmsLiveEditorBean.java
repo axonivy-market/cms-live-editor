@@ -94,7 +94,6 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedProjectName;
   private String searchKey;
   private StreamedContent fileDownload;
-  private StreamedContent yamlFileDownload;
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
@@ -104,47 +103,28 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-  private List<ExportOption> exportOptions;
+  private static final List<ExportOption> EXPORT_OPTIONS = List.of(
+      new ExportOption(Ivy.cm().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
+      new ExportOption(Ivy.cm().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML)
+  );
+
+
   
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
     pmvCmsMap = new HashMap<>();
+    getExportOptions();
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
           .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
     }
 
-    initExportOptions();
     onAppChange();
     initLocales();
   }
-
-  private void initExportOptions() {
-    exportOptions = List.of(new ExportOption(Ivy.cm().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
-        new ExportOption(Ivy.cm().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML));
-  }
-
-  public void exportCms(ExportType type) {
-      try {
-        String applicationName = currentApplicationName();
-          switch (type) {
-          case EXCEL -> fileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
-          case YAML -> yamlFileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
-          }
-      } catch (Exception ex) {
-          Ivy.log().error("CMS export failed", ex);
-      }
-  }
-  
-  public StreamedContent getFile(ExportType type) {
-    return switch (type) {
-        case EXCEL -> fileDownload;
-        case YAML -> yamlFileDownload;
-    };
-}
 
   public void writeCmsToApplication() {
     isEditableCms = false;
@@ -637,6 +617,23 @@ public class CmsLiveEditorBean implements Serializable {
     IvyUserService.updateUserProperty(selectedSourceLocale, selectedTargetLocale);
   }
 
+  public List<ExportOption> getExportOptions() {
+    return EXPORT_OPTIONS;
+  }
+
+  public void exportCms(ExportType type) {
+    try {
+      String applicationName = currentApplicationName();
+      fileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+    } catch (Exception ex) {
+      Ivy.log().error("CMS export failed", ex);
+    }
+  }
+
+  public StreamedContent getFile() {
+    return fileDownload;
+  }
+
   public List<Cms> getFilteredCMSKeys() {
     return filteredCMSList;
   }
@@ -724,25 +721,11 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
-  public List<ExportOption> getExportOptions() {
-    return exportOptions;
-  }
-
   public void setExportOptions(List<ExportOption> exportOptions) {
-    this.exportOptions = exportOptions;
-  }
-
-  public StreamedContent getYamlFileDownload() {
-    return yamlFileDownload;
-  }
-
-  public void setYamlFileDownload(StreamedContent yamlFileDownload) {
-    this.yamlFileDownload = yamlFileDownload;
+    // No op-co
   }
 
   public void setFileDownload(StreamedContent fileDownload) {
     this.fileDownload = fileDownload;
   }
-  
-  
 }

@@ -207,7 +207,7 @@
                             actionListener="#{cmsLiveEditorBean.exportCms(option.type)}" ajax="false"
                             onstart="initCmsWarnings();"
                             onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                            <p:fileDownload value="#{cmsLiveEditorBean.getFile(option.type)}" />
+                            <p:fileDownload value="#{cmsLiveEditorBean.file}" />
                           </p:menuitem>
                         </c:forEach>
                       </p:menuButton>
