@@ -15,7 +15,7 @@
         <ui:include src="/resources/cms-settings-dialog.xhtml"/>
         <ui:include src="/resources/translation-review-dialog.xhtml"/>
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
-          oncomplete="restorePathPanelScroll();" partialSubmit="true" actionListener="#{cmsLiveEditorBean.rowSelect}" />
+          oncomplete="restorePathPanelScroll();" partialSubmit="true" />
         <h:panelGroup styleClass="flex flex-column h-full" layout="block">
           <div
             class="flex align-items-center justify-content-between mb-1">
