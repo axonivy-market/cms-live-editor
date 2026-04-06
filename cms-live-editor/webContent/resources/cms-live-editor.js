@@ -5,15 +5,6 @@ window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsClonedButtons = window.cmsClonedButtons || {};
 
-/** Debounce utility used by editors to limit rapid events */
-function debounce(fn, delay) {
-  let timer;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), delay);
-  };
-}
-
 /** Create a clone of a toolbar button for floating placement */
 function createCloneFromBtn(btn, sunEditor, commandName) {
   const clone = btn.cloneNode(true);
