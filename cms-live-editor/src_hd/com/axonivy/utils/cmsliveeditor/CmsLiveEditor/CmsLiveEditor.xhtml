@@ -11,12 +11,12 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full card">
+      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card mb-0">
         <ui:include src="/resources/cms-settings-dialog.xhtml"/>
         <ui:include src="/resources/translation-review-dialog.xhtml"/>
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
           oncomplete="restorePathPanelScroll();" partialSubmit="true" />
-        <h:panelGroup styleClass="flex flex-column h-full" layout="block">
+        <h:panelGroup styleClass="flex flex-column" layout="block">
           <div
             class="flex align-items-center justify-content-between mb-1">
             <div class="mb-3">
@@ -63,9 +63,9 @@
             </div>
           </div>
 
-          <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
+          <h:panelGroup layout="block" class="column-container flex" id="column-container">
             <h:panelGroup layout="block" id="path-column"
-              styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} p-0 h-full right-border flex flex-column">
+              styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} p-0 right-border flex flex-column">
               <div
                 class="column-header flex align-items-center justify-content-between">
                 <span class="path-label font-semibold text-lg">
@@ -81,7 +81,7 @@
                   </span>
                 </h:panelGroup>
               </div>
-              <h:panelGroup styleClass="panel left w-full h-full" layout="block">
+              <h:panelGroup styleClass="panel left w-full" layout="block">
                   <p:dataTable id="table-cms-keys"
                     value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                     rowKey="#{entry.uri}"
@@ -120,7 +120,7 @@
               </h:panelGroup>
             </h:panelGroup>
 
-            <h:panelGroup layout="block" id="cms-columns" styleClass="col-8 p-0 flex h-full">
+            <h:panelGroup layout="block" id="cms-columns" styleClass="col-8 p-0 flex">
               <h:panelGroup layout="block" id="current-cms-column"
                 styleClass="#{cmsLiveEditorBean.editableCms ? 'col-6' : 'col-9'} flex flex-column p-0">
                 <div class="column-header flex align-items-center justify-content-between">
@@ -138,7 +138,7 @@
                     <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
                   </p:commandLink>
                 </div>
-                <h:panelGroup styleClass="panel w-full flex flex-column h-full justify-content-between" layout="block">
+                <h:panelGroup styleClass="panel w-full flex flex-column justify-content-between" layout="block">
                   <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-values" multiple="true" widgetVar="multiple"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
