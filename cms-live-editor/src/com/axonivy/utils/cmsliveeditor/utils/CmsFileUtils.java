@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -45,8 +46,10 @@ import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
   private static final String DOUBLE_QUOTE = "\"";
+  private static final Map<String, String> YAML_ESCAPE_MAP = Map.of("\\", "\\\\", "\"", "\\\"", "\t", "\\t");
   private static final List<String> YAML_PREFIXES = List.of(SPACE, HYPHEN, "?", ":");
   private static final List<String> YAML_SPECIALS = List.of(":", "#", "\t", "\\", DOUBLE_QUOTE);
+  private static final Set<String> YAML_KEYWORDS = Set.of("true", "false", "null", "~", "yes", "no", "on", "off");
   private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
 
   /**
@@ -181,32 +184,47 @@ public class CmsFileUtils {
     return files;
   }
 
-  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData,
-      boolean includeProjectFolderInPath) {
+  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData, boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
     }
 
-    List<Locale> validLocales =
-        cmsData.getLocales().stream().filter(locale -> StringUtils.isNotBlank(locale.getLanguage())).toList();
+    List<Locale> validLocales = cmsData.getLocales().stream()
+        .filter(locale -> StringUtils.isNotBlank(locale.getLanguage()))
+        .toList();
 
     for (Locale locale : validLocales) {
-      Map<String, String> uriToContentMap = new HashMap<>();
-
-      for (Cms cmsEntry : cmsData.getCmsList()) {
-        if (cmsEntry == null || cmsEntry.isFile()) {
-          continue;
-        }
-
-        uriToContentMap.put(cmsEntry.getUri(), getContentValue(cmsEntry, locale.getLanguage()));
-      }
+      Map<String, String> uriToContentMap = buildUriToContentMap(cmsData, locale);
 
       String yamlContent = convertFlatMapToYaml(uriToContentMap);
-      String fileName = String.format(YAML_FILE_FORMAT, locale.getLanguage());
-      String archiveEntryPath = includeProjectFolderInPath ? cmsData.getPmvName() + CommonConstants.SLASH_CHARACTER + fileName : fileName;
+      String archiveEntryPath = buildArchivePath(cmsData, locale, includeProjectFolderInPath);
 
       archiveFiles.put(archiveEntryPath, yamlContent);
     }
+  }
+
+  private static Map<String, String> buildUriToContentMap(PmvCms cmsData, Locale locale) {
+    Map<String, String> localizedContentByUri = new HashMap<>();
+
+    for (Cms cmsEntry : cmsData.getCmsList()) {
+      if (cmsEntry == null || cmsEntry.isFile()) {
+        continue;
+      }
+
+      localizedContentByUri.put(cmsEntry.getUri(), getContentValue(cmsEntry, locale.getLanguage()));
+    }
+
+    return localizedContentByUri;
+  }
+
+  private static String buildArchivePath(PmvCms cmsData, Locale locale, boolean includeProjectFolderInPath) {
+    String fileName = String.format(YAML_FILE_FORMAT, locale.getLanguage());
+
+    if (includeProjectFolderInPath) {
+      return cmsData.getPmvName() + CommonConstants.SLASH_CHARACTER + fileName;
+    }
+
+    return fileName;
   }
 
   private static String convertFlatMapToYaml(Map<String, String> flatKeyValueMap) {
@@ -301,15 +319,24 @@ public class CmsFileUtils {
   }
 
   private static boolean requiresQuoting(String value) {
-    if (value.isEmpty() || value.endsWith(SPACE) || YAML_PREFIXES.stream().anyMatch(value::startsWith)) {
+    if (isPotentiallyMisinterpretedByYaml(value)) {
       return true;
     }
 
     return YAML_SPECIALS.stream().anyMatch(value::contains);
   }
 
+  private static boolean isPotentiallyMisinterpretedByYaml(String value) {
+    return value == null || value.isEmpty() || value.endsWith(SPACE) || YAML_PREFIXES.stream().anyMatch(value::startsWith)
+        || YAML_KEYWORDS.contains(value.toLowerCase(Locale.ROOT));
+  }
+
   private static String escapeYamlSpecialCharacters(String value) {
-    return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t");
+    String result = value;
+    for (var entry : YAML_ESCAPE_MAP.entrySet()) {
+      result = result.replace(entry.getKey(), entry.getValue());
+    }
+    return result;
   }
 
   private static StreamedContent convertToZipYaml(String projectName, String applicationName,
