@@ -430,8 +430,8 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private void showContentHaveNotBeenSaveDialog() {
-    PrimeFaces.current().executeScript("PF('content-not-been-save-dlg').show();");
-    PrimeFaces.current().ajax().update(CONTENT_FORM + ":content-not-been-save-dlg", "content-not-been-save-dlg");
+    PrimeFaces.current().executeScript("PF('content-not-been-saved-dlg').show();");
+    PrimeFaces.current().ajax().update(CONTENT_FORM + ":content-not-been-saved-dlg", "content-not-been-saved-dlg");
   }
 
   private void showDialog(String summary, String detail) {
