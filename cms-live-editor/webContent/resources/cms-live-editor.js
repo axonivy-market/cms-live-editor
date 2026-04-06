@@ -17,9 +17,9 @@ function debounce(fn, delay) {
 /** Create a clone of a toolbar button for floating placement */
 function createCloneFromBtn(btn, sunEditor, commandName) {
   const clone = btn.cloneNode(true);
-  clone.classList.add("cms-floating-btn");
+  clone.classList.add('cms-floating-btn');
 
-  clone.addEventListener("click", function (ev) {
+  clone.addEventListener('click', function (ev) {
     ev.preventDefault();
     try {
       const current = findToolbarBtnFor(sunEditor, commandName);
@@ -36,9 +36,9 @@ function createCloneFromBtn(btn, sunEditor, commandName) {
 
   // remove title attributes to avoid tooltip on the clone
   try {
-    clone.removeAttribute("title");
-    const withTitle = clone.querySelectorAll("[title]");
-    withTitle.forEach((n) => n.removeAttribute("title"));
+    clone.removeAttribute('title');
+    const withTitle = clone.querySelectorAll('[title]');
+    withTitle.forEach((n) => n.removeAttribute('title'));
   } catch (e) {
     // ignore
   }
@@ -55,22 +55,22 @@ function refreshClone(currentClone, sunEditor, commandName) {
   try {
     currentClone.innerHTML = btn.innerHTML;
     try {
-      currentClone.removeAttribute("title");
-      const withTitle = currentClone.querySelectorAll("[title]");
-      withTitle.forEach((n) => n.removeAttribute("title"));
+      currentClone.removeAttribute('title');
+      const withTitle = currentClone.querySelectorAll('[title]');
+      withTitle.forEach((n) => n.removeAttribute('title'));
     } catch (e) {}
 
     try {
-      const hiddenFlag = btn.getAttribute("data-cms-hidden");
-      if (hiddenFlag !== "true") {
-        btn.style.display = "none";
-        btn.setAttribute("data-cms-hidden", "true");
+      const hiddenFlag = btn.getAttribute('data-cms-hidden');
+      if (hiddenFlag !== 'true') {
+        btn.style.display = 'none';
+        btn.setAttribute('data-cms-hidden', 'true');
       }
     } catch (e) {
       // ignore
     }
 
-    currentClone.classList.toggle("on", btn.classList.contains("on") || btn.classList.contains("active"));
+    currentClone.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
   } catch (e) {
     // ignore
   }
@@ -104,7 +104,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     return;
   }
   const editor = SUNEDITOR.create(textarea, {
-    buttonList: isHtml ? FULL_TOOLBAR : ["fullScreen"],
+    buttonList: isHtml ? FULL_TOOLBAR : ['fullScreen'],
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
@@ -413,7 +413,7 @@ function destroyEditors() {
       const cloned = window.cmsClonedButtons[key];
       if (cloned) {
         try {
-          if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === "function") {
+          if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === 'function') {
             cloned._cmsToolbarObserver.disconnect();
           }
         } catch (e) {
@@ -448,12 +448,12 @@ function findToolbarBtnFor(sunEditor, commandName) {
   let btn = sunEditor.querySelector(`.se-toolbar .se-btn[data-command='${commandName}']`);
   if (btn) return btn;
   const lowerCmd = safeLower(commandName);
-  const buttons = Array.from(sunEditor.querySelectorAll(".se-toolbar .se-btn"));
+  const buttons = Array.from(sunEditor.querySelectorAll('.se-toolbar .se-btn'));
   return (
     buttons.find((b) => {
-      const title = safeLower(b.getAttribute("title"));
-      const cmd = safeLower(b.getAttribute("data-command"));
-      return cmd.includes(lowerCmd) || title.includes(lowerCmd) || title.includes("full") || title.includes("min");
+      const title = safeLower(b.getAttribute('title'));
+      const cmd = safeLower(b.getAttribute('data-command'));
+      return cmd.includes(lowerCmd) || title.includes(lowerCmd) || title.includes('full') || title.includes('min');
     }) || null
   );
 }
@@ -464,19 +464,19 @@ function createFloatingButton(languageIndex, editorId, commandName) {
     return;
   }
   const sunEditor =
-    textarea.nextElementSibling && textarea.nextElementSibling.classList.contains("sun-editor")
+    textarea.nextElementSibling && textarea.nextElementSibling.classList.contains('sun-editor')
       ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector(".sun-editor");
+      : textarea.parentElement?.querySelector('.sun-editor');
   if (!sunEditor) {
     return;
   }
 
   // ensure editor container is positioned for absolute children
-  if (getComputedStyle(sunEditor).position === "static") {
-    sunEditor.style.position = "relative";
+  if (getComputedStyle(sunEditor).position === 'static') {
+    sunEditor.style.position = 'relative';
   }
 
-  const toolbar = sunEditor.querySelector(".se-toolbar");
+  const toolbar = sunEditor.querySelector('.se-toolbar');
   if (!toolbar) {
     return;
   }
@@ -486,15 +486,15 @@ function createFloatingButton(languageIndex, editorId, commandName) {
     return;
   }
   let clone = createCloneFromBtn(originalBtn, sunEditor, commandName);
-  const editable = sunEditor.querySelector(".sun-editor-editable") || sunEditor.querySelector(".se-editable");
+  const editable = sunEditor.querySelector('.sun-editor-editable') || sunEditor.querySelector('.se-editable');
   const appendTarget = editable || sunEditor;
   appendTarget.appendChild(clone);
   window.cmsClonedButtons[languageIndex] = clone;
 
   try {
     if (originalBtn && originalBtn.style) {
-      originalBtn.style.display = "none";
-      originalBtn.setAttribute("data-cms-hidden", "true");
+      originalBtn.style.display = 'none';
+      originalBtn.setAttribute('data-cms-hidden', 'true');
     }
   } catch (e) {
     // ignore: benign DOM mutation failure
