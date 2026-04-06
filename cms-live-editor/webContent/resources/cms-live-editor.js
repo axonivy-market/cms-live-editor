@@ -88,16 +88,14 @@ const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
 
 const FULL_TOOLBAR = [
-  ['font', 'fontSize', 'formatBlock'],
-  ['paragraphStyle', 'blockquote'],
-  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-  ['fontColor', 'hiliteColor', 'textStyle'],
-  ['removeFormat'],
-  ['outdent', 'indent'],
-  ['align', 'list', 'lineHeight', 'horizontalRule'],
-  ['table', 'link'],
-  ['fullScreen'],
-  ['undo', 'redo'],
+  ['bold', 'italic','underline', 'strike'],
+  ['align'],
+  ['list'],
+  ['fontColor'],
+  [':t-More-default.more_horizontal', 
+  'font', 'fontSize', 'formatBlock', 'lineHeight', 'horizontalRule', 'paragraphStyle', 'blockquote',
+  'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
+  'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
 
 function initSunEditor(languageIndex, editorId, isHtml) {

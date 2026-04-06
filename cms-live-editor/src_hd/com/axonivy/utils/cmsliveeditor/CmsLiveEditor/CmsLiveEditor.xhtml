@@ -11,7 +11,7 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card mb-0">
+      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card p-0 mb-0">
         <ui:include src="/resources/cms-settings-dialog.xhtml"/>
         <ui:include src="/resources/translation-review-dialog.xhtml"/>
         <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
@@ -223,7 +223,7 @@
                     <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/ApplicationCMSDefinition')}" />
                   </div>
                 </div>
-                <h:panelGroup styleClass="panel end w-full flex flex-column h-full justify-content-between" layout="block">
+                <h:panelGroup styleClass="panel end w-full flex flex-column justify-content-between" layout="block">
                   <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"

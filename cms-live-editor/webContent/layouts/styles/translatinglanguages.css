@@ -7,7 +7,7 @@
   padding: 0;
   display: block;
   overflow: auto;
-  height: calc(-240px + 100vh);
+  height: calc(-200px + 100vh);
 }
 
 .right {
