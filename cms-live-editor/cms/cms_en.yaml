@@ -53,5 +53,5 @@ Labels:
   YamlFormat: YAML (.yaml)
 Processes:
   CMSLiveEditor:
-    description: Use this process to translate the current CMS and export it to an Excel file.
+    description: Use this process to translate the current CMS and export it to an Excel or YAML file.
     name: CMS Live Editor

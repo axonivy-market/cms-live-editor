@@ -7,9 +7,9 @@ import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 public class ExportOption implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  String label;
-  String icon;
-  ExportType type;
+  private String label;
+  private String icon;
+  private ExportType type;
 
   public ExportOption(String label, String icon, ExportType type) {
     this.label = label;

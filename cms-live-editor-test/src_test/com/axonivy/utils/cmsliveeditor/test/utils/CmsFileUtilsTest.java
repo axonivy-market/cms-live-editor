@@ -131,6 +131,7 @@ public class CmsFileUtilsTest {
     StreamedContent result = CmsFileUtils.exportCmsToZip("", TEST_APPLICATION, cmsPmvMap, ExportType.YAML);
 
     assertNotNull(result);
+    assertEquals(String.format(DOWNLOAD_FILE_FORMAT, ALL_PROJECTS, TEST_APPLICATION), result.getName());
 
     List<String> fileNames = new ArrayList<>();
 

@@ -103,25 +103,17 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-  private static final List<ExportOption> EXPORT_OPTIONS = List.of(
-      new ExportOption(Ivy.cm().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
-      new ExportOption(Ivy.cm().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML)
-  );
 
-
-  
   @PostConstruct
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
     pmvCmsMap = new HashMap<>();
-    getExportOptions();
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
           .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
     }
-
     onAppChange();
     initLocales();
   }
@@ -618,7 +610,10 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public List<ExportOption> getExportOptions() {
-    return EXPORT_OPTIONS;
+    return List.of(
+        new ExportOption(Ivy.cms().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
+        new ExportOption(Ivy.cms().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML)
+    );
   }
 
   public void exportCms(ExportType type) {
@@ -719,10 +714,6 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setSelectedTargetLocale(String selectedTargetLocale) {
     this.selectedTargetLocale = selectedTargetLocale;
-  }
-
-  public void setExportOptions(List<ExportOption> exportOptions) {
-    // No op-co
   }
 
   public void setFileDownload(StreamedContent fileDownload) {

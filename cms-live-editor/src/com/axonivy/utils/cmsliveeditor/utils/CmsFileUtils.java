@@ -7,7 +7,11 @@ import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.LF;
+import static org.apache.commons.lang3.StringUtils.CR;
+import static org.apache.commons.lang3.StringUtils.INDEX_NOT_FOUND;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,18 +47,20 @@ public class CmsFileUtils {
   private static final String DOUBLE_QUOTE = "\"";
   private static final List<String> YAML_PREFIXES = List.of(SPACE, HYPHEN, "?", ":");
   private static final List<String> YAML_SPECIALS = List.of(":", "#", "\t", "\\", DOUBLE_QUOTE);
+  private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
 
   /**
    * Unified export method for Excel and YAML
    */
   public static StreamedContent exportCmsToZip(String projectName, String applicationName,
       Map<String, PmvCms> pmvCmsMap, ExportType type) throws Exception {
+    String normalizedProjectName = StringUtils.isBlank(projectName) ? Ivy.cms().co("/Labels/AllProjects") : projectName;
     if (type == ExportType.EXCEL) {
-      Map<String, Workbook> workbooks = collectWorkbooks(projectName, pmvCmsMap);
-      return convertToZip(projectName, applicationName, workbooks);
+      Map<String, Workbook> workbooks = collectWorkbooks(normalizedProjectName, pmvCmsMap);
+      return convertToZip(normalizedProjectName, applicationName, workbooks);
     } else {
-      Map<String, String> files = collectYamlFiles(projectName, pmvCmsMap);
-      return convertToZipYaml(projectName, applicationName, files);
+      Map<String, String> files = collectYamlFiles(normalizedProjectName, pmvCmsMap);
+      return convertToZipYaml(normalizedProjectName, applicationName, files);
     }
   }
 
@@ -117,11 +123,8 @@ public class CmsFileUtils {
   }
 
   private static String getContentValue(Cms cms, String language) {
-    return cms.getContents().stream()
-        .filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
-        .findFirst()
-        .map(CmsContent::getContent)
-        .orElse(StringUtils.EMPTY);
+    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
+        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
   }
 
   private static StreamedContent convertToZip(String projectName, String applicationName,
@@ -158,8 +161,9 @@ public class CmsFileUtils {
 
   private static void closeWorkbook(Workbook workbook) {
     try {
-      if (workbook != null)
+      if (workbook != null) {
         workbook.close();
+      }
     } catch (IOException e) {
       Ivy.log().error("Error closing workbook", e);
     }
@@ -169,15 +173,15 @@ public class CmsFileUtils {
     Map<String, String> files = new TreeMap<>();
     if (projectName == null || projectName.isBlank()) {
       for (var entry : pmvCmsMap.entrySet()) {
-        addCmsYamlFilesToArchive(files, entry.getKey(), entry.getValue(), true);
+        addCmsYamlFilesToArchive(files, entry.getValue(), true);
       }
     } else {
-      addCmsYamlFilesToArchive(files, projectName, pmvCmsMap.get(projectName), false);
+      addCmsYamlFilesToArchive(files, pmvCmsMap.get(projectName), false);
     }
     return files;
   }
 
-  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, String projectName, PmvCms cmsData,
+  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData,
       boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
@@ -190,16 +194,16 @@ public class CmsFileUtils {
       Map<String, String> uriToContentMap = new HashMap<>();
 
       for (Cms cmsEntry : cmsData.getCmsList()) {
-        if (cmsEntry == null || cmsEntry.isFile())
+        if (cmsEntry == null || cmsEntry.isFile()) {
           continue;
+        }
 
         uriToContentMap.put(cmsEntry.getUri(), getContentValue(cmsEntry, locale.getLanguage()));
       }
 
       String yamlContent = convertFlatMapToYaml(uriToContentMap);
-      String fileName = "cms_" + locale.getLanguage() + ".yaml";
-
-      String archiveEntryPath = includeProjectFolderInPath ? projectName + CommonConstants.SLASH_CHARACTER + fileName : fileName;
+      String fileName = String.format(YAML_FILE_FORMAT, locale.getLanguage());
+      String archiveEntryPath = includeProjectFolderInPath ? cmsData.getPmvName() + CommonConstants.SLASH_CHARACTER + fileName : fileName;
 
       archiveFiles.put(archiveEntryPath, yamlContent);
     }
@@ -224,8 +228,9 @@ public class CmsFileUtils {
       normalizedPath = normalizedPath.substring(1);
     }
 
-    if (StringUtils.isBlank(normalizedPath))
+    if (StringUtils.isBlank(normalizedPath)) {
       return;
+    }
 
     String[] pathSegments = normalizedPath.split(CommonConstants.SLASH_CHARACTER);
     Map<String, Object> currentNode = rootMap;
@@ -284,11 +289,13 @@ public class CmsFileUtils {
   }
 
   private static String escapeYamlValue(String value) {
-    if (value == null)
+    if (value == null) {
       return "\"\"";
+    }
 
-    if (!requiresQuoting(value))
+    if (!requiresQuoting(value)) {
       return value;
+    }
 
     return DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
   }
