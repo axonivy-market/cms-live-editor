@@ -303,7 +303,7 @@ public class CmsLiveEditorWebTest {
   }
 
   private SelenideElement openFirstCmsAndEdit() {
-    var selectedCms = $$(CMS_PATH_URI).first();
+    SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
     selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     return selectedCms;
