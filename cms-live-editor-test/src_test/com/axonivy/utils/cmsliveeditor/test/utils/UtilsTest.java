@@ -62,7 +62,7 @@ public class UtilsTest {
   public void testConvertListToHTMLList() {
     List<String> items = Arrays.asList("Item 1", "Item 2", "Item 3");
 
-    String expected = "<ul> <li style='padding:0 2rem 0.25rem 0;'> Item 1 </li><li style='padding:0 2rem 0.25rem 0;'> Item 2 </li><li style='padding:0 2rem 0.25rem 0;'> Item 3 </li> </ul>";
+    String expected = "<ul class='pl-3 ml-2'> <li style='padding:0 2rem 0.25rem 0;'> Item 1 </li><li style='padding:0 2rem 0.25rem 0;'> Item 2 </li><li style='padding:0 2rem 0.25rem 0;'> Item 3 </li> </ul>";
     String result = Utils.convertListToHTMLList(items);
 
     assertEquals(expected, result);
