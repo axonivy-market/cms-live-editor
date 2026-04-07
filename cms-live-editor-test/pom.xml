@@ -12,11 +12,6 @@
   <artifactId>cms-live-editor-test</artifactId>
   <version>13.2.0-SNAPSHOT</version>
   <packaging>iar-integration-test</packaging>
-  <properties>
-    <ivy.engine.version>13.2.0</ivy.engine.version>
-    <tester.version>13.2.0</tester.version>
-    <project.build.plugin.version>13.2.0</project.build.plugin.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>com.axonivy.utils.cmsliveeditor</groupId>
