@@ -72,18 +72,18 @@ public class CmsFileUtils {
     if (StringUtils.isBlank(projectName)) {
       projectName = Ivy.cms().co("/Labels/AllProjects");
       for (var entry : pmvCmsMap.entrySet()) {
-        addPmvCmsToWorkbooks(entry.getValue(), workbooks);
+        addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
       }
     } else {
-      addPmvCmsToWorkbooks(pmvCmsMap.get(projectName), workbooks);
+      addPmvCmsToWorkbooks(projectName, pmvCmsMap.get(projectName), workbooks);
     }
     return workbooks;
   }
 
-  private static void addPmvCmsToWorkbooks(PmvCms pmvCms, Map<String, Workbook> workbooks) {
+  private static void addPmvCmsToWorkbooks(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks) {
     Workbook workbook = createWorkbookFromPmvCms(pmvCms);
     if (workbook != null) {
-      workbooks.put(pmvCms.getPmvName(), workbook);
+      workbooks.put(projectName, workbook);
     }
   }
 
