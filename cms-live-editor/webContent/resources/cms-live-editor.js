@@ -34,10 +34,10 @@ const FULL_TOOLBAR = [
  * Remove title attributes from an element and its descendants to avoid tooltips.
  * Wrapped in a try/catch to be defensive against DOM mutation errors.
  */
-function removeTitleAttributes(cloneButton) {
+function removeButtonTitle(cloneButton) {
   try {
     cloneButton.removeAttribute(BUTTON_TITLE_ATTR);
-    cloneButton.querySelectorAll(`[${BUTTON_TITLE_ATTR}]`).forEach((n) => n.removeAttribute(BUTTON_TITLE_ATTR));
+    cloneButton.querySelectorAll(`[${BUTTON_TITLE_ATTR}]`).forEach((child) => child.removeAttribute(BUTTON_TITLE_ATTR));
   } catch (e) {
     // ignore
   }
@@ -76,7 +76,7 @@ function createCloneFromBtn(btn, sunEditor, commandName) {
   });
 
   // remove title attributes to avoid tooltip on the clone
-  removeTitleAttributes(newCloneButton);
+  removeButtonTitle(newCloneButton);
   return newCloneButton;
 }
 
@@ -88,7 +88,7 @@ function refreshClone(currentCloneButton, sunEditor, commandName) {
   }
   try {
     currentCloneButton.innerHTML = btn.innerHTML;
-    removeTitleAttributes(currentCloneButton);
+    removeButtonTitle(currentCloneButton);
     const hiddenFlag = btn.getAttribute(DATA_CMS_HIDDEN_ATTR);
     if (hiddenFlag !== 'true') {
       btn.style.display = 'none';
