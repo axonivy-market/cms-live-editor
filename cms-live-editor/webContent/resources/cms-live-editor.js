@@ -16,7 +16,9 @@ const CTRL_KEY_ALL = 'a';
 const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
 const BUTTON_TITLE_ATTR = 'title';
-
+const SUNEDITOR_CSS_CLASS = 'sun-editor';
+const DATA_CMS_HIDDEN_ATTR = 'data-cms-hidden';
+const FULLSCREEN_COMMAND_BUTTON = 'fullScreen';
 const FULL_TOOLBAR = [
   ['bold', 'italic','underline', 'strike'],
   ['align'],
@@ -39,6 +41,19 @@ function removeTitleAttributes(cloneButton) {
   } catch (e) {
     // ignore
   }
+}
+
+/**
+ * Find the SunEditor container element corresponding to a textarea.
+ * Returns the adjacent .sun-editor element if present, otherwise searches the textarea's parent.
+ */
+function findSunEditorForTextarea(textarea) {
+  if (!textarea) return null;
+  return (
+    textarea.nextElementSibling?.classList.contains(SUNEDITOR_CSS_CLASS)
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector(`.${SUNEDITOR_CSS_CLASS}`)
+  ) || null;
 }
 
 /** Create a clone of a toolbar button for floating placement */
@@ -74,10 +89,10 @@ function refreshClone(currentCloneButton, sunEditor, commandName) {
   try {
     currentCloneButton.innerHTML = btn.innerHTML;
     removeTitleAttributes(currentCloneButton);
-    const hiddenFlag = btn.getAttribute('data-cms-hidden');
+    const hiddenFlag = btn.getAttribute(DATA_CMS_HIDDEN_ATTR);
     if (hiddenFlag !== 'true') {
       btn.style.display = 'none';
-      btn.setAttribute('data-cms-hidden', 'true');
+      btn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
     }
     currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
   } catch (e) {
@@ -91,7 +106,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     return;
   }
   const editor = SUNEDITOR.create(textarea, {
-    buttonList: isHtml ? FULL_TOOLBAR : ['fullScreen'],
+    buttonList: isHtml ? FULL_TOOLBAR : [FULLSCREEN_COMMAND_BUTTON],
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
@@ -103,7 +118,7 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
   try {
-    createFloatingButton(languageIndex, editorId, 'fullScreen');
+    createFloatingButton(languageIndex, editorId, FULLSCREEN_COMMAND_BUTTON);
   } catch (e) {
     // Ignore: creating the floating toolbar button is a best-effort enhancement.
     // It may fail on older SunEditor versions or when toolbar layout differs.
@@ -300,11 +315,7 @@ function getEditorContainer(languageIndex) {
   }
 
   // SunEditor creates .sun-editor next to textarea
-  return (
-    textarea.nextElementSibling?.classList.contains('sun-editor')
-      ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector('.sun-editor')
-  ) || null;
+  return findSunEditorForTextarea(textarea);
 }
 
 /** Extracts numbered placeholders from the editing content.
@@ -419,13 +430,6 @@ function destroyEditors() {
   window.cmsDirtyEditors.clear();
 }
 
-/**
- * Clone a toolbar button and place it inside the editor content area (bottom-right).
- * - languageIndex: index used to identify the editor instance
- * - editorId: the textarea id passed to SunEditor
- * - commandName: the data-command attribute of the toolbar button to clone
- */
-/** Utility: safe lower-case a possibly-null string */
 function safeLower(s) {
   return (s || "").toLowerCase();
 }
@@ -438,9 +442,8 @@ function findToolbarBtnFor(sunEditor, commandName) {
   const buttons = Array.from(sunEditor.querySelectorAll('.se-toolbar .se-btn'));
   return (
     buttons.find((b) => {
-      const title = safeLower(b.getAttribute('title'));
       const cmd = safeLower(b.getAttribute('data-command'));
-      return cmd.includes(lowerCmd) || title.includes(lowerCmd) || title.includes('full') || title.includes('min');
+      return cmd.includes(lowerCmd);
     }) || null
   );
 }
@@ -450,10 +453,7 @@ function createFloatingButton(languageIndex, editorId, commandName) {
   if (!textarea) {
     return;
   }
-  const sunEditor =
-    textarea.nextElementSibling && textarea.nextElementSibling.classList.contains('sun-editor')
-      ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector('.sun-editor');
+  const sunEditor = findSunEditorForTextarea(textarea);
   if (!sunEditor) {
     return;
   }
@@ -479,9 +479,9 @@ function createFloatingButton(languageIndex, editorId, commandName) {
   window.cmsClonedButtons[languageIndex] = clone;
 
   try {
-    if (originalBtn && originalBtn.style) {
+    if (originalBtn?.style) {
       originalBtn.style.display = 'none';
-      originalBtn.setAttribute('data-cms-hidden', 'true');
+      originalBtn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
     }
   } catch (e) {
     // ignore: benign DOM mutation failure
