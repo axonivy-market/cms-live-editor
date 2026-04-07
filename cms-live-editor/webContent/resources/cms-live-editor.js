@@ -5,68 +5,6 @@ window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsClonedButtons = window.cmsClonedButtons || {};
 
-/** Create a clone of a toolbar button for floating placement */
-function createCloneFromBtn(btn, sunEditor, commandName) {
-  const clone = btn.cloneNode(true);
-  clone.classList.add('cms-floating-btn');
-
-  clone.addEventListener('click', function (ev) {
-    ev.preventDefault();
-    try {
-      const current = findToolbarBtnFor(sunEditor, commandName);
-      if (current) {
-        current.click();
-      } else {
-        btn.click();
-      }
-    } catch (e) {
-      // ignore: click execution is best-effort
-    }
-    setTimeout(() => refreshClone(clone, sunEditor, commandName), 50);
-  });
-
-  // remove title attributes to avoid tooltip on the clone
-  try {
-    clone.removeAttribute('title');
-    const withTitle = clone.querySelectorAll('[title]');
-    withTitle.forEach((n) => n.removeAttribute('title'));
-  } catch (e) {
-    // ignore
-  }
-
-  return clone;
-}
-
-/** Refresh a previously created floating clone to reflect the toolbar button state */
-function refreshClone(currentClone, sunEditor, commandName) {
-  const btn = findToolbarBtnFor(sunEditor, commandName);
-  if (!btn || !currentClone) {
-    return;
-  }
-  try {
-    currentClone.innerHTML = btn.innerHTML;
-    try {
-      currentClone.removeAttribute('title');
-      const withTitle = currentClone.querySelectorAll('[title]');
-      withTitle.forEach((n) => n.removeAttribute('title'));
-    } catch (e) {}
-
-    try {
-      const hiddenFlag = btn.getAttribute('data-cms-hidden');
-      if (hiddenFlag !== 'true') {
-        btn.style.display = 'none';
-        btn.setAttribute('data-cms-hidden', 'true');
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    currentClone.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
-  } catch (e) {
-    // ignore
-  }
-}
-
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 const ENTER_KEY = 'Enter';
@@ -77,6 +15,7 @@ const CTRL_KEY_CUT = 'x';
 const CTRL_KEY_ALL = 'a';
 const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
+const BUTTON_TITLE_ATTR = 'title';
 
 const FULL_TOOLBAR = [
   ['bold', 'italic','underline', 'strike'],
@@ -88,6 +27,63 @@ const FULL_TOOLBAR = [
   'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
   'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
+
+/**
+ * Remove title attributes from an element and its descendants to avoid tooltips.
+ * Wrapped in a try/catch to be defensive against DOM mutation errors.
+ */
+function removeTitleAttributes(cloneButton) {
+  try {
+    cloneButton.removeAttribute(BUTTON_TITLE_ATTR);
+    cloneButton.querySelectorAll(`[${BUTTON_TITLE_ATTR}]`).forEach((n) => n.removeAttribute(BUTTON_TITLE_ATTR));
+  } catch (e) {
+    // ignore
+  }
+}
+
+/** Create a clone of a toolbar button for floating placement */
+function createCloneFromBtn(btn, sunEditor, commandName) {
+  const newCloneButton = btn.cloneNode(true);
+  newCloneButton.classList.add('cms-floating-btn');
+  newCloneButton.addEventListener('click', function (ev) {
+    ev.preventDefault();
+    try {
+      const current = findToolbarBtnFor(sunEditor, commandName);
+      if (current) {
+        current.click();
+      } else {
+        btn.click();
+      }
+    } catch (e) {
+      // ignore: click execution is best-effort
+    }
+    setTimeout(() => refreshClone(newCloneButton, sunEditor, commandName), 50);
+  });
+
+  // remove title attributes to avoid tooltip on the clone
+  removeTitleAttributes(newCloneButton);
+  return newCloneButton;
+}
+
+/** Refresh a previously created floating clone to reflect the toolbar button state */
+function refreshClone(currentCloneButton, sunEditor, commandName) {
+  const btn = findToolbarBtnFor(sunEditor, commandName);
+  if (!btn || !currentCloneButton) {
+    return;
+  }
+  try {
+    currentCloneButton.innerHTML = btn.innerHTML;
+    removeTitleAttributes(currentCloneButton);
+    const hiddenFlag = btn.getAttribute('data-cms-hidden');
+    if (hiddenFlag !== 'true') {
+      btn.style.display = 'none';
+      btn.setAttribute('data-cms-hidden', 'true');
+    }
+    currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
+  } catch (e) {
+    // ignore
+  }
+}
 
 function initSunEditor(languageIndex, editorId, isHtml) {
   const textarea = document.getElementById(editorId);
