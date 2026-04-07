@@ -30,10 +30,6 @@ const FULL_TOOLBAR = [
   'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
 
-/**
- * Remove title attributes from an element and its descendants to avoid tooltips.
- * Wrapped in a try/catch to be defensive against DOM mutation errors.
- */
 function removeButtonTitle(cloneButton) {
   try {
     cloneButton.removeAttribute(BUTTON_TITLE_ATTR);
@@ -43,10 +39,6 @@ function removeButtonTitle(cloneButton) {
   }
 }
 
-/**
- * Find the SunEditor container element corresponding to a textarea.
- * Returns the adjacent .sun-editor element if present, otherwise searches the textarea's parent.
- */
 function findSunEditorForTextarea(textarea) {
   if (!textarea) return null;
   return (
@@ -56,21 +48,16 @@ function findSunEditorForTextarea(textarea) {
   ) || null;
 }
 
-/** Create a clone of a toolbar button for floating placement */
 function createCloneFromBtn(btn, sunEditor, commandName) {
   const newCloneButton = btn.cloneNode(true);
   newCloneButton.classList.add('cms-floating-btn');
   newCloneButton.addEventListener('click', function (ev) {
     ev.preventDefault();
-    try {
-      const current = findToolbarBtnFor(sunEditor, commandName);
-      if (current) {
-        current.click();
-      } else {
-        btn.click();
-      }
-    } catch (e) {
-      // ignore: click execution is best-effort
+    const current = findToolbarBtnFor(sunEditor, commandName);
+    if (current) {
+      current.click();
+    } else {
+      btn.click();
     }
     setTimeout(() => refreshClone(newCloneButton, sunEditor, commandName), 50);
   });
@@ -404,18 +391,10 @@ function destroyEditors() {
   for (const key in window.cmsLiveEditors) {
     try {
       window.cmsLiveEditors[key].destroy();
-    } catch (e) {
-      // Ignored: destruction may fail if editor was already removed during page teardown.
-    }
-    try {
       const cloned = window.cmsClonedButtons[key];
       if (cloned) {
-        try {
-          if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === 'function') {
-            cloned._cmsToolbarObserver.disconnect();
-          }
-        } catch (e) {
-          // Ignored: observer disconnect errors are non-fatal.
+        if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === 'function') {
+          cloned._cmsToolbarObserver.disconnect();
         }
         if (cloned.parentElement) {
           cloned.parentElement.removeChild(cloned);
@@ -423,7 +402,8 @@ function destroyEditors() {
       }
       delete window.cmsClonedButtons[key];
     } catch (e) {
-      // Ignored: removal may fail if DOM changed concurrently.
+      // Ignored: destruction may fail if editor was already removed during page teardown
+      // & removal may fail if DOM changed concurrently.
     }
   }
   window.cmsLiveEditors = {};
@@ -441,8 +421,8 @@ function findToolbarBtnFor(sunEditor, commandName) {
   const lowerCmd = safeLower(commandName);
   const buttons = Array.from(sunEditor.querySelectorAll('.se-toolbar .se-btn'));
   return (
-    buttons.find((b) => {
-      const cmd = safeLower(b.getAttribute('data-command'));
+    buttons.find((btn) => {
+      const cmd = safeLower(btn.getAttribute('data-command'));
       return cmd.includes(lowerCmd);
     }) || null
   );
