@@ -7,7 +7,7 @@
   padding: 0;
   display: block;
   overflow: auto;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 237px);
 }
 
 .right {
@@ -246,10 +246,6 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 
 .icon-checked {
   font-size: 48px !important;
-}
-
-.ui-dialog-content {
-  padding: unset !important;
 }
 
 .cancel-confirm, .cms-edit-button, .cms-cancel-button,
