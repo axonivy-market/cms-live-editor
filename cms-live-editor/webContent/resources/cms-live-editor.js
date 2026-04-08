@@ -51,6 +51,8 @@ function findSunEditorForTextarea(textarea) {
 function createCloneFromBtn(btn, sunEditor, commandName) {
   const newCloneButton = btn.cloneNode(true);
   newCloneButton.classList.add('cms-floating-btn');
+  newCloneButton.setAttribute('contenteditable', 'false');
+  newCloneButton.setAttribute('aria-hidden', 'true');
   newCloneButton.addEventListener('click', function (ev) {
     ev.preventDefault();
     const current = findToolbarBtnFor(sunEditor, commandName);
@@ -453,12 +455,11 @@ function createFloatingButton(languageIndex, editorId, commandName) {
     return;
   }
   let clone = createCloneFromBtn(originalBtn, sunEditor, commandName);
-  const editable = sunEditor.querySelector('.sun-editor-editable') || sunEditor.querySelector('.se-editable');
-  const appendTarget = editable || sunEditor;
-  appendTarget.appendChild(clone);
-  window.cmsClonedButtons[languageIndex] = clone;
 
   try {
+    sunEditor.appendChild(clone);
+    window.cmsClonedButtons[languageIndex] = clone;
+
     if (originalBtn?.style) {
       originalBtn.style.display = 'none';
       originalBtn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
