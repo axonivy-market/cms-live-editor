@@ -53,7 +53,11 @@ public class CmsFileUtils {
   private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
 
   /**
-   * Unified export method for Excel and YAML
+   * Export CMS to ZIP file
+   *
+   * Supports:
+   * - EXCEL → multiple Excel files zipped
+   * - YAML  → multiple YAML files zipped
    */
   public static StreamedContent exportCmsToZip(String projectName, String applicationName,
       Map<String, PmvCms> pmvCmsMap, ExportType type) throws Exception {
@@ -184,6 +188,15 @@ public class CmsFileUtils {
     return files;
   }
 
+  /**
+   * Converts CMS data into YAML files (one per locale) and adds them to the archive map.
+   *
+   * Flow:
+   * 1. Filter valid locales (non-empty language)
+   * 2. Build URI → localized content map
+   * 3. Convert map to YAML
+   * 4. Generate archive path (optionally grouped by project)
+   */
   private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData, boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
@@ -203,6 +216,9 @@ public class CmsFileUtils {
     }
   }
 
+  /**
+   * Builds a map of URI → localized content for a given locale. If CMS entries are files, skip them.
+   */
   private static Map<String, String> buildUriToContentMap(PmvCms cmsData, Locale locale) {
     Map<String, String> localizedContentByUri = new HashMap<>();
 
@@ -306,6 +322,20 @@ public class CmsFileUtils {
     return StringUtils.repeat(SPACE, indentLevel);
   }
 
+  /**
+   * Escapes a YAML value if necessary.
+   *
+   * Rules:
+   * - If value does NOT require quoting → return as-is
+   * - Otherwise:
+   *     - Escape special characters (\, ", tab, etc.)
+   *     - Wrap in double quotes
+   *
+   * Example:
+   *   hello        → hello
+   *   true         → "true"   (keyword)
+   *   value:123    → "value:123" (contains special char)
+   */
   private static String escapeYamlValue(String value) {
     if (value == null) {
       return "\"\"";
@@ -318,6 +348,15 @@ public class CmsFileUtils {
     return DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
   }
 
+  /**
+   * Determines whether a YAML value must be quoted.
+   *
+   * Quoting is required if:
+   * - Value can be misinterpreted (e.g. "true", "null", "yes")
+   * - Starts with special YAML prefixes (?, :, -, space)
+   * - Contains special characters (:, #, \, ", tab)
+   * - Ends with whitespace
+   */
   private static boolean requiresQuoting(String value) {
     if (isPotentiallyMisinterpretedByYaml(value)) {
       return true;
@@ -326,11 +365,34 @@ public class CmsFileUtils {
     return YAML_SPECIALS.stream().anyMatch(value::contains);
   }
 
+  /**
+   * Detects values that YAML might interpret incorrectly.
+   *
+   * Examples:
+   *   "true"  → boolean
+   *   "null"  → null
+   *   "yes"   → boolean
+   *   ""      → empty
+   *
+   * Also checks:
+   * - Leading special characters
+   * - Trailing spaces
+   */
   private static boolean isPotentiallyMisinterpretedByYaml(String value) {
     return value == null || value.isEmpty() || value.endsWith(SPACE) || YAML_PREFIXES.stream().anyMatch(value::startsWith)
         || YAML_KEYWORDS.contains(value.toLowerCase(Locale.ROOT));
   }
 
+  /**
+   * Escapes special YAML characters using predefined mappings.
+   *
+   * Current mappings:
+   *   \  → \\
+   *   "  → \"
+   *   tab → \t
+   *
+   * Applied only when quoting is required.
+   */
   private static String escapeYamlSpecialCharacters(String value) {
     String result = value;
     for (var entry : YAML_ESCAPE_MAP.entrySet()) {
@@ -339,6 +401,15 @@ public class CmsFileUtils {
     return result;
   }
 
+  /**
+   * Packages YAML files into a ZIP archive.
+   *
+   * Steps:
+   * 1. Create ZIP output stream
+   * 2. Add each YAML file as a ZipEntry
+   * 3. Convert to byte array
+   * 4. Wrap into StreamedContent for download
+   */
   private static StreamedContent convertToZipYaml(String projectName, String applicationName,
       Map<String, String> files) {
     try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
