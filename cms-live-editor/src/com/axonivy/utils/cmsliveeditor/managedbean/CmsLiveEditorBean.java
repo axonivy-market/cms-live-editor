@@ -351,7 +351,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onRowSelect(SelectEvent<Cms> event) {
-    if (selectedCmsEntries != null && selectedCmsEntries.size() == 1) {
+    if (selectedCmsEntries != null && selectedCmsEntries.size() == 1 && !isInEditMode) {
       this.selectedCms = event.getObject();
       rowSelect();
     }
@@ -718,5 +718,9 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setFileDownload(StreamedContent fileDownload) {
     this.fileDownload = fileDownload;
+  }
+
+  public boolean isInEditMode() {
+    return isInEditMode;
   }
 }

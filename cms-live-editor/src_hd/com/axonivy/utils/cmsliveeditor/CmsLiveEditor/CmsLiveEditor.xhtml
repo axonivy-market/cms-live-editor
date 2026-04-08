@@ -89,6 +89,7 @@
                     value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                     rowKey="#{entry.uri}"
                     selection="#{cmsLiveEditorBean.selectedCmsEntries}"
+                    disabledSelection="#{cmsLiveEditorBean.inEditMode}"
                     selectionMode="multiple" rowSelectMode="new"
                     widgetVar="tableCmsKeysWidget" scrollHeight="100%"
                     styleClass="cms-path-table"
@@ -110,7 +111,7 @@
                     <p:ajax event="rowSelect"
                       listener="#{cmsLiveEditorBean.onRowSelect}"
                       process="table-cms-keys"
-                      update=":content-form:cms-columns table-cms-keys"
+                      update=":content-form:cms-columns"
                       partialSubmit="true" onstart="savePathPanelScroll();"
                       oncomplete="setRowChange()" />
 
