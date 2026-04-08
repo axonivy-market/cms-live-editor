@@ -180,8 +180,7 @@ public class CmsLiveEditorWebTest {
     cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
-    Selenide.sleep(1000);
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherElement.click();
@@ -224,7 +223,7 @@ public class CmsLiveEditorWebTest {
 
     // reset all change at 2nd time
     selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     updateAndSaveContent();
     openResetDialog();
     $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
@@ -387,8 +386,8 @@ public class CmsLiveEditorWebTest {
   }
 
   private SelenideElement openFirstCmsAndEdit() {
-    var selectedCms = $$(CMS_PATH_URI).first();
-    selectedCms.shouldBe(visible).click();
+    SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
+    selectedCms.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     return selectedCms;
   }

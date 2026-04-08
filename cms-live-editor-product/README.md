@@ -59,8 +59,14 @@ The CMS Live Editor also supports handling files stored in the CMS. Files can be
 - "Reset all" will revert **all** changes made in the currently selected project, i.e., all entries marked with a red dot in the path column. As this can be a disruptive action, a confirmation dialog is displayed and the user must type the word "reset" to enable the "Reset all"-action.
 
 ### 7. Download for deployment
-- The **Download for deployment** button allows users to download a ZIP file containing all translated content.
-- This can be used for a permanent engine deployment of the CMS values in the application.
+- The **Download for deployment** button lets users download translated content as a ZIP file.
+- Clicking the button opens a menu to select the file format:
+  - **Excel (.xlsx)**
+  - **YAML (.yaml)**
+- The ZIP file will contain all translated content in the selected format.
+  ![](./images/24-cms-live-editor-download.png)
+
+- The downloaded ZIP can be used for a permanent engine deployment of the CMS values in the application.
   ![](./images/14-cms-live-editor-undo.png)
 
 ### 8. Auto Translation

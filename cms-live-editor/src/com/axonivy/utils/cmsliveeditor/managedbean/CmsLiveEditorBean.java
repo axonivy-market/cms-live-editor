@@ -48,8 +48,10 @@ import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
+import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.model.ExportOption;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
@@ -592,9 +594,8 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void handleBeforeDownloadFile() throws Exception {
-    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
+  private static String currentApplicationName() {
+    return IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
   }
 
   public void downloadFinished() {
@@ -675,6 +676,26 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void saveSettings() {
     IvyUserService.updateUserProperty(selectedSourceLocale, selectedTargetLocale);
+  }
+
+  public List<ExportOption> getExportOptions() {
+    return List.of(
+        new ExportOption(Ivy.cms().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
+        new ExportOption(Ivy.cms().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML)
+    );
+  }
+
+  public void exportCms(ExportType type) {
+    try {
+      String applicationName = currentApplicationName();
+      fileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+    } catch (Exception ex) {
+      Ivy.log().error("CMS export failed", ex);
+    }
+  }
+
+  public StreamedContent getFile() {
+    return fileDownload;
   }
 
   public List<Cms> getFilteredCMSKeys() {
@@ -768,4 +789,7 @@ public class CmsLiveEditorBean implements Serializable {
     this.validationFailedLocaleIndicesJson = validationFailedLocaleIndicesJson;
   }
 
+  public void setFileDownload(StreamedContent fileDownload) {
+    this.fileDownload = fileDownload;
+  }
 }
