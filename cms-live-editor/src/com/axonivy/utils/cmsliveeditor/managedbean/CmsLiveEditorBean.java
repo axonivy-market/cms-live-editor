@@ -6,6 +6,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_ED
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_SETTING_DIALOG;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALUES;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
@@ -214,6 +215,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void onCancelEditableButton() {
     isEditableCms = false;
+    lastSelectedCms.getContents().forEach(s -> s.setEditing(false));
     lastSelectedCms = null;
     isInEditMode = false;
     clearNewUploadFile();
@@ -332,28 +334,28 @@ public class CmsLiveEditorBean implements Serializable {
     return CmsContentUtils.getExcludedLocales(languageList, selectedSourceLocale);
   }
 
-  public void rowSelect() {
+  public void onRowSelect(SelectEvent<Cms> event) {
     isEditableCms = false;
     if (isEditing()) {
       isEditableCms = true;
-      selectedCms = lastSelectedCms; // Revert to last valid selection
-    } else {
-      if (selectedCms.isFile()) {
-        loadFileContentOfSelectedCms();
+      selectedCmsEntries.clear();
+      if (lastSelectedCms != null) {
+        selectedCmsEntries.add(lastSelectedCms);
       }
-      if (isInEditMode) {
-        isInEditMode = false;
-        PF.current().ajax().update(CONTENT_FORM);
-      } else {
-        PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
-      }
+      this.selectedCms = lastSelectedCms;
+      return;
     }
-  }
-
-  public void onRowSelect(SelectEvent<Cms> event) {
-    if (selectedCmsEntries != null && selectedCmsEntries.size() == 1 && !isInEditMode) {
+    if (selectedCmsEntries != null && selectedCmsEntries.size() == 1) {
       this.selectedCms = event.getObject();
-      rowSelect();
+    }
+    if (isInEditMode) {
+      isInEditMode = false;
+      PF.current().ajax().update(CONTENT_FORM, CONTENT_FORM_CMS_VALUES);
+    } else {
+      PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
+    }
+    if (selectedCms.isFile()) {
+      loadFileContentOfSelectedCms();
     }
   }
 
@@ -409,10 +411,6 @@ public class CmsLiveEditorBean implements Serializable {
     for (CmsValueDto currentCmsValue : cmsValues) {
       save(currentCmsValue.getLanguageIndex(), currentCmsValue.getContents());
     }
-  }
-
-  public void checkIsEditingAndShowMessage() {
-    isEditing();
   }
 
   private boolean isEditing() {
@@ -720,7 +718,4 @@ public class CmsLiveEditorBean implements Serializable {
     this.fileDownload = fileDownload;
   }
 
-  public boolean isInEditMode() {
-    return isInEditMode;
-  }
 }
