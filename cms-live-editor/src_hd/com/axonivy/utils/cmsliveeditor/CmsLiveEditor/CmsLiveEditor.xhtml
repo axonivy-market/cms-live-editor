@@ -102,10 +102,9 @@
                     </p:column>
                     <p:ajax event="rowSelect"
                       listener="#{cmsLiveEditorBean.onRowSelect}"
-                      process="table-cms-keys"
-                      update=":content-form:cms-columns"
+                      process="table-cms-keys" update="@none"
                       partialSubmit="true" onstart="savePathPanelScroll();"
-                      oncomplete="restorePathPanelScroll()" />
+                      oncomplete="restorePathPanelScroll(); initCmsWarnings();" />
 
                     <p:ajax event="rowUnselect" process="table-cms-keys"
                       update="@none" partialSubmit="true" />

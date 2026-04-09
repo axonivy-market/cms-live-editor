@@ -99,7 +99,6 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
-  private boolean isInEditMode;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
   private List<Locale> languageList;
@@ -209,7 +208,6 @@ public class CmsLiveEditorBean implements Serializable {
   public void onEditableButton() {
     lastSelectedCms = selectedCms;
     isEditableCms = true;
-    isInEditMode = true;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
@@ -217,7 +215,6 @@ public class CmsLiveEditorBean implements Serializable {
     isEditableCms = false;
     lastSelectedCms.getContents().forEach(s -> s.setEditing(false));
     lastSelectedCms = null;
-    isInEditMode = false;
     clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
@@ -348,15 +345,10 @@ public class CmsLiveEditorBean implements Serializable {
     if (selectedCmsEntries != null && selectedCmsEntries.size() == 1) {
       this.selectedCms = event.getObject();
     }
-    if (isInEditMode) {
-      isInEditMode = false;
-      PF.current().ajax().update(CONTENT_FORM, CONTENT_FORM_CMS_VALUES);
-    } else {
-      PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
-    }
     if (selectedCms.isFile()) {
       loadFileContentOfSelectedCms();
     }
+    PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_CMS_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   private void loadFileContentOfSelectedCms() {
