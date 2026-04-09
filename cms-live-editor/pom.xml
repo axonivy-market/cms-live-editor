@@ -9,7 +9,7 @@
   </parent>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor</artifactId>
-  <version>13.2.0</version>
+  <version>13.2.1-SNAPSHOT</version>
   <packaging>iar</packaging>
   <properties>
     <ivy.engine.version>13.2.0</ivy.engine.version>
