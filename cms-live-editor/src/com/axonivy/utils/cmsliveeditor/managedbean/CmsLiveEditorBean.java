@@ -7,7 +7,6 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_SETTING
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_EDIT_VALUE;
-import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALIDATION_FAILED;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALUES;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_ERROR_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
@@ -55,7 +54,6 @@ import com.axonivy.utils.cmsliveeditor.model.ExportOption;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
-import com.axonivy.utils.cmsliveeditor.service.PlaceholderService;
 import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
@@ -88,7 +86,6 @@ public class CmsLiveEditorBean implements Serializable {
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
-  private final PlaceholderService placeholderService = PlaceholderService.getInstance();
 
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
@@ -103,13 +100,10 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isEditableCms;
   private String resetConfirmText;
   private boolean isInEditMode;
-  private List<Integer> invalidLocaleIndices;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-  @SuppressWarnings("unused")
-  private String validationFailedLocaleIndicesJson;
 
   @PostConstruct
   private void init() {
@@ -126,21 +120,6 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    invalidLocaleIndices = new ArrayList<>();
-    for (Map.Entry<String, Map<String, SavedCms>> cmsEntry : savedCmsMap.entrySet()) {
-      List<String> errorLocales = placeholderService.validateLocales(cmsEntry.getValue());
-
-      if (!errorLocales.isEmpty()) {
-        invalidLocaleIndices =
-            placeholderService.findInvalidLocaleIndices(errorLocales, selectedCms);
-        FacesContext.getCurrentInstance().validationFailed();
-        PF.current().ajax().addCallbackParam("validationFailed", true);
-        PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID,
-            CONTENT_FORM_CMS_VALIDATION_FAILED);
-        return;
-      }
-    }
-
     isEditableCms = false;
     if (selectedCms.isFile()) {
       cmsService.writeCmsFileToApplication(selectedCms);
@@ -151,22 +130,8 @@ public class CmsLiveEditorBean implements Serializable {
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM, CONTENT_FORM_TABLE_CMS_KEYS, CONTENT_FORM_CMS_VALUES,
-        CONTENT_FORM_CMS_EDIT_VALUE, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID,
-        CONTENT_FORM_CMS_VALIDATION_FAILED);
+        CONTENT_FORM_CMS_EDIT_VALUE, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID);
     lastSelectedCms = null;
-  }
-
-  public String getValidationFailedLocaleIndicesJson() {
-    try {
-      return mapper.writeValueAsString(invalidLocaleIndices);
-    } catch (JsonProcessingException e) {
-      Ivy.log().warn("Could not serialize invalidLocaleIndices", e);
-      return "[]";
-    }
-  }
-
-  public boolean isPlaceholderValidationFailed() {
-    return invalidLocaleIndices != null && !invalidLocaleIndices.isEmpty();
   }
 
   public boolean isRenderResetAllChange() {
@@ -202,7 +167,6 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void resetAllChanges() {
-    invalidLocaleIndices = new ArrayList<>();
     lastSelectedCms = null;
     isInEditMode = false;
     selectedCms = null;
@@ -230,7 +194,6 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void undoChange() {
-    invalidLocaleIndices = new ArrayList<>();
     lastSelectedCms = null;
     isInEditMode = false;
     savedCmsMap.remove(selectedCms.getUri());
@@ -263,8 +226,6 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
-    invalidLocaleIndices = new ArrayList<>();
-
     if (selectedCms != null) {
       savedCmsMap.remove(selectedCms.getUri());
       if (!selectedCms.isFile() && selectedCms.getContents() != null) {
@@ -785,11 +746,15 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
-  public void setValidationFailedLocaleIndicesJson(String validationFailedLocaleIndicesJson) {
-    this.validationFailedLocaleIndicesJson = validationFailedLocaleIndicesJson;
-  }
-
   public void setFileDownload(StreamedContent fileDownload) {
     this.fileDownload = fileDownload;
+  }
+
+  public Map<String, Map<String, SavedCms>> getSavedCmsMap() {
+    return savedCmsMap;
+  }
+
+  public void setSavedCmsMap(Map<String, Map<String, SavedCms>> savedCmsMap) {
+    this.savedCmsMap = savedCmsMap;
   }
 }

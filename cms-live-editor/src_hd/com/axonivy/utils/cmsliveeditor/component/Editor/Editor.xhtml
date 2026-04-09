@@ -36,7 +36,10 @@
   <!-- EDIT MODE -->
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
     <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
-      autoResize="false" />
+      autoResize="false">
+      <f:attribute name="languageIndex" value="#{cc.attrs.languageIndex}" />
+      <f:validator validatorId="cmsLiveEditorValidator" />
+    </p:inputTextarea>
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"

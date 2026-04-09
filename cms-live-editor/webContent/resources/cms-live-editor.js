@@ -4,9 +4,7 @@ window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsValidationFailed = window.cmsValidationFailed || false;
-window.cmsInvalidLocaleIndices = window.cmsInvalidLocaleIndices || [];
 
-const CMS_INVALID_LOCALE_INDICES_ID = 'content-form:invalid-locale-indices';
 const CMS_EDIT_ERROR = ".sun-editor.cms-editor-error";
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
@@ -61,8 +59,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
-  const failedIndices = window.cmsInvalidLocaleIndices || [];
-  setEditorError(languageIndex, failedIndices.includes(Number(languageIndex)));
+  // Check if this editor's textarea was marked invalid by JSF validation
+  setEditorError(languageIndex, textarea.classList.contains('ui-state-error'));
 
   // Store original content and placeholder pattern for later comparison
   try {
@@ -110,29 +108,19 @@ function markDirtyIfChanged() {
 }
 
 function getInvalidLocaleIndices() {
-  const invalidLocaleIndicesElement = document.getElementById(CMS_INVALID_LOCALE_INDICES_ID);
-  if (!invalidLocaleIndicesElement) {
-    return [];
-  }
-
-  const rawValue = typeof invalidLocaleIndicesElement.value === 'string'
-    ? invalidLocaleIndicesElement.value
-    : (invalidLocaleIndicesElement.textContent || '');
-
-  try {
-    const parsedIndices = JSON.parse(rawValue || '[]');
-    if (!Array.isArray(parsedIndices)) {
-      return [];
+  const indices = [];
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    const editorId = window.cmsLiveEditorIds[languageIndex];
+    const textarea = document.getElementById(editorId);
+    if (textarea && textarea.classList.contains('ui-state-error')) {
+      indices.push(Number(languageIndex));
     }
-    return parsedIndices.map(Number).filter(Number.isFinite);
-  } catch (e) {
-    return [];
   }
+  return indices;
 }
 
 function applyValidationFailedState() {
   const failedIndices = getInvalidLocaleIndices();
-  window.cmsInvalidLocaleIndices = failedIndices;
 
   const maxAttempts = 10;
   let attempts = 0;
@@ -142,7 +130,10 @@ function applyValidationFailedState() {
 
     // Clear all first, then set errors only for failed locales.
     for (const languageIndex in window.cmsLiveEditorIds) {
-      setEditorError(Number(languageIndex), failedIndices.includes(Number(languageIndex)));
+      const editorId = window.cmsLiveEditorIds[languageIndex];
+      const textarea = document.getElementById(editorId);
+      const hasError = textarea && textarea.classList.contains('ui-state-error');
+      setEditorError(Number(languageIndex), hasError);
     }
 
     // Stop retrying once at least one failed editor is styled, or when reach the limit.
@@ -158,7 +149,6 @@ function applyValidationFailedState() {
 
 function clearValidationFailedState() {
   window.cmsValidationFailed = false;
-  window.cmsInvalidLocaleIndices = [];
   for (const languageIndex in window.cmsLiveEditorIds) {
     setEditorError(Number(languageIndex), false);
   }
@@ -194,7 +184,6 @@ function restrictActionForNonHtml(isHtmlContent, editor) {
 function saveAllEditors() {
   // Reset validation flag for a new save attempt.
   window.cmsValidationFailed = false;
-  window.cmsInvalidLocaleIndices = [];
 
   const dirtyEditors = new Set(window.cmsDirtyEditors);
 
@@ -345,7 +334,6 @@ function handleCmsSaveComplete(args) {
 
   if (!validationFailed) {
     window.cmsValidationFailed = false;
-    window.cmsInvalidLocaleIndices = [];
     initCmsWarnings();
     restorePathPanelScroll();
     showSaveSuccess();

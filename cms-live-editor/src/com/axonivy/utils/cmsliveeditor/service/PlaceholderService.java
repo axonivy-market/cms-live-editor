@@ -26,6 +26,34 @@ public class PlaceholderService {
     return instance;
   }
 
+  public List<Integer> findInvalidLanguageIndices(Cms selectedCms, Map<String, SavedCms> savedLocales) {
+    if (selectedCms == null || selectedCms.isFile()) {
+      return List.of();
+    }
+
+    Map<String, SavedCms> cmsLocales = new HashMap<>();
+    for (CmsContent content : selectedCms.getContents()) {
+      String localeKey = content.getLocale().toString();
+      if (savedLocales.containsKey(localeKey)) {
+        cmsLocales.put(localeKey, savedLocales.get(localeKey));
+      } else {
+        cmsLocales.put(localeKey,
+            new SavedCms(selectedCms.getUri(), localeKey, content.getOriginalContent(), content.getContent()));
+      }
+    }
+
+    if (cmsLocales.isEmpty()) {
+      return List.of();
+    }
+
+    List<String> errorLocales = validateLocales(cmsLocales);
+    if (errorLocales.isEmpty()) {
+      return List.of();
+    }
+
+    return findInvalidLocaleIndices(errorLocales, selectedCms);
+  }
+
   public List<Integer> findInvalidLocaleIndices(List<String> invalidLocales, Cms selectedCms) {
     if (selectedCms == null || selectedCms.getContents() == null || selectedCms.getContents().isEmpty()) {
       return new ArrayList<>();
@@ -65,33 +93,42 @@ public class PlaceholderService {
     // CASE 2: original has placeholders
     return cmsLocales.entrySet().stream()
         .filter(localeEntry -> isEdited(localeEntry.getValue()))
-        .filter(localeEntry -> !areMessagePatternsCompatible(
-            originalValue,
-            localeEntry.getValue().getNewContent()))
+        .filter(localeEntry -> !areMessagePatternsCompatible(originalValue, localeEntry.getValue().getNewContent()))
         .map(Map.Entry::getKey)
         .toList();
   }
 
   private List<String> validateAmongEditedLocales(Map<String, SavedCms> cmsLocales) {
-    List<Map.Entry<String, SavedCms>> editedLocales = cmsLocales.entrySet().stream()
-        .filter(entry -> isEdited(entry.getValue()))
-        .toList();
-
-    if (editedLocales.size() <= 1) {
-      return new ArrayList<>();
+    List<Map.Entry<String, SavedCms>> editedLocales =
+        cmsLocales.entrySet().stream().filter(entry -> isEdited(entry.getValue())).toList();
+    if (editedLocales.isEmpty()) {
+      return List.of();
     }
 
-    // Use first edited locale as baseline
-    String base = editedLocales.get(0).getValue().getNewContent();
+    List<Map.Entry<String, SavedCms>> entries = new ArrayList<>(cmsLocales.entrySet());
+    List<List<Integer>> allArgs =
+        entries.stream().map(entry -> extractArgumentIndices(entry.getValue().getNewContent())).toList();
 
-    return editedLocales.stream()
-        .filter(entry -> !areMessagePatternsCompatible(base, entry.getValue().getNewContent()))
-        .map(Map.Entry::getKey)
-        .toList();
+    long nonEmptyCount = allArgs.stream().filter(set -> !set.isEmpty()).count();
+    boolean hasMixedPresence = nonEmptyCount > 0 && nonEmptyCount < allArgs.size();
+    boolean hasTooFewWithPlaceholders = nonEmptyCount == 1;
+
+    if (hasMixedPresence || hasTooFewWithPlaceholders) {
+      return editedLocales.stream().map(Map.Entry::getKey).toList();
+    }
+
+    if (nonEmptyCount == 0) {
+      return List.of();
+    }
+
+    String base = editedLocales.get(0).getValue().getNewContent();
+    return editedLocales.stream().filter(entry -> !areMessagePatternsCompatible(base, entry.getValue().getNewContent()))
+        .map(Map.Entry::getKey).toList();
   }
 
-  private Set<Integer> extractArgumentIndices(String pattern) {
-    Set<Integer> indices = new HashSet<>();
+
+  private List<Integer> extractArgumentIndices(String pattern) {
+    List<Integer> indices = new ArrayList<>();
 
     Matcher matcher = Pattern.compile("\\{(\\d+)").matcher(pattern);
     while (matcher.find()) {
@@ -113,16 +150,14 @@ public class PlaceholderService {
    */
   public boolean areMessagePatternsCompatible(String originalValue, String newValue) {
     try {
-      Set<Integer> originalArgs = extractArgumentIndices(originalValue);
-      Set<Integer> newArgs = extractArgumentIndices(newValue);
-
+      List<Integer> originalArgs = extractArgumentIndices(originalValue);
+      List<Integer> newArgs = extractArgumentIndices(newValue);
       if (!originalArgs.equals(newArgs)) {
         return false;
       }
 
       MessageFormat originalMessageFormat = new MessageFormat(originalValue, Locale.ENGLISH);
       MessageFormat newMessageFormat = new MessageFormat(newValue, Locale.ENGLISH);
-
       return hasSameMessageFormatStructure(originalMessageFormat, newMessageFormat);
 
     } catch (Exception e) {
