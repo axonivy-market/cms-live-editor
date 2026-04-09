@@ -89,7 +89,6 @@
                     widgetVar="tableCmsKeysWidget" scrollHeight="100%"
                     styleClass="cms-path-table"
                    >
-
                     <p:column>
                       <div class="path-row">
                         <h:outputText class="cms-uri" id="cms-uri" value="#{entry.uri}" />
@@ -106,7 +105,7 @@
                       process="table-cms-keys"
                       update=":content-form:cms-columns"
                       partialSubmit="true" onstart="savePathPanelScroll();"
-                      oncomplete="savePathPanelScroll()" />
+                      oncomplete="restorePathPanelScroll()" />
 
                     <p:ajax event="rowUnselect" process="table-cms-keys"
                       update="@none" partialSubmit="true" />
