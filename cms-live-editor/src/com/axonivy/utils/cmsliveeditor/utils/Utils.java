@@ -14,7 +14,7 @@ import org.jsoup.parser.Parser;
 public class Utils {
   private static final String HTML_TAG_PATTERN = "<.*?>";
   private static final String TABLE_ELEMENT = "table";
-  private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
+  private static final String UNORDERED_PATTERN = "<ul class='pl-3 ml-2'> %s </ul>";
   private static final String LIST_ITEM_PATTERN = "<li style='padding:0 2rem 0.25rem 0;'> %s </li>";
   private static final String PARAGRAPH_TAG = "p";
   private static final String TEXT_NODE = "#text";

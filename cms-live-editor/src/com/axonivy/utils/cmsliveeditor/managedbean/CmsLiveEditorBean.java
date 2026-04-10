@@ -99,6 +99,7 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
+  private String dialogDetail;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
   private List<Locale> languageList;
@@ -420,13 +421,22 @@ public class CmsLiveEditorBean implements Serializable {
   private void showHaveNotBeenSavedDialog() {
     var editingCmsList = lastSelectedCms.getContents().stream().filter(CmsContent::isEditing).map(CmsContent::getLocale)
         .map(Locale::getDisplayLanguage).collect(Collectors.toList());
-    var detail = Utils.convertListToHTMLList(editingCmsList);
-    showDialog(cms().co("/Labels/SomeFieldsHaveNotBeenSaved"), detail);
+    dialogDetail = Utils.convertListToHTMLList(editingCmsList);
+    showContentHaveNotBeenSaveDialog();
+  }
+
+  private void showContentHaveNotBeenSaveDialog() {
+    PrimeFaces.current().executeScript("PF('content-not-been-saved-dlg').show();");
+    PrimeFaces.current().ajax().update("content-not-been-saved-dlg");
   }
 
   private void showDialog(String summary, String detail) {
     var message = new FacesMessage(SEVERITY_INFO, summary, detail);
     PrimeFaces.current().dialog().showMessageDynamic(message, false);
+  }
+
+  public String getDialogDetail() {
+    return dialogDetail;
   }
 
   public void getAllChildren(String pmvName, ContentObject contentObject, List<Locale> locales) {
