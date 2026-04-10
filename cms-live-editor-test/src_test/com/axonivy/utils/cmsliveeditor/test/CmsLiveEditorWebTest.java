@@ -51,7 +51,7 @@ public class CmsLiveEditorWebTest {
   private String testCmsValue = "Test Content";
   private static final String TEST_CMS_FILE_DOCX_URI= "/Test/TestFileDocX";
   private static final String TEST_CMS_TEXT_URI = "/Test/TestContent";
-  private static final String PRIMEFACES_MESSAGE_DIALOG = "primefacesmessagedlg";
+  private static final String CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR = "[id^='content-not-been-saved-dlg']";
   private static final String RESIZING_CLASS = ".se-btn.se-resizing-enabled.se-tooltip";
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
@@ -140,12 +140,12 @@ public class CmsLiveEditorWebTest {
     Selenide.sleep(1000);
     otherElement.click();
 
-    var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    var errorDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR));
     closeDialog(errorDialog);
 
     // assert check save before search items
     sendKeysToSearchInput("Lorem ifsum");
-    errorDialog.should(visible);
+    errorDialog.should(visible, Duration.ofSeconds(2));
     errorDialog.$(".ui-dialog-titlebar-close").click();
   }
 
@@ -179,12 +179,11 @@ public class CmsLiveEditorWebTest {
     cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
-    Selenide.sleep(1000);
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled, Duration.ofSeconds(2)).scrollIntoView(true).shouldBe(interactable).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(2));
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherElement.click();
-    $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
+    $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).should(hidden);
   }
 
   @Test
@@ -231,7 +230,7 @@ public class CmsLiveEditorWebTest {
     firstInputElement.uploadFile(docFile);
     errorMessageElement.shouldBe(hidden);
     cmsList.findBy(exactText(TEST_CMS_TEXT_URI)).click();
-    var warningDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    var warningDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).shouldBe(visible, Duration.ofSeconds(2));
     closeDialog(warningDialog);
     var removeFileElement = $(".pi-trash");
     removeFileElement.shouldBe(visible).click();

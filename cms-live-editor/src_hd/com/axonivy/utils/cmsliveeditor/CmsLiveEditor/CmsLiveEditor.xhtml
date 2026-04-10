@@ -11,10 +11,12 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="h-full card">
+      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card mb-0">
         <ui:include src="/resources/cms-settings-dialog.xhtml"/>
         <ui:include src="/resources/translation-review-dialog.xhtml"/>
-        <h:panelGroup styleClass="flex flex-column h-full" layout="block">
+        <p:remoteCommand id="set-value" name="setRowChange" global="false" process="@this" update="@this"
+          oncomplete="restorePathPanelScroll();" partialSubmit="true" />
+        <h:panelGroup styleClass="flex flex-column" layout="block">
           <div
             class="flex align-items-center justify-content-between mb-1">
             <div class="mb-3">
@@ -61,9 +63,9 @@
             </div>
           </div>
 
-          <h:panelGroup layout="block" class="column-container flex h-full" id="column-container">
+          <h:panelGroup layout="block" class="column-container flex" id="column-container">
             <h:panelGroup layout="block" id="path-column"
-              styleClass="col-5 p-0 h-full right-border flex flex-column">
+              styleClass="#{cmsLiveEditorBean.editableCms ? 'col-4' : 'col-6'} p-0 right-border flex flex-column">
               <div
                 class="column-header flex align-items-center justify-content-between">
                 <span class="path-label font-semibold text-lg">
@@ -79,7 +81,7 @@
                   </span>
                 </h:panelGroup>
               </div>
-              <h:panelGroup styleClass="panel left w-full h-full" layout="block">
+              <h:panelGroup styleClass="panel left w-full" layout="block">
                   <p:dataTable id="table-cms-keys"
                     value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                     rowKey="#{entry.uri}"
@@ -87,7 +89,7 @@
                     selectionMode="multiple" rowSelectMode="new"
                     widgetVar="tableCmsKeysWidget" scrollHeight="100%"
                     styleClass="cms-path-table"
-                   >
+                    onRowClick="savePathPanelScroll(); return false;">
                     <p:column>
                       <div class="path-row">
                         <h:outputText class="cms-uri" id="cms-uri" value="#{entry.uri}" />
@@ -114,13 +116,13 @@
               </h:panelGroup>
             </h:panelGroup>
 
-            <h:panelGroup layout="block" id="cms-columns" styleClass="col-7 p-0 flex h-full">
+            <h:panelGroup layout="block" id="cms-columns" styleClass="col-8 p-0 flex">
               <h:panelGroup layout="block" id="current-cms-column"
                 styleClass="#{cmsLiveEditorBean.editableCms ? 'col-6' : 'col-12'} flex flex-column p-0">
                 <div class="column-header flex align-items-center justify-content-between">
                   <div class="flex align-items-center gap-2">
                     <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span>
-                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/CmsInformation')}" />
+                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/ProjectCMSApplication')}" />
                   </div>
 
                   <p:commandLink id="undo-change-path" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
@@ -132,7 +134,7 @@
                     <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
                   </p:commandLink>
                 </div>
-                <h:panelGroup styleClass="panel w-full flex flex-column h-full justify-content-between" layout="block">
+                <h:panelGroup styleClass="panel w-full flex flex-column justify-content-between" layout="block">
                   <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-values" multiple="true" widgetVar="multiple"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
@@ -214,10 +216,10 @@
                 <div class="column-header flex align-items-center">
                   <div class="flex align-items-center gap-2">
                     <span class="font-semibold text-lg cms-title">#{ivy.cms.co('/Labels/Edit')}</span>
-                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/EditCmsInformation')}" />
+                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/ApplicationCMSDefinition')}" />
                   </div>
                 </div>
-                <h:panelGroup styleClass="panel end w-full flex flex-column h-full justify-content-between" layout="block">
+                <h:panelGroup styleClass="panel end w-full flex flex-column justify-content-between" layout="block">
                   <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
@@ -365,6 +367,21 @@
           <div class="text-lg font-semibold">
             <h:outputText value="#{ivy.cms.co('/Labels/CmsDownloaded')}" escape="false" />
           </div>
+        </div>
+      </p:dialog>
+
+      <p:dialog id="content-not-been-saved-dlg" widgetVar="content-not-been-saved-dlg" modal="true" closable="true"
+        draggable="false" resizable="false" showHeader="true" styleClass="custom-message-dialog" width="420">
+        <f:facet name="header">
+          <span class="align-items-center gap-2">
+            <i class="si-road-sign-warning" />
+            <h:outputText styleClass="ml-2" value="#{ivy.cms.co('/Labels/Warning')}" escape="false" />
+          </span>
+        </f:facet>
+      
+        <div class="mb-3 ml-4">
+          <h:outputText value="#{ivy.cms.co('/Labels/FieldHasNotBeenSavedMessage')}" />
+          <h:outputText value="#{cmsLiveEditorBean.dialogDetail}" escape="false" />
         </div>
       </p:dialog>
 
