@@ -318,7 +318,7 @@
                         icon="pi pi-times" process="@this"
                         styleClass="flex-1 mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
                         update="column-container" actionListener="#{cmsLiveEditorBean.onCancelEditableButton()}"
-                        oncomplete="restorePathPanelScroll();" />
+                        oncomplete="restorePathPanelScroll(); initCmsWarnings();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
                         update="table-cms-keys cms-values cms-edit-value editable-column"
