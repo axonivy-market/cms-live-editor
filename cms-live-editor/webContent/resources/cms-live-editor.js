@@ -3,9 +3,9 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
-window.cmsValidationFailed = window.cmsValidationFailed || false;
 window.cmsClonedButtons = window.cmsClonedButtons || {};
 
+const CMS_EDITOR_ERROR = 'cms-editor-error';
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
@@ -173,31 +173,25 @@ function markDirtyIfChanged() {
   };
 }
 
-function getInvalidLocaleIndices() {
-  const indices = [];
-  for (const languageIndex in window.cmsLiveEditorIds) {
-    const editorId = window.cmsLiveEditorIds[languageIndex];
-    const textarea = document.getElementById(editorId);
-    if (textarea && textarea.classList.contains('ui-state-error')) {
-      indices.push(Number(languageIndex));
-    }
-  }
-  return indices;
-}
-
 function setTabHeaderError(languageIndex, hasError) {
   const editorId = window.cmsLiveEditorIds[languageIndex];
-  if (!editorId) return;
+  if (!editorId) {
+    return;
+  }
 
   const textarea = document.getElementById(editorId);
-  if (!textarea) return;
+  if (!textarea) {
+    return;
+  }
 
   const contentPanel = textarea.closest('.ui-accordion-content');
-  if (!contentPanel) return;
+  if (!contentPanel) {
+    return;
+  }
 
   const header = contentPanel.previousElementSibling;
   if (header && header.classList.contains('ui-accordion-header')) {
-    header.classList.toggle('cms-editor-error', hasError);
+    header.classList.toggle(CMS_EDITOR_ERROR, hasError);
   }
 }
 
@@ -213,20 +207,19 @@ function applyValidationFailedState(failedIndices) {
 }
 
 function clearValidationFailedState() {
-  window.cmsValidationFailed = false;
   for (const languageIndex in window.cmsLiveEditorIds) {
     setEditorError(Number(languageIndex), false);
     setTabHeaderError(Number(languageIndex), false);
   }
 
   document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
-    element.classList.remove('cms-editor-error');
+    element.classList.remove(CMS_EDITOR_ERROR);
   });
 
   const accordion = document.getElementById('content-form:cms-edit-value');
   if (accordion) {
     accordion.querySelectorAll('.ui-accordion-header.cms-editor-error').forEach((header) => {
-      header.classList.remove('cms-editor-error');
+      header.classList.remove(CMS_EDITOR_ERROR);
     });
   }
 }
@@ -255,9 +248,6 @@ function restrictActionForNonHtml(isHtmlContent, editor) {
 }
 
 function saveAllEditors() {
-  // Reset validation flag for a new save attempt.
-  window.cmsValidationFailed = false;
-
   const dirtyEditors = new Set(window.cmsDirtyEditors);
 
   if (dirtyEditors.size === 0) {
@@ -293,7 +283,7 @@ function setEditorError(languageIndex, hasError) {
     return;
   }
 
-  container.classList.toggle('cms-editor-error', hasError);
+  container.classList.toggle(CMS_EDITOR_ERROR, hasError);
 }
 
 function getEditorContainer(languageIndex) {
@@ -476,14 +466,12 @@ function handleCmsSaveComplete(args) {
 
   if (!validationFailed) {
 	destroyEditors();
-    window.cmsValidationFailed = false;
     initCmsWarnings();
     restorePathPanelScroll();
     showSaveSuccess();
     return;
   }
 
-  window.cmsValidationFailed = true;
   var invalidIndices = [];
   try {
     invalidIndices = JSON.parse(args.invalidIndices || '[]');
