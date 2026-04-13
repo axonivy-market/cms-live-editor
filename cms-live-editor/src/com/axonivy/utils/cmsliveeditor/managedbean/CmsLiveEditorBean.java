@@ -120,6 +120,10 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
+    if(FacesContext.getCurrentInstance().isValidationFailed()) {
+      return;
+    }
+
     isEditableCms = false;
     if (selectedCms.isFile()) {
       cmsService.writeCmsFileToApplication(selectedCms);

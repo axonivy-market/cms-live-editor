@@ -17,6 +17,7 @@ import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 
 public class PlaceholderService {
 
+  private static final Pattern ARGUMENT_INDEX_PATTERN = Pattern.compile("\\{(\\d+)");
   private static PlaceholderService instance;
 
   public static PlaceholderService getInstance() {
@@ -27,8 +28,8 @@ public class PlaceholderService {
   }
 
   public List<Integer> findInvalidLanguageIndices(Cms selectedCms, Map<String, SavedCms> savedLocales) {
-    if (selectedCms == null || selectedCms.isFile()) {
-      return List.of();
+    if (selectedCms == null || !selectedCms.hasTextContents()) {
+      return new ArrayList<>();
     }
 
     Map<String, SavedCms> cmsLocales = new HashMap<>();
@@ -42,23 +43,19 @@ public class PlaceholderService {
       }
     }
 
-    if (cmsLocales.isEmpty()) {
-      return List.of();
+    if (cmsLocales == null || cmsLocales.isEmpty()) {
+      return new ArrayList<>();
     }
 
     List<String> errorLocales = validateLocales(cmsLocales);
     if (errorLocales.isEmpty()) {
-      return List.of();
-    }
-
-    return findInvalidLocaleIndices(errorLocales, selectedCms);
-  }
-
-  public List<Integer> findInvalidLocaleIndices(List<String> invalidLocales, Cms selectedCms) {
-    if (selectedCms == null || selectedCms.getContents() == null || selectedCms.getContents().isEmpty()) {
       return new ArrayList<>();
     }
 
+    return mapLocalesToIndices(selectedCms, errorLocales);
+  }
+
+  public List<Integer> mapLocalesToIndices(Cms selectedCms, List<String> invalidLocales) {
     Set<String> normalizedLocaleTags = invalidLocales.stream()
         .filter(Objects::nonNull)
         .map(tag -> Locale
@@ -75,62 +72,60 @@ public class PlaceholderService {
   }
 
   public List<String> validateLocales(Map<String, SavedCms> cmsLocales) {
-    if (cmsLocales == null || cmsLocales.isEmpty()) {
-      return new ArrayList<>();
-    }
-
     String originalValue = cmsLocales.values().stream()
         .map(SavedCms::getOriginalContent)
         .filter(value -> value != null && !value.isBlank())
         .max(Comparator.comparingInt(PlaceholderService::countArgumentNumbers))
         .orElse(null);
+    
+    List<Map.Entry<String, SavedCms>> editedLocales = cmsLocales.entrySet().stream()
+        .filter(localeEntry -> isEdited(localeEntry.getValue())).toList();
 
     // CASE 1: original has NO placeholders → compare among edited locales
     if (originalValue == null || countArgumentNumbers(originalValue) <= 0) {
-      return validateAmongEditedLocales(cmsLocales);
+      return validateAmongEditedLocales(editedLocales);
     }
 
     // CASE 2: original has placeholders
-    return cmsLocales.entrySet().stream()
-        .filter(localeEntry -> isEdited(localeEntry.getValue()))
+    return findIncompatibleLocales(originalValue, editedLocales);
+  }
+
+  private List<String> validateAmongEditedLocales(List<Map.Entry<String, SavedCms>> editedLocales) {
+    if (editedLocales.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    List<List<Integer>> allArgs =
+        editedLocales.stream().map(entry -> extractArgumentIndices(entry.getValue().getNewContent())).toList();
+
+    long nonEmptyCount = allArgs.stream().filter(set -> !set.isEmpty()).count();
+
+    // No edited locale has placeholders → nothing to validate
+    if (nonEmptyCount == 0) {
+      return new ArrayList<>();
+    }
+
+    // Need at least 2 locales with placeholders to cross-validate;
+    // also flag when some locales have placeholders and others don't
+    if (nonEmptyCount < 2 || nonEmptyCount < allArgs.size()) {
+      return editedLocales.stream().map(Map.Entry::getKey).toList();
+    }
+
+    String baseValue = editedLocales.get(0).getValue().getNewContent();
+    return findIncompatibleLocales(baseValue, editedLocales);
+  }
+
+  private List<String> findIncompatibleLocales(String originalValue, List<Map.Entry<String, SavedCms>> editedLocales) {
+    return editedLocales.stream()
         .filter(localeEntry -> !areMessagePatternsCompatible(originalValue, localeEntry.getValue().getNewContent()))
         .map(Map.Entry::getKey)
         .toList();
   }
 
-  private List<String> validateAmongEditedLocales(Map<String, SavedCms> cmsLocales) {
-    List<Map.Entry<String, SavedCms>> editedLocales =
-        cmsLocales.entrySet().stream().filter(entry -> isEdited(entry.getValue())).toList();
-    if (editedLocales.isEmpty()) {
-      return List.of();
-    }
-
-    List<Map.Entry<String, SavedCms>> entries = new ArrayList<>(cmsLocales.entrySet());
-    List<List<Integer>> allArgs =
-        entries.stream().map(entry -> extractArgumentIndices(entry.getValue().getNewContent())).toList();
-
-    long nonEmptyCount = allArgs.stream().filter(set -> !set.isEmpty()).count();
-    boolean hasMixedPresence = nonEmptyCount > 0 && nonEmptyCount < allArgs.size();
-    boolean hasTooFewWithPlaceholders = nonEmptyCount == 1;
-
-    if (hasMixedPresence || hasTooFewWithPlaceholders) {
-      return editedLocales.stream().map(Map.Entry::getKey).toList();
-    }
-
-    if (nonEmptyCount == 0) {
-      return List.of();
-    }
-
-    String base = editedLocales.get(0).getValue().getNewContent();
-    return editedLocales.stream().filter(entry -> !areMessagePatternsCompatible(base, entry.getValue().getNewContent()))
-        .map(Map.Entry::getKey).toList();
-  }
-
-
   private List<Integer> extractArgumentIndices(String pattern) {
     List<Integer> indices = new ArrayList<>();
 
-    Matcher matcher = Pattern.compile("\\{(\\d+)").matcher(pattern);
+    Matcher matcher = ARGUMENT_INDEX_PATTERN.matcher(pattern);
     while (matcher.find()) {
       indices.add(Integer.parseInt(matcher.group(1)));
     }
@@ -204,30 +199,23 @@ public class PlaceholderService {
    * - Nested MessageFormats inside ChoiceFormat are validated recursively
    */
   private boolean hasSameFormatComponent(Format originalFormat, Format newFormat) {
-    if (originalFormat == null && newFormat == null) {
-      return true;
-    }
     if (originalFormat == null || newFormat == null) {
-      return false;
+      return originalFormat == newFormat;
     }
 
     if (!originalFormat.getClass().equals(newFormat.getClass())) {
       return false;
     }
 
-    if (originalFormat instanceof ChoiceFormat originalChoiceFormat && newFormat instanceof ChoiceFormat newChoiceFormat) {
-      return areChoiceFormatsEquivalent(originalChoiceFormat, newChoiceFormat);
-    }
-
-    if (originalFormat instanceof DecimalFormat originalDecimalFormat && newFormat instanceof DecimalFormat newDecimalFormat) {
-      return Objects.equals(originalDecimalFormat.toPattern(), newDecimalFormat.toPattern());
-    }
-
-    if (originalFormat instanceof SimpleDateFormat originalDateFormat && newFormat instanceof SimpleDateFormat newDateFormat) {
-      return Objects.equals(originalDateFormat.toPattern(), newDateFormat.toPattern());
-    }
-
-    return originalFormat.equals(newFormat);
+    return switch (originalFormat) {
+      case ChoiceFormat originalChoiceFormat -> areChoiceFormatsEquivalent(originalChoiceFormat,
+          (ChoiceFormat) newFormat);
+      case DecimalFormat originalDecimalFormat -> Objects.equals(originalDecimalFormat.toPattern(),
+          ((DecimalFormat) newFormat).toPattern());
+      case SimpleDateFormat originalDateFormat -> Objects.equals(originalDateFormat.toPattern(),
+          ((SimpleDateFormat) newFormat).toPattern());
+      default -> originalFormat.equals(newFormat);
+    };
   }
 
   private boolean areChoiceFormatsEquivalent(ChoiceFormat originalChoiceFormat, ChoiceFormat newChoiceFormat) {
@@ -235,16 +223,12 @@ public class PlaceholderService {
       return false;
     }
 
-    Object[] originalChoiceFormats = originalChoiceFormat.getFormats();
-    Object[] newChoiceFormats = newChoiceFormat.getFormats();
+    Object[] originalFormats = originalChoiceFormat.getFormats();
+    Object[] newFormats = newChoiceFormat.getFormats();
 
-    if (originalChoiceFormats.length != newChoiceFormats.length) {
-      return false;
-    }
-
-    for (int i = 0; i < originalChoiceFormats.length; i++) {
-      String originalPatternPart = String.valueOf(originalChoiceFormats[i]);
-      String newPatternPart = String.valueOf(newChoiceFormats[i]);
+    for (int i = 0; i < originalFormats.length; i++) {
+      String originalPatternPart = String.valueOf(originalFormats[i]);
+      String newPatternPart = String.valueOf(newFormats[i]);
 
       MessageFormat originalNestedMessageFormat = new MessageFormat(originalPatternPart, Locale.ENGLISH);
       MessageFormat newNestedMessageFormat = new MessageFormat(newPatternPart, Locale.ENGLISH);
