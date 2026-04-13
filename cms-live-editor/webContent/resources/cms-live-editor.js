@@ -4,6 +4,7 @@ window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsValidationFailed = window.cmsValidationFailed || false;
+window.cmsClonedButtons = window.cmsClonedButtons || {};
 
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
@@ -13,18 +14,19 @@ const CTRL_KEY_CUT = 'x';
 const CTRL_KEY_ALL = 'a';
 const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
-
+const BUTTON_TITLE_ATTR = 'title';
+const SUNEDITOR_CSS_CLASS = 'sun-editor';
+const DATA_CMS_HIDDEN_ATTR = 'data-cms-hidden';
+const FULLSCREEN_COMMAND_BUTTON = 'fullScreen';
 const FULL_TOOLBAR = [
-  ['font', 'fontSize', 'formatBlock'],
-  ['paragraphStyle', 'blockquote'],
-  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-  ['fontColor', 'hiliteColor', 'textStyle'],
-  ['removeFormat'],
-  ['outdent', 'indent'],
-  ['align', 'list', 'lineHeight', 'horizontalRule'],
-  ['table', 'link'],
-  ['fullScreen'],
-  ['undo', 'redo'],
+  ['bold', 'italic','underline', 'strike'],
+  ['align'],
+  ['list'],
+  ['fontColor'],
+  [':t-More-default.more_horizontal', 
+  'font', 'fontSize', 'formatBlock', 'lineHeight', 'horizontalRule', 'paragraphStyle', 'blockquote',
+  'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
+  'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
 
 function escapeHtml(text) {
@@ -33,13 +35,72 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function removeButtonTitle(cloneButton) {
+  try {
+    cloneButton.removeAttribute(BUTTON_TITLE_ATTR);
+    cloneButton.querySelectorAll(`[${BUTTON_TITLE_ATTR}]`).forEach((child) => child.removeAttribute(BUTTON_TITLE_ATTR));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function findSunEditorForTextarea(textarea) {
+  if (!textarea) return null;
+  return (
+    textarea.nextElementSibling?.classList.contains(SUNEDITOR_CSS_CLASS)
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector(`.${SUNEDITOR_CSS_CLASS}`)
+  ) || null;
+}
+
+function createCloneFromBtn(btn, sunEditor, commandName) {
+  const newCloneButton = btn.cloneNode(true);
+  newCloneButton.classList.add('cms-floating-btn');
+  newCloneButton.setAttribute('contenteditable', 'false');
+  newCloneButton.setAttribute('aria-hidden', 'true');
+  newCloneButton.addEventListener('click', function (ev) {
+    ev.preventDefault();
+    const current = findToolbarBtnFor(sunEditor, commandName);
+    if (current) {
+      current.click();
+    } else {
+      btn.click();
+    }
+    setTimeout(() => refreshClone(newCloneButton, sunEditor, commandName), 50);
+  });
+
+  // remove title attributes to avoid tooltip on the clone
+  removeButtonTitle(newCloneButton);
+  return newCloneButton;
+}
+
+/** Refresh a previously created floating clone to reflect the toolbar button state */
+function refreshClone(currentCloneButton, sunEditor, commandName) {
+  const btn = findToolbarBtnFor(sunEditor, commandName);
+  if (!btn || !currentCloneButton) {
+    return;
+  }
+  try {
+    currentCloneButton.innerHTML = btn.innerHTML;
+    removeButtonTitle(currentCloneButton);
+    const hiddenFlag = btn.getAttribute(DATA_CMS_HIDDEN_ATTR);
+    if (hiddenFlag !== 'true') {
+      btn.style.display = 'none';
+      btn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
+    }
+    currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
+  } catch (e) {
+    // ignore
+  }
+}
+
 function initSunEditor(languageIndex, editorId, isHtml) {
   const textarea = document.getElementById(editorId);
   if (!textarea) {
     return;
   }
   const editor = SUNEDITOR.create(textarea, {
-    buttonList: isHtml ? FULL_TOOLBAR : [],
+    buttonList: isHtml ? FULL_TOOLBAR : [FULLSCREEN_COMMAND_BUTTON],
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
@@ -61,6 +122,12 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   // Check if this editor's textarea was marked invalid by JSF validation
   setEditorError(languageIndex, textarea.classList.contains('ui-state-error'));
 
+  try {
+    createFloatingButton(languageIndex, editorId, FULLSCREEN_COMMAND_BUTTON);
+  } catch (e) {
+    // Ignore: creating the floating toolbar button is a best-effort enhancement.
+    // It may fail on older SunEditor versions or when toolbar layout differs.
+  }
   // Store original content and placeholder pattern for later comparison
   try {
     const initialContents = initialContent;
@@ -173,7 +240,7 @@ function restrictActionForNonHtml(isHtmlContent, editor) {
   };
 
   editor.onKeyDown = function (e) {
-    const key = (e.key || '').toLowerCase();
+    const key = safeLower(e.key);
     const isNotAllowedCtrlKey = (e.ctrlKey || e.metaKey) && !NON_HTML_ALLOWED_CTRL_KEYS.has(key);
     const isEnterKey = key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE;
     if (isNotAllowedCtrlKey || isEnterKey) {
@@ -241,11 +308,7 @@ function getEditorContainer(languageIndex) {
   }
 
   // SunEditor creates .sun-editor next to textarea
-  return (
-    textarea.nextElementSibling?.classList.contains('sun-editor')
-      ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector('.sun-editor')
-  ) || null;
+  return findSunEditorForTextarea(textarea);
 }
 
 function removeNonPrintableChars(str) {
@@ -288,7 +351,7 @@ function initCmsWarnings() {
 
 function showDialog(dialogId) {
   PF(dialogId).show();
-  setTimeout(function() {
+  setTimeout(function () {
     PF(dialogId).hide();
   }, 1500);
 }
@@ -297,10 +360,86 @@ function destroyEditors() {
   for (const key in window.cmsLiveEditors) {
     try {
       window.cmsLiveEditors[key].destroy();
-    } catch (e) {}
+      const cloned = window.cmsClonedButtons[key];
+      if (cloned) {
+        if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === 'function') {
+          cloned._cmsToolbarObserver.disconnect();
+        }
+        if (cloned.parentElement) {
+          cloned.parentElement.removeChild(cloned);
+        }
+      }
+      delete window.cmsClonedButtons[key];
+    } catch (e) {
+      // Ignored: destruction may fail if editor was already removed during page teardown
+      // & removal may fail if DOM changed concurrently.
+    }
   }
   window.cmsLiveEditors = {};
   window.cmsDirtyEditors.clear();
+}
+
+function safeLower(s) {
+  return (s || "").toLowerCase();
+}
+
+/** Find a toolbar button inside a SunEditor instance */
+function findToolbarBtnFor(sunEditor, commandName) {
+  let btn = sunEditor.querySelector(`.se-toolbar .se-btn[data-command='${commandName}']`);
+  if (btn) return btn;
+  const lowerCmd = safeLower(commandName);
+  const buttons = Array.from(sunEditor.querySelectorAll('.se-toolbar .se-btn'));
+  return (
+    buttons.find((btn) => {
+      const cmd = safeLower(btn.getAttribute('data-command'));
+      return cmd.includes(lowerCmd);
+    }) || null
+  );
+}
+
+function createFloatingButton(languageIndex, editorId, commandName) {
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return;
+  }
+  const sunEditor = findSunEditorForTextarea(textarea);
+  if (!sunEditor) {
+    return;
+  }
+
+  // ensure editor container is positioned for absolute children
+  if (getComputedStyle(sunEditor).position === 'static') {
+    sunEditor.style.position = 'relative';
+  }
+
+  const toolbar = sunEditor.querySelector('.se-toolbar');
+  if (!toolbar) {
+    return;
+  }
+
+  const originalBtn = findToolbarBtnFor(sunEditor, commandName);
+  if (!originalBtn) {
+    return;
+  }
+  let clone = createCloneFromBtn(originalBtn, sunEditor, commandName);
+
+  try {
+    sunEditor.appendChild(clone);
+    window.cmsClonedButtons[languageIndex] = clone;
+
+    if (originalBtn?.style) {
+      originalBtn.style.display = 'none';
+      originalBtn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
+    }
+  } catch (e) {
+    // ignore: benign DOM mutation failure
+  }
+
+  const observer = new MutationObserver(() => {
+    refreshClone(clone, sunEditor, commandName);
+  });
+  observer.observe(toolbar, { childList: true, subtree: true });
+  clone._cmsToolbarObserver = observer;
 }
 
 function updateEditorContent(xhr, status, args) {
