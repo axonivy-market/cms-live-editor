@@ -131,12 +131,13 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
   if (!isHtml) {
+    // Hide the toolbar for non-HTML editors as it has only the fullscreen button which is not relevant for non-HTML content.
     setTimeout(() => {
       const sunEditor = findSunEditorForTextarea(textarea);
       if (sunEditor) {
-        const toolbar = sunEditor.querySelector(".se-toolbar.sun-editor-common");
+        const toolbar = sunEditor.querySelector('.se-toolbar.sun-editor-common');
         if (toolbar) {
-          toolbar.style.display = "none";
+          toolbar.style.display = 'none';
         }
       }
     }, 0);
