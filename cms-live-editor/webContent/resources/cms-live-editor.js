@@ -130,9 +130,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   }
   // Store original content and placeholder pattern for later comparison
   try {
-    const initialContents = initialContent;
-    window.cmsInitialContents[languageIndex] = initialContents;
-    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents);
+    window.cmsInitialContents[languageIndex] = initialContent;
+    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContent);
   } catch (e) {
     window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
@@ -199,10 +198,10 @@ function applyValidationFailedState(failedIndices) {
   failedIndices = failedIndices || [];
 
   for (const languageIndex in window.cmsLiveEditorIds) {
-    const idx = Number(languageIndex);
-    const hasError = failedIndices.includes(idx);
-    setEditorError(idx, hasError);
-    setTabHeaderError(idx, hasError);
+    const indexNumber = Number(languageIndex);
+    const hasError = failedIndices.includes(indexNumber);
+    setEditorError(indexNumber, hasError);
+    setTabHeaderError(indexNumber, hasError);
   }
 }
 
@@ -249,13 +248,11 @@ function restrictActionForNonHtml(isHtmlContent, editor) {
 
 function saveAllEditors() {
   const dirtyEditors = new Set(window.cmsDirtyEditors);
-
   if (dirtyEditors.size === 0) {
-    return true;
+    return;
   }
 
   const values = [];
-
   for (const languageIndex of dirtyEditors) {
     const editor = window.cmsLiveEditors[languageIndex];
     const contents = editor.getContents();
@@ -273,8 +270,6 @@ function saveAllEditors() {
     name: 'values',
     value: JSON.stringify(values)
   }]);
-
-  return true;
 }
 
 function setEditorError(languageIndex, hasError) {

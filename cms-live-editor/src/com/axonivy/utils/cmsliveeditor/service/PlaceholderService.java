@@ -6,6 +6,7 @@ import java.text.Format;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -83,36 +84,33 @@ public class PlaceholderService {
 
     // CASE 1: original has NO placeholders → compare among edited locales
     if (originalValue == null || countArgumentNumbers(originalValue) <= 0) {
-      return validateAmongEditedLocales(editedLocales);
+      return validateAmongEditedLocales(editedLocales, cmsLocales.entrySet());
     }
 
     // CASE 2: original has placeholders
     return findIncompatibleLocales(originalValue, editedLocales);
   }
 
-  private List<String> validateAmongEditedLocales(List<Map.Entry<String, SavedCms>> editedLocales) {
+  private List<String> validateAmongEditedLocales(List<Map.Entry<String, SavedCms>> editedLocales,
+      Set<Entry<String, SavedCms>> allLocales) {
     if (editedLocales.isEmpty()) {
       return new ArrayList<>();
     }
 
-    List<List<Integer>> allArgs =
-        editedLocales.stream().map(entry -> extractArgumentIndices(entry.getValue().getNewContent())).toList();
-
-    long nonEmptyCount = allArgs.stream().filter(set -> !set.isEmpty()).count();
+    String referenceValue = editedLocales.stream()
+        .map(entry -> entry.getValue().getNewContent())
+        .filter(value -> value != null && !value.isBlank())
+        .max(Comparator.comparingInt(PlaceholderService::countArgumentNumbers))
+        .orElse(null);
 
     // No edited locale has placeholders → nothing to validate
-    if (nonEmptyCount == 0) {
+    if (referenceValue == null || countArgumentNumbers(referenceValue) <= 0) {
       return new ArrayList<>();
     }
 
-    // Need at least 2 locales with placeholders to cross-validate;
-    // also flag when some locales have placeholders and others don't
-    if (nonEmptyCount < 2 || nonEmptyCount < allArgs.size()) {
-      return editedLocales.stream().map(Map.Entry::getKey).toList();
-    }
-
-    String baseValue = editedLocales.get(0).getValue().getNewContent();
-    return findIncompatibleLocales(baseValue, editedLocales);
+    // Validate ALL locales against the reference so unedited locales
+    // missing the newly introduced placeholders are flagged too
+    return findIncompatibleLocales(referenceValue, new ArrayList<>(allLocales));
   }
 
   private List<String> findIncompatibleLocales(String originalValue, List<Map.Entry<String, SavedCms>> editedLocales) {
