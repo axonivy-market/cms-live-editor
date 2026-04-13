@@ -58,6 +58,21 @@ public class PlaceholderServiceTest {
   }
 
   @Test
+  void testAreMessagePatternsCompatibleWithNestedChoicePatterns() {
+    assertTrue(service.areMessagePatternsCompatible("There {0,choice,0#no|1#one|1<{0,number,integer} files}",
+        "Co {0,choice,0#here|1#there|1<{0,number,integer} files}"));
+    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
+        "There {0,choice,1<{0,number,currency} files}"));
+    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
+        "There 0,choice,1<{0,number,currency} files"));
+    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
+        "There {0,choice,1<files}"));
+    assertFalse(service.areMessagePatternsCompatible("{0,choice,1#{1,choice,1<{1,number,integer}}}",
+        "{0,choice,1#{1,choice,1<{1}}}"));
+  }
+
+
+  @Test
   void testMapLocalesToIndicesShouldReturnMatchingIndices() {
     Cms cms = new Cms();
 
@@ -147,18 +162,6 @@ public class PlaceholderServiceTest {
 
     List<String> invalidLocales = service.validateLocales(cmsLocales);
     assertEquals(Set.of("en"), new HashSet<>(invalidLocales));
-  }
-
-  @Test
-  void testAreMessagePatternsCompatible() {
-    assertTrue(service.areMessagePatternsCompatible("There {0,choice,0#no|1#one|1<{0,number,integer} files}",
-        "Co {0,choice,0#here|1#there|1<{0,number,integer} files}"));
-    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
-        "There {0,choice,1<{0,number,currency} files}"));
-    assertFalse(service.areMessagePatternsCompatible("There {0,choice,1<{0,number,integer} files}",
-        "There {0,choice,1<files}"));
-    assertFalse(service.areMessagePatternsCompatible("{0,choice,1#{1,choice,1<{1,number,integer}}}",
-        "{0,choice,1#{1,choice,1<{1}}}"));
   }
 
   private static SavedCms createSavedCms(String original, String updated) {

@@ -241,7 +241,7 @@
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language" onTabClose="handleTabClose(panel)">
                       <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}"
-                        titleStyleClass="#{cmsLiveEditorBean.invalidLocaleIndices.contains(language.index) ? 'cms-editor-error' : ''}">
+                        titleStyleClass="#{language.invalid ? 'cms-editor-error' : ''}">
                         <f:facet name="actions">
                           <h:panelGroup id="upload-pannel">
                             <p:fileUpload id="upload"

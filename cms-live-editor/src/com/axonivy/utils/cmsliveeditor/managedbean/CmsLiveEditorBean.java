@@ -55,7 +55,6 @@ import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
-import com.axonivy.utils.cmsliveeditor.service.PlaceholderService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
@@ -105,7 +104,6 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-  private List<Integer> invalidLocaleIndices = new ArrayList<>();
 
   @PostConstruct
   private void init() {
@@ -123,13 +121,8 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void writeCmsToApplication() {
     if(FacesContext.getCurrentInstance().isValidationFailed()) {
-      Map<String, SavedCms> savedLocales = savedCmsMap.getOrDefault(selectedCms.getUri(), Map.of());
-      invalidLocaleIndices = PlaceholderService.getInstance().findInvalidLanguageIndices(selectedCms, savedLocales);
-      PF.current().ajax().addCallbackParam("invalidIndices", invalidLocaleIndices.toString());
       return;
     }
-
-    invalidLocaleIndices = new ArrayList<>();
 
     isEditableCms = false;
     if (selectedCms.isFile()) {
@@ -578,10 +571,6 @@ public class CmsLiveEditorBean implements Serializable {
     return Optional.ofNullable(selectedCms).map(Cms::getContents).map(
         values -> IntStream.rangeClosed(0, values.size()).mapToObj(Integer::toString).collect(Collectors.joining(",")))
         .orElse(StringUtils.EMPTY);
-  }
-
-  public List<Integer> getInvalidLocaleIndices() {
-    return invalidLocaleIndices;
   }
 
   public boolean isTheSameContent(String originalContent, String content) {

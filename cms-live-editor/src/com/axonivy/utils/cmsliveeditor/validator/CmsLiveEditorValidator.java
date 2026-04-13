@@ -10,6 +10,8 @@ import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 
+import org.primefaces.PF;
+
 import com.axonivy.utils.cmsliveeditor.managedbean.CmsLiveEditorBean;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
@@ -29,12 +31,13 @@ public class CmsLiveEditorValidator implements Validator {
 
     Cms selectedCms = bean.getSelectedCms();
     Map<String, SavedCms> savedLocales = bean.getSavedCmsMap().getOrDefault(selectedCms.getUri(), Map.of());
-
     List<Integer> invalidIndices = placeholderService.findInvalidLanguageIndices(selectedCms, savedLocales);
+    selectedCms.getContents().forEach(content -> content.setInvalid(invalidIndices.contains(content.getIndex())));
     int languageIndex = (int) component.getAttributes().get("languageIndex");
     if (invalidIndices.contains(languageIndex)) {
       ((UIInput) component).setValid(false);
       context.validationFailed();
+      PF.current().ajax().addCallbackParam("invalidIndices", invalidIndices.toString());
     }
   }
 

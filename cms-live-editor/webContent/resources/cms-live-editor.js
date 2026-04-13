@@ -5,7 +5,6 @@ window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
 window.cmsValidationFailed = window.cmsValidationFailed || false;
 
-const CMS_EDIT_ERROR = ".sun-editor.cms-editor-error";
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
@@ -119,12 +118,30 @@ function getInvalidLocaleIndices() {
   return indices;
 }
 
+function setTabHeaderError(languageIndex, hasError) {
+  const editorId = window.cmsLiveEditorIds[languageIndex];
+  if (!editorId) return;
+
+  const textarea = document.getElementById(editorId);
+  if (!textarea) return;
+
+  const contentPanel = textarea.closest('.ui-accordion-content');
+  if (!contentPanel) return;
+
+  const header = contentPanel.previousElementSibling;
+  if (header && header.classList.contains('ui-accordion-header')) {
+    header.classList.toggle('cms-editor-error', hasError);
+  }
+}
+
 function applyValidationFailedState(failedIndices) {
   failedIndices = failedIndices || [];
 
   for (const languageIndex in window.cmsLiveEditorIds) {
-    const hasError = failedIndices.includes(Number(languageIndex));
-    setEditorError(Number(languageIndex), hasError);
+    const idx = Number(languageIndex);
+    const hasError = failedIndices.includes(idx);
+    setEditorError(idx, hasError);
+    setTabHeaderError(idx, hasError);
   }
 }
 
@@ -132,11 +149,19 @@ function clearValidationFailedState() {
   window.cmsValidationFailed = false;
   for (const languageIndex in window.cmsLiveEditorIds) {
     setEditorError(Number(languageIndex), false);
+    setTabHeaderError(Number(languageIndex), false);
   }
 
-  document.querySelectorAll(CMS_EDIT_ERROR).forEach((element) => {
+  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
     element.classList.remove('cms-editor-error');
   });
+
+  const accordion = document.getElementById('content-form:cms-edit-value');
+  if (accordion) {
+    accordion.querySelectorAll('.ui-accordion-header.cms-editor-error').forEach((header) => {
+      header.classList.remove('cms-editor-error');
+    });
+  }
 }
 
 function restrictActionForNonHtml(isHtmlContent, editor) {

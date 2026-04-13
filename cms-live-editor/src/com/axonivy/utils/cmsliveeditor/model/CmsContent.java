@@ -47,6 +47,8 @@ public class CmsContent implements Serializable {
 
   private byte[] newFileContent;
 
+  private boolean isInvalid;
+
   private final boolean isHtml;
 
   public CmsContent(int index, Locale locale, String originalContent, String content) {
@@ -218,5 +220,13 @@ public class CmsContent implements Serializable {
 
   public Boolean getIsHtmlContent() {
     return !Boolean.TRUE.equals(isFile) && Utils.containsHtmlTag(this.content);
+  }
+
+  public boolean isInvalid() {
+    return isInvalid;
+  }
+
+  public void setInvalid(boolean isInvalid) {
+    this.isInvalid = isInvalid;
   }
 }
