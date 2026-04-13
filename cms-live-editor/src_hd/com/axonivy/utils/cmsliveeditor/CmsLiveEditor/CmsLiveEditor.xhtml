@@ -240,7 +240,8 @@
                     <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
                       value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language" onTabClose="handleTabClose(panel)">
-                      <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
+                      <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}"
+                        titleStyleClass="#{cmsLiveEditorBean.invalidLocaleIndices.contains(language.index) ? 'cms-editor-error' : ''}">
                         <f:facet name="actions">
                           <h:panelGroup id="upload-pannel">
                             <p:fileUpload id="upload"
@@ -315,14 +316,16 @@
                       </div>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" id="cms-error-container" styleClass="cms-error" rendered="#{facesContext.validationFailed}">
-                      <div class="cms-error-title">
-                        <i class="si-delete-1 cms-error-icon" /> 
-                        <span>#{ivy.cms.co('/Labels/Error')}</span>
-                      </div>
-                      <div class="cms-error-content">
-                        <span> #{ivy.cms.co('/Labels/CMSPlaceHolderErrorMessage')}</span>
-                      </div>
+                    <h:panelGroup layout="block" id="cms-error-wrapper">
+                      <h:panelGroup layout="block" id="cms-error-container" styleClass="cms-error" rendered="#{facesContext.validationFailed}">
+                        <div class="cms-error-title">
+                          <i class="si-delete-1 cms-error-icon" /> 
+                          <span>#{ivy.cms.co('/Labels/Error')}</span>
+                        </div>
+                        <div class="cms-error-content">
+                          <span> #{ivy.cms.co('/Labels/CMSPlaceHolderErrorMessage')}</span>
+                        </div>
+                      </h:panelGroup>
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
@@ -333,7 +336,7 @@
                         oncomplete="restorePathPanelScroll(); clearValidationFailedState();" />
                       <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
                         process="@this table-cms-keys editable-column" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
-                        update="cms-edit-value editable-column cms-error-container"
+                        update="cms-error-wrapper"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="return saveAllEditors();"
                         oncomplete="handleCmsSaveComplete(args);"

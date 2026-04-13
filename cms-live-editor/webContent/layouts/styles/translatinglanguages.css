@@ -546,3 +546,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
   width: 1px;
   height: 1.5rem;
 }
+
+.cms-editor-error {
+  background: #E5151C !important;
+}

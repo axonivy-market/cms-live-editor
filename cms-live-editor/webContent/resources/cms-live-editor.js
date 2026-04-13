@@ -119,32 +119,13 @@ function getInvalidLocaleIndices() {
   return indices;
 }
 
-function applyValidationFailedState() {
-  const failedIndices = getInvalidLocaleIndices();
+function applyValidationFailedState(failedIndices) {
+  failedIndices = failedIndices || [];
 
-  const maxAttempts = 10;
-  let attempts = 0;
-
-  function tryApply() {
-    attempts += 1;
-
-    // Clear all first, then set errors only for failed locales.
-    for (const languageIndex in window.cmsLiveEditorIds) {
-      const editorId = window.cmsLiveEditorIds[languageIndex];
-      const textarea = document.getElementById(editorId);
-      const hasError = textarea && textarea.classList.contains('ui-state-error');
-      setEditorError(Number(languageIndex), hasError);
-    }
-
-    // Stop retrying once at least one failed editor is styled, or when reach the limit.
-    if ((failedIndices.length === 0 || document.querySelector(CMS_EDIT_ERROR)) || attempts >= maxAttempts) {
-      return;
-    }
-
-    setTimeout(tryApply, 100);
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    const hasError = failedIndices.includes(Number(languageIndex));
+    setEditorError(Number(languageIndex), hasError);
   }
-
-  setTimeout(tryApply, 0);
 }
 
 function clearValidationFailedState() {
@@ -205,9 +186,6 @@ function saveAllEditors() {
     // reset error state before backend validation
     setEditorError(languageIndex, false);
   }
-
-  // Send all data to backend
-  destroyEditors();
 
   saveAllValue([{
     name: 'values',
@@ -333,6 +311,7 @@ function handleCmsSaveComplete(args) {
   const validationFailed = Boolean(args?.validationFailed);
 
   if (!validationFailed) {
+	destroyEditors();
     window.cmsValidationFailed = false;
     initCmsWarnings();
     restorePathPanelScroll();
@@ -341,7 +320,11 @@ function handleCmsSaveComplete(args) {
   }
 
   window.cmsValidationFailed = true;
-  applyValidationFailedState();
+  var invalidIndices = [];
+  try {
+    invalidIndices = JSON.parse(args.invalidIndices || '[]');
+  } catch (e) {}
+  applyValidationFailedState(invalidIndices);
 }
 
 let pathPanelScrollTop = 0;
