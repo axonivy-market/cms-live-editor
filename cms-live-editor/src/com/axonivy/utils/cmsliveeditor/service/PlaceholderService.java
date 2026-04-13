@@ -145,8 +145,8 @@ public class PlaceholderService {
    */
   public boolean areMessagePatternsCompatible(String originalValue, String newValue) {
     try {
-      List<Integer> originalArgs = extractArgumentIndices(originalValue);
-      List<Integer> newArgs = extractArgumentIndices(newValue);
+      List<Integer> originalArgs = extractArgumentIndices(originalValue).stream().sorted().toList();
+      List<Integer> newArgs = extractArgumentIndices(newValue).stream().sorted().toList();
       if (!originalArgs.equals(newArgs)) {
         return false;
       }

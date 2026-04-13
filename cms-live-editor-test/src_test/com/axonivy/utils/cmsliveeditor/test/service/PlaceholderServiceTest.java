@@ -47,18 +47,18 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void areMessagePatternsCompatibleChoiceShouldIgnoreChoiceTextsButRequireSameStructure() {
+  public void testAreMessagePatternsCompatibleChoiceShouldIgnoreChoiceTextsButRequireSameStructure() {
     assertTrue(service.areMessagePatternsCompatible("{0,choice,0#no|1#yes}", "{0,choice,0#nein|1#ja}"));
     assertFalse(service.areMessagePatternsCompatible("{0,choice,0#no|1#yes}", "{0,choice,1#yes|0#no}"));
   }
 
   @Test
-  public void areMessagePatternsCompatibleShouldDetectDifferentNumberStyle() {
+  public void testAreMessagePatternsCompatibleShouldDetectDifferentNumberStyle() {
     assertFalse(service.areMessagePatternsCompatible("{0,number,currency}", "{0,number,integer}"));
   }
 
   @Test
-  void mapLocalesToIndicesShouldReturnMatchingIndices() {
+  void testMapLocalesToIndicesShouldReturnMatchingIndices() {
     Cms cms = new Cms();
 
     CmsContent en = new CmsContent();
@@ -76,7 +76,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  void mapLocalesToIndicesShouldHandleUnderscoreLocales() {
+  void testMapLocalesToIndicesShouldHandleUnderscoreLocales() {
     Cms cms = new Cms();
 
     CmsContent enUS = new CmsContent();
@@ -89,7 +89,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  void findInvalidLanguageIndicesShouldReturnIndicesOfInvalidLocales() {
+  void testFindInvalidLanguageIndicesShouldReturnIndicesOfInvalidLocales() {
     Cms cms = new Cms();
 
     CmsContent en = new CmsContent(0, Locale.forLanguageTag("en"), "Hello {0} {1}", "Hello {0} {1}");
@@ -104,7 +104,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  void findInvalidLanguageIndicesShouldReturnEmptyForValidEdits() {
+  void testFindInvalidLanguageIndicesShouldReturnEmptyForValidEdits() {
     Cms cms = new Cms();
 
     CmsContent en = new CmsContent(0, Locale.forLanguageTag("en"), "Hello {0}", "Hello {0}");
@@ -119,7 +119,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void validateLocalesShouldFlagEditedLocalesNotMatchingStructure() {
+  void testValidateLocalesShouldFlagEditedLocalesNotMatchingStructure() {
     Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
     cmsLocales.put("en", createSavedCms("Hello {0} {1}", "Hello {0} {1}"));
     cmsLocales.put("fr", createSavedCms("Bonjour {0} {1}", "Bonjour {0}"));
@@ -129,7 +129,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void testValidateLocalesShouldReturnPlaceholderMismatchErrorsFirst() {
+  void testValidateLocalesShouldReturnPlaceholderMismatchErrorsFirst() {
     Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
     cmsLocales.put("en", createSavedCms("Hello {0}", "Hello {0}"));
     cmsLocales.put("fr", createSavedCms("Bonjour {0}", "Bonjour"));
@@ -140,7 +140,7 @@ public class PlaceholderServiceTest {
   }
 
   @Test
-  public void testValidateLocalesShouldReportMessageFormatErrorsOnlyForEditedLocales() {
+  void testValidateLocalesShouldReportMessageFormatErrorsOnlyForEditedLocales() {
     Map<String, SavedCms> cmsLocales = new LinkedHashMap<>();
     cmsLocales.put("en", createSavedCms("Hello {0}", "Hello {0,invalid}"));
     cmsLocales.put("fr", createSavedCms("Bonjour {0}", "Bonjour {0}"));
