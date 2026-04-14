@@ -238,7 +238,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public boolean isDisableEditableButton() {
-    return ObjectUtils.isEmpty(selectedCms);
+    return ObjectUtils.isEmpty(selectedCms) || selectedCmsEntries.size() > 1;
   }
 
   public void search() {
