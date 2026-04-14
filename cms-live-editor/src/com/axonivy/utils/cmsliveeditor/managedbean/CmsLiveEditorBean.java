@@ -99,7 +99,6 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
-  private boolean isInEditMode;
   private String dialogDetail;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
@@ -169,7 +168,6 @@ public class CmsLiveEditorBean implements Serializable {
    */
   public void resetAllChanges() {
     lastSelectedCms = null;
-    isInEditMode = false;
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
       if (cms.isFile()) {
@@ -196,7 +194,6 @@ public class CmsLiveEditorBean implements Serializable {
    */
   public void undoChange() {
     lastSelectedCms = null;
-    isInEditMode = false;
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
       if (selectedCms.isFile()) {
@@ -222,15 +219,14 @@ public class CmsLiveEditorBean implements Serializable {
   public void onEditableButton() {
     lastSelectedCms = selectedCms;
     isEditableCms = true;
-    isInEditMode = true;
     PF.current().ajax().update(CONTENT_FORM);
   }
 
   public void onCancelEditableButton() {
     revertSelectedCmsToApplication();
     isEditableCms = false;
+    lastSelectedCms.getContents().forEach(s -> s.setEditing(false));
     lastSelectedCms = null;
-    isInEditMode = false;
     clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
@@ -278,7 +274,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public boolean isDisableEditableButton() {
-    return ObjectUtils.isEmpty(selectedCms);
+    return ObjectUtils.isEmpty(selectedCms) || selectedCmsEntries.size() > 1;
   }
 
   public void search() {
@@ -372,29 +368,24 @@ public class CmsLiveEditorBean implements Serializable {
     return CmsContentUtils.getExcludedLocales(languageList, selectedSourceLocale);
   }
 
-  public void rowSelect() {
+  public void onRowSelect(SelectEvent<Cms> event) {
     isEditableCms = false;
     if (isEditing()) {
       isEditableCms = true;
-      selectedCms = lastSelectedCms; // Revert to last valid selection
-    } else {
-      if (selectedCms.isFile()) {
-        loadFileContentOfSelectedCms();
+      selectedCmsEntries.clear();
+      if (lastSelectedCms != null) {
+        selectedCmsEntries.add(lastSelectedCms);
       }
-      if (isInEditMode) {
-        isInEditMode = false;
-        PF.current().ajax().update(CONTENT_FORM);
-      } else {
-        PF.current().ajax().update(CONTENT_FORM_CMS_COLUMN);
-      }
+      this.selectedCms = lastSelectedCms;
+      return;
     }
-  }
-
-  public void onRowSelect(SelectEvent<Cms> event) {
     if (selectedCmsEntries != null && selectedCmsEntries.size() == 1) {
       this.selectedCms = event.getObject();
-      rowSelect();
     }
+    if (selectedCms.isFile()) {
+      loadFileContentOfSelectedCms();
+    }
+    PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_CMS_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
   private void loadFileContentOfSelectedCms() {
