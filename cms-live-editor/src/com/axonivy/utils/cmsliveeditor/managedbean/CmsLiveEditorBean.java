@@ -121,10 +121,6 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void writeCmsToApplication() {
-    if(FacesContext.getCurrentInstance().isValidationFailed()) {
-      return;
-    }
-
     isEditableCms = false;
     if (selectedCms.isFile()) {
       cmsService.writeCmsFileToApplication(selectedCms);
@@ -231,30 +227,37 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
-    if (selectedCms != null) {
-      savedCmsMap.remove(selectedCms.getUri());
-      if (!selectedCms.isFile() && selectedCms.getContents() != null) {
-        for (CmsContent cmsContent : selectedCms.getContents()) {
-          if (cmsContent == null || cmsContent.getLocale() == null) {
-            continue;
-          }
-
-          String applicationValue = cmsService.getCmsFromApplication(selectedCms.getUri(), cmsContent.getLocale());
-          if (StringUtils.isBlank(applicationValue)) {
-            applicationValue = cmsContent.getOriginalContent();
-          }
-          cmsContent.saveContent(applicationValue);
-          cmsContent.setEditing(false);
-          cmsContent.setInvalid(false);
-        }
-      }
-    }
-
+    revertSelectedCmsToApplication();
     isEditableCms = false;
     lastSelectedCms = null;
     isInEditMode = false;
     clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+  }
+
+  private void revertSelectedCmsToApplication() {
+    if (selectedCms == null) {
+      return;
+    }
+
+    savedCmsMap.remove(selectedCms.getUri());
+    if (selectedCms.isFile() || selectedCms.getContents() == null) {
+      return;
+    }
+
+    for (CmsContent cmsContent : selectedCms.getContents()) {
+      if (cmsContent == null || cmsContent.getLocale() == null) {
+        continue;
+      }
+
+      String applicationValue = cmsService.getCmsFromApplication(selectedCms.getUri(), cmsContent.getLocale());
+      if (applicationValue == null || applicationValue.isBlank()) {
+        applicationValue = cmsContent.getOriginalContent();
+      }
+      cmsContent.saveContent(applicationValue);
+      cmsContent.setEditing(false);
+      cmsContent.setInvalid(false);
+    }
   }
 
   public void onHideSettingDialog() {
