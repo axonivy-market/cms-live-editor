@@ -245,6 +245,7 @@ public class CmsLiveEditorBean implements Serializable {
           }
           cmsContent.saveContent(applicationValue);
           cmsContent.setEditing(false);
+          cmsContent.setInvalid(false);
         }
       }
     }
@@ -559,9 +560,12 @@ public class CmsLiveEditorBean implements Serializable {
     if (sanitizedContent.equals(currentCmsContent.getContent())) {
       return;
     }
+    currentCmsContent.saveContent(newContent);
     currentCmsContent.setEditing(true);
     if (lastSelectedCms != null) {
-      lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+      var lastCmsContent = lastSelectedCms.getContents().get(languageIndex);
+      lastCmsContent.saveContent(newContent);
+      lastCmsContent.setEditing(true);
     }
   }
 

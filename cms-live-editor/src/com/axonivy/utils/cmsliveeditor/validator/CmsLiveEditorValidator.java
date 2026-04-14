@@ -38,6 +38,9 @@ public class CmsLiveEditorValidator implements Validator {
       ((UIInput) component).setValid(false);
       context.validationFailed();
       PF.current().ajax().addCallbackParam("invalidIndices", invalidIndices.toString());
+      selectedCms.getContents().stream()
+          .filter(content -> !bean.isTheSameContent(content.getOriginalContent(), content.getContent()))
+          .forEach(content -> content.setEditing(true));
     }
   }
 
