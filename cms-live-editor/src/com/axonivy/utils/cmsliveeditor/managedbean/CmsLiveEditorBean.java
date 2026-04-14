@@ -97,7 +97,6 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
-  private String dialogDetail;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
   private List<Locale> languageList;
