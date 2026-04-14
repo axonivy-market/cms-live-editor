@@ -4,7 +4,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Locale;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
