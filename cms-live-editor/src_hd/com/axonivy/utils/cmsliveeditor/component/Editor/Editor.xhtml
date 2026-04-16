@@ -22,21 +22,24 @@
 
   <h:panelGroup rendered="#{cc.attrs.isReadOnly}">
     <h:panelGroup rendered="#{isSameContent}">
-      <h:outputText value="#{cc.attrs.content}" escape="false" />
+      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isHtmlFormat}" />
     </h:panelGroup>
 
     <h:panelGroup rendered="#{not isSameContent}">
       <del class="cms-original-content">
-        <h:outputText value="#{cc.attrs.originalContent}" escape="false" />
+        <h:outputText value="#{cc.attrs.originalContent}" escape="#{not cc.attrs.isHtmlFormat}" />
       </del>
-      <h:outputText value="#{cc.attrs.content}" escape="false" />
+      <h:outputText value="#{cc.attrs.content}" escape="#{not cc.attrs.isHtmlFormat}" />
     </h:panelGroup>
   </h:panelGroup>
 
   <!-- EDIT MODE -->
   <h:panelGroup rendered="#{not cc.attrs.isReadOnly}">
     <p:inputTextarea id="content-editor-id" value="#{cc.attrs.content}" styleClass="js-article-content-editor hidden"
-      autoResize="false" />
+      autoResize="false">
+      <f:attribute name="languageIndex" value="#{cc.attrs.languageIndex}" />
+      <f:validator validatorId="cmsLiveEditorValidator" />
+    </p:inputTextarea>
   </h:panelGroup>
 
   <p:remoteCommand autoRun="true" async="true" rendered="#{not cc.attrs.isReadOnly}"

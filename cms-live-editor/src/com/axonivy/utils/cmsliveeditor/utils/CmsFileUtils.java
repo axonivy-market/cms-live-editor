@@ -6,6 +6,12 @@ import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN_CHARACTER;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.LF;
+import static org.apache.commons.lang3.StringUtils.CR;
+import static org.apache.commons.lang3.StringUtils.INDEX_NOT_FOUND;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +39,12 @@ import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
+  private static final String DOUBLE_QUOTE = "\"";
+  private static final Map<String, String> YAML_ESCAPE_MAP = Map.of("\\", "\\\\", "\"", "\\\"", "\t", "\\t");
+  private static final List<String> YAML_PREFIXES = List.of(SPACE, HYPHEN_CHARACTER, "?", ":");
+  private static final List<String> YAML_SPECIALS = List.of(":", "#", "\t", "\\", DOUBLE_QUOTE);
+  private static final Set<String> YAML_KEYWORDS = Set.of("true", "false", "null", "~", "yes", "no", "on", "off");
+  private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
 
   public static StreamedContent writeCmsToZipStreamedContent(String projectName, String applicationName,
       Map<String, PmvCms> cmsPmvMap) throws Exception {
