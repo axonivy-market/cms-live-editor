@@ -3,6 +3,7 @@ com:
     utils:
       cmsliveeditor:
         demo:
+          ChoiceFormatPlaceholder: ''
           EmailFormat: |-
             <p><strong>Willkommen in unserem CMS-Live-Editor!</strong></p>
             <p>Schön, dass du da bist. Hier ein Überblick über die wichtigsten Features:</p>
@@ -17,4 +18,6 @@ com:
             <p>Mit freundlichen Grüßen,<br>
             Das CMS-Live-Editor-Team
             </p>
+          NumberFormatPlaceholder: 'Hallo {0}, Ihre Bestellung #{1} enthält {2,number,integer} Artikel mit einem Gesamtwert von {3,number,currency}.'
+          SimplePlaceholder: Hallo {0}, du bist in {1} und hast {2} neue Nachrichten.
           TODO: TODO The content after TODO should be translated. You can click Options > Show only TODO to show all of them.

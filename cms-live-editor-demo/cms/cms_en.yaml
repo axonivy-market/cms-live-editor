@@ -3,6 +3,7 @@ com:
     utils:
       cmsliveeditor:
         demo:
+          ChoiceFormatPlaceholder: There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}
           EmailFormat: |-
             <p><strong>Welcome to our CMS Live Editor!</strong></p>
             <p>Great to have you here. Here’s a quick look at the key features:</p>
@@ -17,4 +18,6 @@ com:
             <p>Best regards,<br>
              The CMS Live Editor Team
             </p>
+          NumberFormatPlaceholder: 'Hello {0}, your order #{1} contains {2,number,integer} items with a total of {3,number,currency}.'
+          SimplePlaceholder: Hello {0}, you are in {1} and have {2} new messages.
           TODO: The content after TODO should be translated. You can click Options > Show only TODO to show all of them.

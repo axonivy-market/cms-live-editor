@@ -39,17 +39,6 @@
   padding: 0;
 }
 
-.sun-editor.cms-editor-error .sun-editor-editable {
-  border-color: #E5151C;
-  box-shadow: 0 0 0 1px #E5151C;
-}
-
-/* Force everything inside the Sun editor to render in error color */
-.sun-editor.cms-editor-error .sun-editor-editable * {
-  color: #E5151C !important;
-  font-weight: 500;
-}
-
 .se-resizing-enabled .se-tooltip-inner {
   display: none !important;
 }

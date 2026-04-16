@@ -24,6 +24,30 @@ Labels:
   InvalidFileTypeMessage: The file type is invalid.
   LocaleNotAvailable: This locale is not available in the selected project
   Message: Message
+  MessageFormatHint: |-
+    <p><strong>This field supports Java MessageFormat syntax.</strong></p>
+      <p>Use numbered placeholders like <code>{0}</code>, <code>{1}</code>, etc., to insert dynamic values.</p>
+      <p> See documentation:
+        <a href="https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html"
+           target="_blank">
+           Java MessageFormat documentation
+        </a>
+      </p>
+      <p><strong>Examples:</strong></p>
+      <p>
+        <code>Dear {0}, your order {1} has been shipped.</code><br>
+        → inserts name and order number.
+      </p>
+
+      <p>
+        <code>There {0,choice,0#are no files|1#is one file|1&lt;are {0,number,integer} files}.</code><br>
+        → chooses the correct text based on the value:
+        <ul>
+        <li>If 0 → “are no files”</li>
+        <li>If 1 → “is one file”</li>
+        <li>If >1 → “are X files” with X formatted as integer.</li>
+        </ul>
+      </p>
   Options: Options
   Path: Path
   Paths: Paths
