@@ -55,7 +55,7 @@ public class CmsLiveEditorWebTest {
   private static final String TEST_CMS_FILE_DOCX_URI= "/Test/TestFileDocX";
   private static final String TEST_CMS_TEXT_URI = "/Test/TestContent";
   private static final String CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR = "[id^='content-not-been-saved-dlg']";
-  private static final String RESIZING_CLASS = ".se-btn.se-resizing-enabled.se-tooltip";
+  private static final String MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS = ".se-btn.se-btn-more.se-tooltip";
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String TEST_CMS_HTML_URI = "/Test/TestContentHtml";
@@ -120,14 +120,14 @@ public class CmsLiveEditorWebTest {
   void testTextDecorationFeatureShouldOnlyVisibleInHtmlFormat() {
     var cmsList = $$(CMS_PATH_URI);
     var cmsWithHtmlFormat = cmsList.findBy(exactText(TEST_CMS_HTML_URI));
-    var rawTextCMS = cmsList.get(1);
+    var rawTextCMS = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
     cmsWithHtmlFormat.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(RESIZING_CLASS).should(enabled);
+    $(MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS).should(enabled);
     rawTextCMS.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $$(RESIZING_CLASS).shouldHave(CollectionCondition.size(0));
+    $$(MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS).shouldHave(CollectionCondition.size(0));
   }
 
   @Test

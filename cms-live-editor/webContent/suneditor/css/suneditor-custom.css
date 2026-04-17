@@ -18,7 +18,7 @@
 }
 
 .se-toolbar.sun-editor-common {
-  padding-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
 }
 
 .sun-editor {
@@ -29,6 +29,7 @@
   border: 1px solid #EBEBEB;
   border-radius: 5px;
   background-color: #FAFAFA;
+  padding-bottom: 3rem;
 }
 
 .sun-editor .se-resizing-bar {
@@ -45,8 +46,8 @@
 
 .cms-floating-btn {
   position: absolute !important;
-  right: 8px;
-  bottom: 8px;
+  right: 2rem;
+  bottom: 2rem;
   z-index: 1;
   margin: 0;
   padding: 6px;
@@ -54,4 +55,12 @@
   border-radius: 4px;
   background: white;
   cursor: pointer;
+}
+
+div:has([id^="content-form:cms-edit-value:"][id$=":editor-wrapper"]) {
+  padding: 0px !important
+}
+
+.se-container {
+  padding: 1rem;
 }
