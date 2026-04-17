@@ -542,3 +542,7 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 .ui-accordion-header.cms-editor-error {
   background: #E5151C !important;
 }
+
+#content-form\:resetConfirmDlg_content {
+  padding: 0;
+}
