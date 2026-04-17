@@ -22,6 +22,8 @@ const BUTTON_TITLE_ATTR = 'title';
 const SUNEDITOR_CSS_CLASS = 'sun-editor';
 const DATA_CMS_HIDDEN_ATTR = 'data-cms-hidden';
 const FULLSCREEN_COMMAND_BUTTON = 'fullScreen';
+const STATIC_POSITION = 'static';
+const RELATIVE_POSITION = 'relative';
 const FULL_TOOLBAR = [
   ['bold', 'italic','underline', 'strike'],
   ['align'],
