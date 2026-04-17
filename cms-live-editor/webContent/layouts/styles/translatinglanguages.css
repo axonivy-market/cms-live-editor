@@ -546,3 +546,9 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 #content-form\:resetConfirmDlg_content {
   padding: 0;
 }
+
+/* Hide SunEditor while the accordion tab is animating (jQuery sets inline height during slideDown/slideUp).
+   Disappears immediately on close; appears only when the tab is fully open. */
+.ui-accordion-content[style*="height"] .sun-editor {
+  visibility: hidden;
+}

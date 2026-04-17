@@ -169,13 +169,6 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     // It may fail on older SunEditor versions or when toolbar layout differs.
   }
 
-  // Attach a MutationObserver to hide/show the editor in sync with the accordion animation.
-  // jQuery sets inline height during slideDown/slideUp; we use that as the animation signal.
-  const accordionContent = textarea.closest(".ui-accordion-content");
-  if (accordionContent) {
-    attachAccordionAnimationObserver(accordionContent);
-  }
-
   // Store original content and placeholder pattern for later comparison
   try {
     window.cmsInitialContents[languageIndex] = initialContent;
@@ -458,30 +451,6 @@ function destroyEditors() {
 
 function safeLower(s) {
   return (s || "").toLowerCase();
-}
-
-const DATA_CMS_ACCORDION_OBSERVED = "data-cms-accordion-observed";
-
-/**
- * Observe an accordion content element and hide/show all .sun-editor children
- * based on whether jQuery is currently animating it (slideDown / slideUp).
- * jQuery sets an inline `height` style during animation and removes it when done;
- * we use that as the animation signal — no timeouts needed.
- */
-function attachAccordionAnimationObserver(content) {
-  if (content.hasAttribute(DATA_CMS_ACCORDION_OBSERVED)) {
-    return;
-  }
-  content.setAttribute(DATA_CMS_ACCORDION_OBSERVED, "true");
-
-  const observer = new MutationObserver(function () {
-    // jQuery sets inline height during animation; when cleared the tab is fully open.
-    const isAnimating = content.style.height !== "";
-    content.querySelectorAll("." + SUNEDITOR_CSS_CLASS).forEach(function (se) {
-      se.style.visibility = isAnimating ? "hidden" : "";
-    });
-  });
-  observer.observe(content, { attributes: true, attributeFilter: ["style"] });
 }
 
 /** Find a toolbar button inside a SunEditor instance */
