@@ -118,7 +118,7 @@ public class CmsLiveEditorWebTest {
   void testTextDecorationFeatureShouldOnlyVisibleInHtmlFormat() {
     var cmsList = $$(CMS_PATH_URI);
     var cmsWithHtmlFormat = cmsList.findBy(exactText(TEST_CMS_HTML_URI));
-    var rawTextCMS = cmsList.get(1);
+    var rawTextCMS = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
     cmsWithHtmlFormat.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
