@@ -1,7 +1,7 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
-import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN;
-import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.UNDER_SCORE;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN_CHARACTER;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.UNDERSCORE_CHARACTER;
 
 import java.util.Comparator;
 import java.util.List;
@@ -32,7 +32,7 @@ public class CmsContentUtils {
     if (cms == null || cms.getContents() == null || StringUtils.isBlank(localeTag)) {
       return null;
     }
-    String tag = localeTag.trim().replace(UNDER_SCORE, HYPHEN);
+    String tag = localeTag.trim().replace(UNDERSCORE_CHARACTER, HYPHEN_CHARACTER);
     return cms.getContents().stream().filter(c -> c.getLocale() != null && tag.equalsIgnoreCase(c.getLocale().toLanguageTag())).findFirst()
         .orElse(null);
   }
@@ -55,7 +55,7 @@ public class CmsContentUtils {
     if (CollectionUtils.isEmpty(locales) || StringUtils.isBlank(excludedLocale)) {
       return List.of();
     }
-    String selectedTag = excludedLocale.trim().replace(UNDER_SCORE, HYPHEN);
+    String selectedTag = excludedLocale.trim().replace(UNDERSCORE_CHARACTER, HYPHEN_CHARACTER);
     return locales.stream().filter(l -> l != null && !selectedTag.equalsIgnoreCase(l.toLanguageTag())).toList();
   }
 

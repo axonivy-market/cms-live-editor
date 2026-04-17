@@ -1,5 +1,6 @@
 package com.axonivy.utils.cmsliveeditor.test;
 
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_ERROR_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_SAVE_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.DOWNLOAD_BUTTON_ID;
@@ -33,11 +34,13 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -185,11 +188,25 @@ public class CmsLiveEditorWebTest {
   }
 
   @Test
-  public void testResetAllChanges() {
+  public void testSaveWithInvalidPlaceholderAcrossLocalesShouldShowError() {
     openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    editors.get(0).setValue("File count {0}");
+    editors.get(1).setValue("Date value {0} {1}");
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
+  }
+
+  @Test
+  public void testResetAllChanges() {
+    var selectedCms = openFirstCmsAndEdit();
     updateAndSaveContent();
     openResetDialog();
     confirmReset();
+    selectedCms.click();
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
   }
@@ -210,6 +227,52 @@ public class CmsLiveEditorWebTest {
     updateAndSaveContent();
     openResetDialog();
     $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
+  }
+
+  @Test
+  public void testSaveWithValidPlaceholdersAcrossLocalesShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    fillContentsToEditor(editors, "Files count {0}");
+    editors.first().shouldNotBe(empty);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled);
+    saveAndUndoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithChoicePlaceholderShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.filter(visible).shouldHave(sizeGreaterThanOrEqual(2));
+
+    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}");
+    saveAndUndoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithReorderedPlaceholdersShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+    editors.first().shouldBe(visible);
+
+    String[] contents =
+        {"{0} has {1} files", "{1} Dateien gehören zu {0}", "{0} tiene {1} archivos", "{1} dosyalar {0} için"};
+
+    for (int i = 0; i < editors.size(); i++) {
+      var editor = editors.get(i);
+      editor.shouldBe(visible).click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      editor.sendKeys(contents[i % contents.length]);
+      editor.pressTab();
+    }
+    saveAndUndoCmsChanges();
   }
 
   @Test
@@ -239,6 +302,26 @@ public class CmsLiveEditorWebTest {
     dialog.should(visible);
     dialog.$(".ui-dialog-titlebar-close").click();
     Selenide.sleep(1000);
+  }
+
+  private void fillContentsToEditor(ElementsCollection editors, String content) {
+    for (var editor : editors) {
+      editor.shouldBe(visible).click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      editor.sendKeys(content);
+      editor.pressTab();
+    }
+  }
+
+  private void saveAndUndoCmsChanges() {
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+
+    var undoButton = $(By.id("content-form:undo-change-path"));
+    if (undoButton.exists()) {
+      undoButton.shouldBe(enabled).click();
+    }
   }
 
   @Test

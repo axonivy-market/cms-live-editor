@@ -21,7 +21,7 @@ public class CmsConstants {
   public static final String SETTING_BUTTON_ID = "content-form:cms-settings-btn";
   public static final String CMS_WARNING_CONTAINER_ID = "content-form:cms-warning-container";
   public static final String CMS_WARNING_SAVE_CONTAINER_ID = "content-form:cms-warning-save-container";
-  public static final String CMS_ERROR_CONTAINER_ID = "content-form:cms-error-container";
+  public static final String CMS_ERROR_CONTAINER_ID = "content-form:cms-error-wrapper";
   public static final String SEARCH_INPUT_ID = "content-form:search-input";
   public static final String SAVE_SUCCESS_BAR_ID = "content-form:save-success-bar";
   public static final String UNDO_CHANGES_PATH_ID = "content-form:undo-change-path";

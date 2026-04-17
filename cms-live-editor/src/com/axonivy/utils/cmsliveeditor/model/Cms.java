@@ -102,4 +102,8 @@ public class Cms implements Serializable {
   public void setFileType(FileType fileType) {
     this.fileType = fileType;
   }
+
+  public boolean hasTextContents() {
+    return !isFile && contents != null && !contents.isEmpty();
+  }
 }

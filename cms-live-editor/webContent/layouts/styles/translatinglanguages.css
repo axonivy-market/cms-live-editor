@@ -127,10 +127,6 @@ body.dark .cms-warning {
   display: none;
 }
 
-.cms-error {
-  display: none;
-}
-
 .cms-error, body.dark .cms-error,
 .cms-file-error-message .ui-messages-error.ui-corner-all,
 body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
@@ -370,6 +366,14 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
     var(--ivy-primary-color-l), 0.2);
 }
 
+.cms-tooltip {
+  max-width: 420px;
+  line-height: 1.4;
+}
+
+.cms-tooltip a {
+  color: #007095;
+}
 .cms-settings-btn {
   display: inline-flex;
   align-items: center;
@@ -533,4 +537,8 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
 .vertical-divider {
   width: 1px;
   height: 1.5rem;
+}
+
+.ui-accordion-header.cms-editor-error {
+  background: #E5151C !important;
 }

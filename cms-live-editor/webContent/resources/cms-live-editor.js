@@ -9,6 +9,7 @@ window.cmsLiveEditorHtmlIds = new Set();
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
 const SUNEDITOR_WRAPPER_QUERY = '.se-wrapper';
+const CMS_EDITOR_ERROR = 'cms-editor-error';
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
@@ -31,6 +32,12 @@ const FULL_TOOLBAR = [
   'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
   'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text ?? '';
+  return div.innerHTML;
+}
 
 function removeButtonTitle(cloneButton) {
   try {
@@ -126,6 +133,14 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     defaultStyle: 'font-family: Inter;',
     font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
+
+  if (!isHtml) {
+    const rawText = textarea.value || '';
+    const escapedText = escapeHtml(rawText).replace(/\r\n|\r|\n/g, '<br>');
+    editor.setContents(`<p>${escapedText}</p>`);
+  }
+
+  const initialContent = editor.getContents();
   restrictActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
@@ -144,6 +159,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   } else {
     window.cmsLiveEditorHtmlIds.add(editorId);
   }
+  // Check if this editor's textarea was marked invalid by JSF validation
+  setEditorError(languageIndex, textarea.classList.contains('ui-state-error'));
 
   try {
     createFloatingButton(languageIndex, editorId, FULLSCREEN_COMMAND_BUTTON);
@@ -153,9 +170,8 @@ function initSunEditor(languageIndex, editorId, isHtml) {
   }
   // Store original content and placeholder pattern for later comparison
   try {
-    const initialContents = editor.getContents();
-    window.cmsInitialContents[languageIndex] = initialContents;
-    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
+    window.cmsInitialContents[languageIndex] = initialContent;
+    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContent);
   } catch (e) {
     window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
@@ -196,6 +212,57 @@ function markDirtyIfChanged() {
   };
 }
 
+function setTabHeaderError(languageIndex, hasError) {
+  const editorId = window.cmsLiveEditorIds[languageIndex];
+  if (!editorId) {
+    return;
+  }
+
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return;
+  }
+
+  const contentPanel = textarea.closest('.ui-accordion-content');
+  if (!contentPanel) {
+    return;
+  }
+
+  const header = contentPanel.previousElementSibling;
+  if (header && header.classList.contains('ui-accordion-header')) {
+    header.classList.toggle(CMS_EDITOR_ERROR, hasError);
+  }
+}
+
+function applyValidationFailedState(failedIndices) {
+  failedIndices = failedIndices || [];
+
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    const indexNumber = Number(languageIndex);
+    const hasError = failedIndices.includes(indexNumber);
+    setEditorError(indexNumber, hasError);
+    setTabHeaderError(indexNumber, hasError);
+  }
+}
+
+function clearValidationFailedState() {
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    setEditorError(Number(languageIndex), false);
+    setTabHeaderError(Number(languageIndex), false);
+  }
+
+  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
+    element.classList.remove(CMS_EDITOR_ERROR);
+  });
+
+  const accordion = document.getElementById('content-form:cms-edit-value');
+  if (accordion) {
+    accordion.querySelectorAll('.ui-accordion-header.cms-editor-error').forEach((header) => {
+      header.classList.remove(CMS_EDITOR_ERROR);
+    });
+  }
+}
+
 function restrictActionForNonHtml(isHtmlContent, editor) {
   if (isHtmlContent) {
     return;
@@ -222,56 +289,23 @@ function restrictActionForNonHtml(isHtmlContent, editor) {
 function saveAllEditors() {
   const dirtyEditors = new Set(window.cmsDirtyEditors);
   if (dirtyEditors.size === 0) {
-    return true;
+    return;
   }
 
-  const editorKeys = Object.keys(window.cmsLiveEditors || {});
-  const allLocalesEdited =
-    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
   const values = [];
-  let placeholderError = false;
-  let hasAnyError = false;
-  let expectedPlaceholders = null;
-
   for (const languageIndex of dirtyEditors) {
     const editor = window.cmsLiveEditors[languageIndex];
     const contents = editor.getContents();
-
-    if (!validateNotEmpty(editor, languageIndex)) {
-      hasAnyError = true;
-      continue;
-    }
-
-    const validationResult = validatePlaceholders({
-      languageIndex,
-      contents,
-      allLocalesEdited,
-      expectedPlaceholders
-    });
-
-    if (!validationResult.valid) {
-      hasAnyError = true;
-      placeholderError = true;
-      setEditorError(languageIndex, true);
-      continue;
-    }
-
-    expectedPlaceholders = validationResult.expectedPlaceholders;
-    setEditorError(languageIndex, false);
 
     values.push({
       languageIndex: Number(languageIndex),
       contents: contents
     });
+
+    // reset error state before backend validation
+    setEditorError(languageIndex, false);
   }
 
-  if (hasAnyError) {
-    setErrorMessageVisible(placeholderError);
-    return false;
-  }
-
-  setErrorMessageVisible(false);
-  destroyEditors();
   saveAllValue([{
     name: 'values',
     value: JSON.stringify(values)
@@ -328,7 +362,7 @@ function setEditorError(languageIndex, hasError) {
     return;
   }
 
-  container.classList.toggle('cms-editor-error', hasError);
+  container.classList.toggle(CMS_EDITOR_ERROR, hasError);
 }
 
 function getEditorContainer(languageIndex) {
@@ -344,34 +378,6 @@ function getEditorContainer(languageIndex) {
 
   // SunEditor creates .sun-editor next to textarea
   return findSunEditorForTextarea(textarea);
-}
-
-/** Extracts numbered placeholders from the editing content.
-* A placeholder is defined as format {number}, e.g. {0}, {1}
-*/
-function extractPlaceholders(content) {
-  if (!content) {
-    return [];
-  }
-  const matches = content.match(/\{\d+\}/g);
-  return matches ? matches.slice() : [];
-}
-
-/** Compares two placeholder lists for exact equality.
-* The lists must:
-* - Have the same length
-* - Contain the same elements
-*/
-function arePlaceholderListsEqual(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 function removeNonPrintableChars(str) {
@@ -405,15 +411,6 @@ function bindCmsWarning(hoverId, warningId) {
     clearTimeout(hideTimeout);
   });
   targetElement.addEventListener("mouseleave", hideWarning);
-}
-
-function setErrorMessageVisible(isVisible) {
-  const element = document.getElementById(CMS_SAVE_ERROR_CONTAINER_ID);
-  if (!element) {
-    return;
-  }
-  element.dataset.forceVisible = isVisible ? 'true' : 'false';
-  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {
@@ -542,6 +539,24 @@ function showSaveSuccess() {
   bar.hideTimeout = setTimeout(() => {
     bar.classList.remove('show');
   }, 3500);
+}
+
+function handleCmsSaveComplete(args) {
+  const validationFailed = Boolean(args?.validationFailed);
+
+  if (!validationFailed) {
+	destroyEditors();
+    initCmsWarnings();
+    restorePathPanelScroll();
+    showSaveSuccess();
+    return;
+  }
+
+  var invalidIndices = [];
+  try {
+    invalidIndices = JSON.parse(args.invalidIndices || '[]');
+  } catch (e) {}
+  applyValidationFailedState(invalidIndices);
 }
 
 let pathPanelScrollTop = 0;
