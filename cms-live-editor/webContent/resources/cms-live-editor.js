@@ -112,9 +112,9 @@ function refreshClone(currentCloneButton, textarea, commandName) {
     if (isFullscreen) {
       const seWrapper = sunEditor.querySelector(SUNEDITOR_WRAPPER_QUERY);
       if (seWrapper) {
-        const parentHorizontalPaddingInRem = 2;
+        const parentVerticalPaddingInRem = 2;
         const htmlToolBarHeightInPixel = window.cmsLiveEditorHtmlIds.has(textarea.id) ? 44 : 0;
-        seWrapper.style.height = `calc(100vh - ${htmlToolBarHeightInPixel}px - ${parentHorizontalPaddingInRem}rem)`;
+        seWrapper.style.height = `calc(100vh - ${htmlToolBarHeightInPixel}px - ${parentVerticalPaddingInRem}rem)`;
       }
     }
     currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
