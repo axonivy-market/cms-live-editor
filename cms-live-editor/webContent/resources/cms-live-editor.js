@@ -90,8 +90,8 @@ function refreshClone(currentCloneButton, textarea, commandName) {
     return;
   }
   try {
-    if (getComputedStyle(sunEditor).position === 'static') {
-      sunEditor.style.position = 'relative';
+    if (getComputedStyle(sunEditor).position === STATIC_POSITION) {
+      sunEditor.style.position = RELATIVE_POSITION;
     }
 
     if (currentCloneButton.parentElement !== sunEditor) {
@@ -110,8 +110,9 @@ function refreshClone(currentCloneButton, textarea, commandName) {
     if (isFullscreen) {
       const seWrapper = sunEditor.querySelector(SUNEDITOR_WRAPPER_QUERY);
       if (seWrapper) {
-        const gap = window.cmsLiveEditorHtmlIds.has(textarea.id) ? 5 : 1.5;
-        seWrapper.style.height = `calc(100vh - ${gap}rem)`;
+        const parentHorizontalPaddingInRem = 2;
+        const htmlToolBarHeightInPixel = window.cmsLiveEditorHtmlIds.has(textarea.id) ? 44 : 0;
+        seWrapper.style.height = `calc(100vh - ${htmlToolBarHeightInPixel}px - ${parentHorizontalPaddingInRem}rem)`;
       }
     }
     currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
