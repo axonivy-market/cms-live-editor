@@ -52,6 +52,7 @@ import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
+import com.axonivy.utils.cmsliveeditor.service.CmsDownloadService;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
@@ -68,11 +69,8 @@ import ch.ivyteam.ivy.application.ActivityState;
 import ch.ivyteam.ivy.application.IActivity;
 import ch.ivyteam.ivy.application.IApplication;
 import ch.ivyteam.ivy.application.IProcessModel;
-import ch.ivyteam.ivy.application.IProcessModelVersion;
 import ch.ivyteam.ivy.application.app.IApplicationRepository;
 import ch.ivyteam.ivy.cm.ContentObject;
-import ch.ivyteam.ivy.cm.ContentObjectReader;
-import ch.ivyteam.ivy.cm.ContentObjectValue;
 import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
 import ch.ivyteam.ivy.security.ISecurityContext;
@@ -229,7 +227,7 @@ public class CmsLiveEditorBean implements Serializable {
         cmsContent.setNewFileSize(0);
         cmsContent.setNewFileContent(null);
         cmsContent.setEditing(false);
-        loadCmsFileFromApplicationCms(cmsContent, IApplication.current());
+        CmsFileUtils.loadCmsFileFromApplicationCms(selectedCms, cmsContent, IApplication.current());
       });
     }
   }
@@ -344,54 +342,9 @@ public class CmsLiveEditorBean implements Serializable {
       this.selectedCms = event.getObject();
     }
     if (selectedCms.isFile()) {
-      loadFileContentOfSelectedCms();
+      CmsFileUtils.loadFileContentOfCms(selectedCms);
     }
     PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_CMS_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
-  }
-
-  private void loadFileContentOfSelectedCms() {
-    IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
-        .filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
-    if (selectedPmv == null) {
-      return;
-    }
-
-    Optional.ofNullable(ContentManagement.cms(selectedPmv)).flatMap(cms -> cms.get(selectedCms.getUri()))
-        .ifPresent(this::loadFileContentOfCmsContent);
-  }
-
-  private void loadFileContentOfCmsContent(ContentObject contentObject) {
-    try {
-      for (CmsContent cmsContent : selectedCms.getContents()) {
-        if (cmsContent == null) {
-          break;
-        }
-        loadCmsFileFromProjectCms(contentObject, cmsContent);
-        loadCmsFileFromApplicationCms(cmsContent, IApplication.current());
-      }
-    } catch (Exception e) {
-      Ivy.log().error(e);
-    }
-  }
-
-  public void loadCmsFileFromProjectCms(ContentObject contentObject, CmsContent cmsContent) {
-    ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
-    byte[] bytes = Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElse(null);
-    if (bytes != null) {
-      cmsContent.setFileContent(bytes);
-      cmsContent.setFileSize(FileUtils.calculateToKB(bytes.length));
-    }
-  }
-
-  public void loadCmsFileFromApplicationCms(CmsContent cmsContent, IApplication currentApplication) {
-    var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
-    ContentObject currentContentObject = cmsEntity
-        .orElseGet(() -> ContentManagement.cms(currentApplication).root().child().file(selectedCms.getUri(), selectedCms.getFileExtension()));
-    byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
-    if (bytesOfApplicationCmsFile != null) {
-      cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
-      cmsContent.setApplicationFileSize(FileUtils.calculateToKB(bytesOfApplicationCmsFile.length));
-    }
   }
 
   public void saveAll() throws JsonProcessingException {
@@ -518,7 +471,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void handleBeforeDownloadFile() throws Exception {
     String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
+    this.fileDownload = CmsDownloadService.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
   }
 
   public void downloadFinished() {
