@@ -1,5 +1,5 @@
 {
-  "$schema" : "https://json-schema.axonivy.com/process/12.0.0/process.json",
+  "$schema" : "https://json-schema.axonivy.com/process/13.2.0/process.json",
   "id" : "18DE86A37D77D574",
   "config" : {
     "data" : "com.axonivy.utils.cmsliveeditor.Data"
@@ -24,7 +24,9 @@
         },
         "permission" : {
           "anonymous" : false,
-          "role" : "CMS_ADMIN"
+          "roles" : [
+            "CMS_ADMIN"
+          ]
         }
       },
       "tags" : [
@@ -32,7 +34,7 @@
       ],
       "visual" : {
         "at" : { "x" : 96, "y" : 64 },
-        "icon" : "res:/webContent/icons/logo.png?small"
+        "icon" : "res:/webContent/icons/logo.png"
       },
       "connect" : [
         { "id" : "f4", "to" : "f3" }

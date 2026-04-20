@@ -26,7 +26,8 @@ public class UtilsTest {
            <td>data</td>
           </tr>
          </tbody>
-        </table> table.
+        </table>
+        table.
         <p></p>
         """.trim();
     String result = Utils.sanitizeContent(originalContent, content);

@@ -16,6 +16,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SETTING_BUT
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.TRANSLATE_ALL_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
+import static com.codeborne.selenide.ScrollIntoViewOptions.*;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -23,6 +24,7 @@ import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.interactable;
 import static com.codeborne.selenide.Condition.matchText;
+import static com.codeborne.selenide.Condition.oneOfTexts;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -152,7 +154,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testHoverDownloadButtonToShowWarningMessage() {
-    $(By.id(DOWNLOAD_BUTTON_ID)).shouldBe(enabled).scrollIntoView(true).hover();
+    $(By.id(DOWNLOAD_BUTTON_ID)).shouldBe(enabled).scrollIntoView(instant().block(Block.start)).hover();
     $(By.id(CMS_WARNING_CONTAINER_ID)).shouldBe(visible);
     $("body").hover();
     Selenide.sleep(1000);
@@ -339,7 +341,7 @@ public class CmsLiveEditorWebTest {
   public void testUserIncorrectRole() {
     loginAndStartProcess("normalUser", "123456");
     var exception = $(By.cssSelector(".exception-content"));
-    exception.shouldBe(visible).shouldHave(matchText("Access denied. Need role CMS_ADMIN"));
+    exception.shouldBe(visible).shouldHave(oneOfTexts("Access denied. Need one of these roles [CMS_ADMIN]"));
   }
 
   @Test
@@ -401,8 +403,8 @@ public class CmsLiveEditorWebTest {
   private SelenideElement openResetDialog() {
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.sizeGreaterThanOrEqual(1));
-    SelenideElement resetBtn =
-        $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).scrollIntoView(true).click(ClickOptions.usingJavaScript());
+    SelenideElement resetBtn = $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).scrollIntoView(instant().block(Block.start))
+        .click(ClickOptions.usingJavaScript());
     Selenide.executeJavaScript("arguments[0].click()", resetBtn);
     return resetBtn;
   }
