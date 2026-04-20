@@ -52,6 +52,7 @@ import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
+import com.axonivy.utils.cmsliveeditor.service.CmsDownloadService;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
@@ -470,7 +471,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void handleBeforeDownloadFile() throws Exception {
     String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
+    this.fileDownload = CmsDownloadService.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
   }
 
   public void downloadFinished() {
