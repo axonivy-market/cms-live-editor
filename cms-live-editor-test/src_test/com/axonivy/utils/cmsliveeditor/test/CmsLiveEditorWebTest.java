@@ -42,6 +42,7 @@ import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
@@ -312,6 +313,7 @@ public class CmsLiveEditorWebTest {
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
       editor.sendKeys(content);
+      editor.shouldHave(Condition.exactText(content));
       editor.pressTab();
     }
   }
@@ -390,7 +392,7 @@ public class CmsLiveEditorWebTest {
   private SelenideElement openFirstCmsAndEdit() {
     SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
     selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled, Duration.ofSeconds(3)).click();
     return selectedCms;
   }
 
