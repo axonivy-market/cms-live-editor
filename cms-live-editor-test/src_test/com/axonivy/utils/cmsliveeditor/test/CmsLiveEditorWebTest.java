@@ -240,7 +240,7 @@ public class CmsLiveEditorWebTest {
 
     fillContentsToEditor(editors, "Files count {0}");
     editors.first().shouldNotBe(empty);
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled);
     saveAndUndoCmsChanges();
   }
 
