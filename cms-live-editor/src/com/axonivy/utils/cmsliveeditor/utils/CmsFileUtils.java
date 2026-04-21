@@ -1,10 +1,14 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
-import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN_CHARACTER;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.DOUBLE_QUOTE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTENSION_FORMAT;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_ESCAPE_MAP;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_KEYWORDS;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_PREFIXES;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_SPECIALS;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
 import static org.apache.commons.lang3.StringUtils.CR;
@@ -27,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -41,6 +44,7 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
+import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
@@ -55,13 +59,7 @@ import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
-  private static final String DOUBLE_QUOTE = "\"";
-  private static final Map<String, String> YAML_ESCAPE_MAP = Map.of("\\", "\\\\", "\"", "\\\"", "\t", "\\t");
-  private static final List<String> YAML_PREFIXES = List.of(SPACE, HYPHEN_CHARACTER, "?", ":");
-  private static final List<String> YAML_SPECIALS = List.of(":", "#", "\t", "\\", DOUBLE_QUOTE);
-  private static final Set<String> YAML_KEYWORDS = Set.of("true", "false", "null", "~", "yes", "no", "on", "off");
   private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
-
   private static final Path BASE_PATH = Path.of("virtual-root").toAbsolutePath().normalize();
 
   public static Map<String, byte[]> collectCmsFiles(String projectName, PmvCms pmvCms) {
@@ -199,7 +197,7 @@ public class CmsFileUtils {
   public static Map<String, String> collectYamlFilesAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
       Map<String, byte[]> cmsFiles) {
     Map<String, String> files = new TreeMap<>();
-    if (projectName == null || projectName.isBlank()) {
+    if (StringUtils.isBlank(projectName)) {
       for (var entry : pmvCmsMap.entrySet()) {
         addCmsYamlFilesToArchive(files, entry.getValue(), true);
         addPmvCmsFiles(entry.getKey(), entry.getValue(), cmsFiles);
@@ -368,7 +366,7 @@ public class CmsFileUtils {
       return value;
     }
 
-    return DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
+    return FileConstants.DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
   }
 
   /**

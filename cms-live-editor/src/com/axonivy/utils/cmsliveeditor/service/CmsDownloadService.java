@@ -26,10 +26,10 @@ public class CmsDownloadService {
     var cmsFiles = new HashMap<String, byte[]>();
     if (type == ExportType.EXCEL) {
       Map<String, Workbook> workbooks =
-          CmsFileUtils.collectWorkbooksAndCmsFiles(normalizedProjectName, pmvCmsMap, cmsFiles);
+          CmsFileUtils.collectWorkbooksAndCmsFiles(projectName, pmvCmsMap, cmsFiles);
       return CmsFileUtils.convertToZip(normalizedProjectName, applicationName, workbooks, cmsFiles);
     } else {
-      Map<String, String> files = CmsFileUtils.collectYamlFilesAndCmsFiles(normalizedProjectName, pmvCmsMap, cmsFiles);
+      Map<String, String> files = CmsFileUtils.collectYamlFilesAndCmsFiles(projectName, pmvCmsMap, cmsFiles);
       return CmsFileUtils.convertToZipYaml(normalizedProjectName, applicationName, files, cmsFiles);
     }
   }

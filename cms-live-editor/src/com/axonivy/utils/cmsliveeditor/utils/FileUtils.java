@@ -1,12 +1,21 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.BACKSLASH_CHARACTER;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.DOT_CHARACTER;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.DOUBLE_DOT;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.DOUBLE_SLASH_REGEX;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.LEADING_SLASH_REGEX;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.SLASH_CHARACTER;
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.WINDOWS_DRIVE_REGEX;
+
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.primefaces.model.file.UploadedFile;
 
-import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 
 import ch.ivyteam.ivy.environment.Ivy;
@@ -37,7 +46,7 @@ public class FileUtils {
     String extension = StringUtils.EMPTY;
     String fileName = file.getFileName();
     if (StringUtils.isNotBlank(fileName)) {
-      int lastDot = fileName.lastIndexOf(CommonConstants.DOT_CHARACTER);
+      int lastDot = fileName.lastIndexOf(DOT_CHARACTER);
       if (lastDot > 0 && lastDot < fileName.length() - 1) {
         extension = fileName.substring(lastDot + 1).toLowerCase();
       }
@@ -50,12 +59,9 @@ public class FileUtils {
       return Strings.EMPTY;
     }
     // Normalize
-    uri = uri.replace("\\", CommonConstants.SLASH_CHARACTER);
+    uri = uri.replace(BACKSLASH_CHARACTER, SLASH_CHARACTER);
 
-    // remove ALL leading slashes
-    while (uri.startsWith(CommonConstants.SLASH_CHARACTER)) {
-      uri = uri.substring(1);
-    }
+    uri = uri.replaceAll(LEADING_SLASH_REGEX, Strings.EMPTY);
     return uri;
   }
 
@@ -64,11 +70,19 @@ public class FileUtils {
       return false;
     }
 
-    return !(fileName.contains("..") || fileName.contains("/") || fileName.contains("\\"));
+    return !(fileName.contains(DOUBLE_DOT) || fileName.contains(SLASH_CHARACTER)
+        || fileName.contains(BACKSLASH_CHARACTER));
   }
 
   public static boolean isSafePath(Path basePath, String uri) {
-    if (uri == null) {
+    if (uri == null || uri.isBlank()) {
+      return false;
+    }
+
+    uri = normalizeUri(uri);
+
+    // ❗ Block Windows absolute path
+    if (uri.matches(WINDOWS_DRIVE_REGEX)) {
       return false;
     }
 
@@ -77,11 +91,11 @@ public class FileUtils {
   }
 
   public static String buildNormalizedPath(String... parts) {
-    String path = String.join("/", parts);
+    String path = Arrays.stream(parts).filter(StringUtils::isNotBlank).collect(Collectors.joining(SLASH_CHARACTER));
 
-    path = path.replace("\\", "/").replaceAll("//+", "/");
+    path = path.replace(BACKSLASH_CHARACTER, SLASH_CHARACTER).replaceAll(DOUBLE_SLASH_REGEX, SLASH_CHARACTER);
 
-    if (path.endsWith("/")) {
+    if (path.endsWith(SLASH_CHARACTER)) {
       path = path.substring(0, path.length() - 1);
     }
 

@@ -14,12 +14,13 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.StreamedContent;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
-import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
@@ -29,125 +30,148 @@ import ch.ivyteam.ivy.environment.IvyTest;
 
 @IvyTest
 public class CmsFileUtilsTest {
-  private final String CONTENT_TYPE = "application/zip";
-  private final String DOT_CHARACTER = ".";
-  private final String TEST_APPLICATION = "TestApplication";
-  private final String PROJECT_CMS_A = "projectCmsA";
-  private final String PROJECT_CMS_B = "projectCmsB";
-  private final String ALL_PROJECTS = "All";
-  private final String EXCEL_FILE_EXTENSION = "xlsx";
+  private final String PROJECT_A = "projectA";
+  private final String PROJECT_B = "projectB";
+  private final String APPLICATION = "TestApp";
   private final String YAML_FILE_NAME = "cms_en.yaml";
-  private final String DOWNLOAD_FILE_FORMAT = "CMSDownload_%s_%s.zip";
+  private final String EXCEL_EXTENSION = "xlsx";
 
-  private Map<String, PmvCms> cmsPmvMap;
+  private Map<String, PmvCms> cmsMap;
 
   @BeforeEach
   public void setUp() {
-    cmsPmvMap = new HashMap<>();
-    PmvCms pmvCmsA = createMockPmvCms(0, Locale.ENGLISH, "originContentA", "contentA", "UriA");
-    cmsPmvMap.put(PROJECT_CMS_A, pmvCmsA);
+    cmsMap = new HashMap<>();
+    cmsMap.put(PROJECT_A, createMockPmvCms("PmvA", "uriA", "contentA"));
   }
 
-  private PmvCms createMockPmvCms(int index, Locale locale, String originalContent, String content, String uri) {
-    PmvCms pmvCms = new PmvCms("PmvName", Collections.singletonList(locale));
-    pmvCms.setCmsList(Collections.singletonList(createMockCms(index, locale, originalContent, content, uri)));
+  private PmvCms createMockPmvCms(String pmvName, String uri, String content) {
+    PmvCms pmvCms = new PmvCms(pmvName, Collections.singletonList(Locale.ENGLISH));
+
+    Cms cms = new Cms();
+    cms.setUri(uri);
+
+    CmsContent cmsContent = new CmsContent(0, Locale.ENGLISH, content, content);
+    cms.setContents(Collections.singletonList(cmsContent));
+
+    pmvCms.setCmsList(Collections.singletonList(cms));
     return pmvCms;
   }
 
-  private Cms createMockCms(int index, Locale locale, String originalContent, String content, String uri) {
-    Cms cms = new Cms();
-    cms.setUri(uri);
-    CmsContent cmsContent = new CmsContent(index, locale, originalContent, content);
-    cms.setContents(Collections.singletonList(cmsContent));
-    return cms;
+  @Test
+  public void testCreateWorkbookFromPmvCms() {
+    XSSFWorkbook workbook = CmsFileUtils.createWorkbookFromPmvCms(cmsMap.get(PROJECT_A));
+
+    assertNotNull(workbook);
+    assertEquals(1, workbook.getNumberOfSheets());
+    assertEquals(2, workbook.getSheetAt(0).getPhysicalNumberOfRows()); // header + 1 row
   }
 
   @Test
-  public void testExportCmsToExcelZipForSingleProject() throws Exception {
-    StreamedContent result = CmsFileUtils.exportCmsToZip(PROJECT_CMS_A, TEST_APPLICATION, cmsPmvMap, ExportType.EXCEL);
+  public void testCollectWorkbooksAndCmsFilesForSingleProject() {
+    Map<String, byte[]> files = new HashMap<>();
 
-    assertNotNull(result);
-    assertEquals(CONTENT_TYPE, result.getContentType());
-    assertEquals(String.format(DOWNLOAD_FILE_FORMAT, PROJECT_CMS_A, TEST_APPLICATION), result.getName());
+    Map<String, Workbook> result = CmsFileUtils.collectWorkbooksAndCmsFiles(PROJECT_A, cmsMap, files);
 
-    try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
-        ZipInputStream zipInputStream = new ZipInputStream(bais)) {
-
-      ZipEntry entry = zipInputStream.getNextEntry();
-      assertNotNull(entry);
-      assertEquals(PROJECT_CMS_A + DOT_CHARACTER + EXCEL_FILE_EXTENSION, entry.getName());
-    }
+    assertEquals(1, result.size());
+    assertTrue(result.containsKey(PROJECT_A));
   }
 
   @Test
-  public void testExportCmsToExcelZipForAllProjects() throws Exception {
-    cmsPmvMap.put(PROJECT_CMS_B, createMockPmvCms(1, Locale.ENGLISH, "originContentB", "contentB", "UriB"));
+  public void testCollectWorkbooksAndCmsFilesForAllProjects() {
+    cmsMap.put(PROJECT_B, createMockPmvCms("PmvB", "uriB", "contentB"));
 
-    StreamedContent result = CmsFileUtils.exportCmsToZip("", TEST_APPLICATION, cmsPmvMap, ExportType.EXCEL);
+    Map<String, byte[]> files = new HashMap<>();
+
+    Map<String, Workbook> result = CmsFileUtils.collectWorkbooksAndCmsFiles("", cmsMap, files);
+
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  public void testCollectYamlFilesAndCmsFilesForSingleProject() {
+    Map<String, byte[]> files = new HashMap<>();
+
+    Map<String, String> yamlFiles = CmsFileUtils.collectYamlFilesAndCmsFiles(PROJECT_A, cmsMap, files);
+
+    assertEquals(1, yamlFiles.size());
+    assertTrue(yamlFiles.containsKey(YAML_FILE_NAME));
+  }
+
+  @Test
+  public void testCollectYamlFilesAndCmsFilesForAllProjects() {
+    cmsMap.put(PROJECT_B, createMockPmvCms("PmvB", "uriB", "contentB"));
+
+    Map<String, byte[]> files = new HashMap<>();
+
+    Map<String, String> yamlFiles = CmsFileUtils.collectYamlFilesAndCmsFiles("", cmsMap, files);
+
+    assertEquals(2, yamlFiles.size());
+
+    assertTrue(
+        yamlFiles.keySet().stream().anyMatch(name -> name.contains(PROJECT_A + CommonConstants.SLASH_CHARACTER)));
+    assertTrue(
+        yamlFiles.keySet().stream().anyMatch(name -> name.contains(PROJECT_B + CommonConstants.SLASH_CHARACTER)));
+  }
+
+  @Test
+  public void testConvertToZipYaml() throws Exception {
+    Map<String, String> yamlFiles = new HashMap<>();
+    yamlFiles.put(YAML_FILE_NAME, "key: value");
+
+    Map<String, byte[]> cmsFiles = new HashMap<>();
+
+    StreamedContent result = CmsFileUtils.convertToZipYaml(PROJECT_A, APPLICATION, yamlFiles, cmsFiles);
 
     assertNotNull(result);
-    assertEquals(CONTENT_TYPE, result.getContentType());
-    assertEquals(String.format(DOWNLOAD_FILE_FORMAT, ALL_PROJECTS, TEST_APPLICATION), result.getName());
 
     List<String> fileNames = new ArrayList<>();
 
     try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
-        ZipInputStream zipInputStream = new ZipInputStream(bais)) {
+        ZipInputStream zis = new ZipInputStream(bais)) {
 
       ZipEntry entry;
-      while ((entry = zipInputStream.getNextEntry()) != null) {
+      while ((entry = zis.getNextEntry()) != null) {
         if (!entry.isDirectory()) {
           fileNames.add(entry.getName());
         }
       }
     }
 
-    assertEquals(2, fileNames.size());
-    assertTrue(fileNames.contains(String.join(DOT_CHARACTER, PROJECT_CMS_A, EXCEL_FILE_EXTENSION)));
-    assertTrue(fileNames.contains(String.join(DOT_CHARACTER, PROJECT_CMS_B, EXCEL_FILE_EXTENSION)));
+    assertEquals(1, fileNames.size());
+    assertTrue(fileNames.contains(YAML_FILE_NAME));
   }
 
   @Test
-  public void testExportCmsToYamlZipForSingleProject() throws Exception {
-    StreamedContent result = CmsFileUtils.exportCmsToZip(PROJECT_CMS_A, TEST_APPLICATION, cmsPmvMap, ExportType.YAML);
+  public void testConvertToZipExcel() throws Exception {
+    Map<String, Workbook> workbooks = new HashMap<>();
+    workbooks.put(PROJECT_A, CmsFileUtils.createWorkbookFromPmvCms(cmsMap.get(PROJECT_A)));
+
+    Map<String, byte[]> files = new HashMap<>();
+
+    StreamedContent result = CmsFileUtils.convertToZip(PROJECT_A, APPLICATION, workbooks, files);
 
     assertNotNull(result);
-    assertEquals(CONTENT_TYPE, result.getContentType());
-
-    try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
-        ZipInputStream zipInputStream = new ZipInputStream(bais)) {
-
-      ZipEntry entry = zipInputStream.getNextEntry();
-      assertNotNull(entry);
-
-      assertEquals(YAML_FILE_NAME, entry.getName());
-    }
-  }
-
-  @Test
-  public void testExportCmsToYamlZipForAllProjects() throws Exception {
-    cmsPmvMap.put(PROJECT_CMS_B, createMockPmvCms(1, Locale.ENGLISH, "originContentB", "contentB", "UriB"));
-
-    StreamedContent result = CmsFileUtils.exportCmsToZip("", TEST_APPLICATION, cmsPmvMap, ExportType.YAML);
-
-    assertNotNull(result);
-    assertEquals(String.format(DOWNLOAD_FILE_FORMAT, ALL_PROJECTS, TEST_APPLICATION), result.getName());
 
     List<String> fileNames = new ArrayList<>();
 
     try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
-        ZipInputStream zipInputStream = new ZipInputStream(bais)) {
+        ZipInputStream zis = new ZipInputStream(bais)) {
 
       ZipEntry entry;
-      while ((entry = zipInputStream.getNextEntry()) != null) {
+      while ((entry = zis.getNextEntry()) != null) {
         if (!entry.isDirectory()) {
           fileNames.add(entry.getName());
         }
       }
     }
 
-    assertEquals(2, fileNames.size());
-    assertTrue(fileNames.contains(String.join(CommonConstants.SLASH_CHARACTER, PROJECT_CMS_A, YAML_FILE_NAME)));
-    assertTrue(fileNames.contains(String.join(CommonConstants.SLASH_CHARACTER, PROJECT_CMS_B, YAML_FILE_NAME)));
+    assertEquals(1, fileNames.size());
+    assertTrue(fileNames.get(0).endsWith(EXCEL_EXTENSION));
+  }
+
+  @Test
+  public void testGetFileTypeByExtension() {
+    var type = CmsFileUtils.getFileTypeByExtension("xlsx");
+    assertNotNull(type);
   }
 }
