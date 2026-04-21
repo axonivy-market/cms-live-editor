@@ -182,10 +182,10 @@ public class CmsFileUtils {
     Map<String, String> files = new TreeMap<>();
     if (isAllProjects) {
       for (var entry : pmvCmsMap.entrySet()) {
-        addCmsYamlFilesToArchive(files, entry.getValue(), true);
+        addCmsYamlFilesToArchive(files,  entry.getKey(), entry.getValue(), true);
       }
     } else {
-      addCmsYamlFilesToArchive(files, pmvCmsMap.get(projectName), false);
+      addCmsYamlFilesToArchive(files, projectName, pmvCmsMap.get(projectName), false);
     }
     return files;
   }
@@ -199,7 +199,8 @@ public class CmsFileUtils {
    * 3. Convert map to YAML
    * 4. Generate archive path (optionally grouped by project)
    */
-  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData, boolean includeProjectFolderInPath) {
+  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, String projectKey, PmvCms cmsData,
+      boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
     }
@@ -212,7 +213,7 @@ public class CmsFileUtils {
       Map<String, String> uriToContentMap = buildUriToContentMap(cmsData, locale);
 
       String yamlContent = convertFlatMapToYaml(uriToContentMap);
-      String archiveEntryPath = buildArchivePath(cmsData, locale, includeProjectFolderInPath);
+      String archiveEntryPath = buildArchivePath(projectKey, locale, includeProjectFolderInPath);
 
       archiveFiles.put(archiveEntryPath, yamlContent);
     }
@@ -235,11 +236,11 @@ public class CmsFileUtils {
     return localizedContentByUri;
   }
 
-  private static String buildArchivePath(PmvCms cmsData, Locale locale, boolean includeProjectFolderInPath) {
+  private static String buildArchivePath(String projectKey, Locale locale, boolean includeProjectFolderInPath) {
     String fileName = String.format(YAML_FILE_FORMAT, locale.getLanguage());
 
     if (includeProjectFolderInPath) {
-      return cmsData.getPmvName() + CommonConstants.SLASH_CHARACTER + fileName;
+      return projectKey + CommonConstants.SLASH_CHARACTER + fileName;
     }
 
     return fileName;
