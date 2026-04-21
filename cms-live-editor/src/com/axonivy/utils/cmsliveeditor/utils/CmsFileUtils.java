@@ -61,20 +61,21 @@ public class CmsFileUtils {
    */
   public static StreamedContent exportCmsToZip(String projectName, String applicationName,
       Map<String, PmvCms> pmvCmsMap, ExportType type) throws Exception {
-    String normalizedProjectName = StringUtils.isBlank(projectName) ? Ivy.cms().co("/Labels/AllProjects") : projectName;
+    boolean isAllProjects = StringUtils.isBlank(projectName);
+    String normalizedProjectName = isAllProjects ? Ivy.cms().co("/Labels/AllProjects") : projectName;
     if (type == ExportType.EXCEL) {
-      Map<String, Workbook> workbooks = collectWorkbooks(normalizedProjectName, pmvCmsMap);
+      Map<String, Workbook> workbooks = collectWorkbooks(isAllProjects, normalizedProjectName, pmvCmsMap);
       return convertToZip(normalizedProjectName, applicationName, workbooks);
     } else {
-      Map<String, String> files = collectYamlFiles(normalizedProjectName, pmvCmsMap);
+      Map<String, String> files = collectYamlFiles(isAllProjects, normalizedProjectName, pmvCmsMap);
       return convertToZipYaml(normalizedProjectName, applicationName, files);
     }
   }
 
-  private static Map<String, Workbook> collectWorkbooks(String projectName, Map<String, PmvCms> pmvCmsMap) {
+  private static Map<String, Workbook> collectWorkbooks(boolean isAllProjects, String projectName,
+      Map<String, PmvCms> pmvCmsMap) {
     Map<String, Workbook> workbooks = new HashMap<>();
-    if (StringUtils.isBlank(projectName)) {
-      projectName = Ivy.cms().co("/Labels/AllProjects");
+    if (isAllProjects) {
       for (var entry : pmvCmsMap.entrySet()) {
         addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
       }
@@ -176,9 +177,10 @@ public class CmsFileUtils {
     }
   }
 
-  private static Map<String, String> collectYamlFiles(String projectName, Map<String, PmvCms> pmvCmsMap) {
+  private static Map<String, String> collectYamlFiles(boolean isAllProjects, String projectName,
+      Map<String, PmvCms> pmvCmsMap) {
     Map<String, String> files = new TreeMap<>();
-    if (projectName == null || projectName.isBlank()) {
+    if (isAllProjects) {
       for (var entry : pmvCmsMap.entrySet()) {
         addCmsYamlFilesToArchive(files, entry.getValue(), true);
       }
