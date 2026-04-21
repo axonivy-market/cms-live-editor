@@ -1,30 +1,35 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
+import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN_CHARACTER;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTENSION_FORMAT;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
-import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.HYPHEN_CHARACTER;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.LF;
 import static org.apache.commons.lang3.StringUtils.CR;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.INDEX_NOT_FOUND;
+import static org.apache.commons.lang3.StringUtils.LF;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -36,12 +41,17 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
-import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 
+import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.IProcessModelVersion;
+import ch.ivyteam.ivy.cm.ContentObject;
+import ch.ivyteam.ivy.cm.ContentObjectReader;
+import ch.ivyteam.ivy.cm.ContentObjectValue;
+import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
@@ -52,70 +62,99 @@ public class CmsFileUtils {
   private static final Set<String> YAML_KEYWORDS = Set.of("true", "false", "null", "~", "yes", "no", "on", "off");
   private static final String YAML_FILE_FORMAT = "cms_%s.yaml";
 
-  /**
-   * Export CMS to ZIP file
-   *
-   * Supports:
-   * - EXCEL → multiple Excel files zipped
-   * - YAML  → multiple YAML files zipped
-   */
-  public static StreamedContent exportCmsToZip(String projectName, String applicationName,
-      Map<String, PmvCms> pmvCmsMap, ExportType type) throws Exception {
-    String normalizedProjectName = StringUtils.isBlank(projectName) ? Ivy.cms().co("/Labels/AllProjects") : projectName;
-    if (type == ExportType.EXCEL) {
-      Map<String, Workbook> workbooks = collectWorkbooks(normalizedProjectName, pmvCmsMap);
-      return convertToZip(normalizedProjectName, applicationName, workbooks);
-    } else {
-      Map<String, String> files = collectYamlFiles(normalizedProjectName, pmvCmsMap);
-      return convertToZipYaml(normalizedProjectName, applicationName, files);
-    }
+  private static final Path BASE_PATH = Path.of("virtual-root").toAbsolutePath().normalize();
+
+  public static Map<String, byte[]> collectCmsFiles(String projectName, PmvCms pmvCms) {
+    return pmvCms.getCmsList().stream().filter(Cms::isFile).flatMap(cms -> cms.getContents().stream()).filter(Objects::nonNull)
+        .filter(CmsContent::isFile).map(content -> toZipEntry(projectName, content, BASE_PATH)).filter(Objects::nonNull)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+          return a;
+        }));
   }
 
-  private static Map<String, Workbook> collectWorkbooks(String projectName, Map<String, PmvCms> pmvCmsMap) {
-    Map<String, Workbook> workbooks = new HashMap<>();
-    if (StringUtils.isBlank(projectName)) {
-      projectName = Ivy.cms().co("/Labels/AllProjects");
-      for (var entry : pmvCmsMap.entrySet()) {
-        addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
+  private static Map.Entry<String, byte[]> toZipEntry(String projectName, CmsContent content, Path basePath) {
+    try {
+      byte[] data = resolveFileContent(content);
+      if (data == null || data.length == 0) {
+        Ivy.log().error("File Content not found for: " + content.getFileName());
+        return null;
       }
-    } else {
-      addPmvCmsToWorkbooks(projectName, pmvCmsMap.get(projectName), workbooks);
+
+      String uri = content.getUri();
+      String fileName = content.getFileName();
+
+      if (uri == null || fileName == null) {
+        return null;
+      }
+
+      // Normalize
+      uri = uri.replace("\\", "/");
+      if (uri.startsWith("/")) {
+        uri = uri.substring(1);
+      }
+
+      // Validate filename
+      if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+        Ivy.log().warn("Invalid filename: " + fileName);
+        return null;
+      }
+
+      // Security check
+      Path filePath = basePath.resolve(uri).resolve(fileName).normalize();
+      if (!filePath.startsWith(basePath)) {
+        Ivy.log().warn("Blocked path traversal: " + filePath);
+        return null;
+      }
+
+      // ✅ Normalize ZIP path
+      String zipEntryPath = (projectName + "/" + uri).replace("\\", "/").replaceAll("//+", "/");
+
+      if (zipEntryPath.endsWith("/")) {
+        zipEntryPath = zipEntryPath.substring(0, zipEntryPath.length() - 1);
+      }
+
+      return new AbstractMap.SimpleEntry<>(zipEntryPath, data);
+
+    } catch (Exception e) {
+      Ivy.log().error("Failed to prepare file: " + content.getFileName(), e);
+      return null;
     }
-    return workbooks;
   }
 
-  private static void addPmvCmsToWorkbooks(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks) {
-    Workbook workbook = createWorkbookFromPmvCms(pmvCms);
-    if (workbook != null) {
-      workbooks.put(projectName, workbook);
+  private static byte[] resolveFileContent(CmsContent content) {
+    if (content.getApplicationFileContent() != null && content.getApplicationFileSize() > 0) {
+      return content.getApplicationFileContent();
     }
+    if (content.getFileContent() != null) {
+      return content.getFileContent();
+    }
+    return null;
   }
 
-  private static XSSFWorkbook createWorkbookFromPmvCms(PmvCms pmvCms) {
+  public static XSSFWorkbook createWorkbookFromPmvCms(PmvCms pmvCms) {
     if (pmvCms == null) {
       return null;
     }
 
     var cmsList = pmvCms.getCmsList();
-    List<String> headers = new ArrayList<>();
+    var headers = new ArrayList<String>();
     headers.add(URI_HEADER);
     headers.addAll(pmvCms.getLocales().stream().map(Locale::getLanguage).filter(StringUtils::isNotBlank).toList());
-
     var workbook = new XSSFWorkbook();
     var worksheet = workbook.createSheet(SHEET_NAME);
 
-    // Header
+    // save header
     var headerRow = worksheet.createRow(0);
-    for (int column = 0; column < headers.size(); column++) {
-      headerRow.createCell(column).setCellValue(headers.get(column));
+    for (var column = 0; column < headers.size(); column++) {
+      var cell = headerRow.createCell(column);
+      cell.setCellValue(headers.get(column));
     }
 
-    // Data
-    for (int rowCount = 0; rowCount < cmsList.size(); rowCount++) {
-      var row = worksheet.createRow(rowCount + 1);
-      // second row is first cms
+    // start save data
+    for (var rowCount = 0; rowCount < cmsList.size(); rowCount++) {
+      var row = worksheet.createRow(rowCount + 1); // second row is first cms
       var cms = cmsList.get(rowCount);
-      for (int columnCount = 0; columnCount < headers.size(); columnCount++) {
+      for (var columnCount = 0; columnCount < headers.size(); columnCount++) {
         var cell = row.createCell(columnCount);
         // set uri
         if (columnCount == 0) {
@@ -130,39 +169,18 @@ public class CmsFileUtils {
   }
 
   private static String getContentValue(Cms cms, String language) {
-    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
-        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
+    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language)).findFirst()
+        .map(CmsContent::getContent).orElse(StringUtils.EMPTY);
   }
 
-  private static StreamedContent convertToZip(String projectName, String applicationName,
-      Map<String, Workbook> workbooks) throws Exception {
-    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
-      for (Entry<String, Workbook> entry : workbooks.entrySet()) {
-        String fileName = String.format(EXCEL_FILE_NAME, entry.getKey());
-        zipOut.putNextEntry(new ZipEntry(fileName));
-        zipOut.write(convertWorkbookToByteArray(entry.getValue()));
-        zipOut.closeEntry();
-      }
-      zipOut.close();
-      byte[] zipBytes = baos.toByteArray();
-      return DefaultStreamedContent.builder()
-          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
-          .contentType(ZIP_CONTENT_TYPE)
-          .stream(() -> new ByteArrayInputStream(zipBytes))
-          .build();
-    } finally {
-      closeWorkbooks(workbooks);
-    }
-  }
-
-  private static byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
+  public static byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
     try (var outputStream = new ByteArrayOutputStream()) {
       workbook.write(outputStream);
       return outputStream.toByteArray();
     }
   }
 
-  private static void closeWorkbooks(Map<String, Workbook> workbooks) {
+  public static void closeWorkbooks(Map<String, Workbook> workbooks) {
     workbooks.values().forEach(CmsFileUtils::closeWorkbook);
   }
 
@@ -176,14 +194,33 @@ public class CmsFileUtils {
     }
   }
 
-  private static Map<String, String> collectYamlFiles(String projectName, Map<String, PmvCms> pmvCmsMap) {
+  public static Map<String, Workbook> collectWorkbooksAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
+      Map<String, byte[]> cmsFiles) {
+    Map<String, Workbook> workbooks = new HashMap<>();
+    if (StringUtils.isBlank(projectName)) {
+      projectName = Ivy.cms().co("/Labels/AllProjects");
+      for (var entry : pmvCmsMap.entrySet()) {
+        addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
+        addPmvCmsFiles(entry.getKey(), entry.getValue(), cmsFiles);
+      }
+    } else {
+      addPmvCmsToWorkbooks(projectName, pmvCmsMap.get(projectName), workbooks);
+      addPmvCmsFiles(projectName, pmvCmsMap.get(projectName), cmsFiles);
+    }
+    return workbooks;
+  }
+
+  public static Map<String, String> collectYamlFilesAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
+      Map<String, byte[]> cmsFiles) {
     Map<String, String> files = new TreeMap<>();
     if (projectName == null || projectName.isBlank()) {
       for (var entry : pmvCmsMap.entrySet()) {
         addCmsYamlFilesToArchive(files, entry.getValue(), true);
+        addPmvCmsFiles(entry.getKey(), entry.getValue(), cmsFiles);
       }
     } else {
       addCmsYamlFilesToArchive(files, pmvCmsMap.get(projectName), false);
+      addPmvCmsFiles(projectName, pmvCmsMap.get(projectName), cmsFiles);
     }
     return files;
   }
@@ -202,9 +239,7 @@ public class CmsFileUtils {
       return;
     }
 
-    List<Locale> validLocales = cmsData.getLocales().stream()
-        .filter(locale -> StringUtils.isNotBlank(locale.getLanguage()))
-        .toList();
+    List<Locale> validLocales = cmsData.getLocales().stream().filter(locale -> StringUtils.isNotBlank(locale.getLanguage())).toList();
 
     for (Locale locale : validLocales) {
       Map<String, String> uriToContentMap = buildUriToContentMap(cmsData, locale);
@@ -410,24 +445,61 @@ public class CmsFileUtils {
    * 3. Convert to byte array
    * 4. Wrap into StreamedContent for download
    */
-  private static StreamedContent convertToZipYaml(String projectName, String applicationName,
-      Map<String, String> files) {
+  public static StreamedContent convertToZipYaml(String projectName, String applicationName, Map<String, String> files,
+      Map<String, byte[]> cmsFiles) {
     try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
       for (Entry<String, String> entry : files.entrySet()) {
         zipOut.putNextEntry(new ZipEntry(entry.getKey()));
         zipOut.write(entry.getValue().getBytes(StandardCharsets.UTF_8));
         zipOut.closeEntry();
       }
+
+      writeCmsFileToZip(cmsFiles, zipOut);
       zipOut.finish();
+
       byte[] zipBytes = baos.toByteArray();
       return DefaultStreamedContent.builder()
-          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
-          .contentType(ZIP_CONTENT_TYPE)
-          .stream(() -> new ByteArrayInputStream(zipBytes))
-          .build();
+          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName)).contentType(ZIP_CONTENT_TYPE)
+          .stream(() -> new ByteArrayInputStream(zipBytes)).build();
     } catch (IOException e) {
       Ivy.log().error("Error creating YAML zip", e);
       return null;
+    }
+  }
+
+  public static StreamedContent convertToZip(String projectName, String applicationName, Map<String, Workbook> workbooks,
+      Map<String, byte[]> files) throws Exception {
+
+    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
+
+      // Excel files
+      for (Entry<String, Workbook> entry : workbooks.entrySet()) {
+        var fileName = String.format(EXCEL_FILE_NAME, entry.getKey());
+        zipOut.putNextEntry(new ZipEntry(fileName));
+        zipOut.write(CmsFileUtils.convertWorkbookToByteArray(entry.getValue()));
+        zipOut.closeEntry();
+      }
+
+      writeCmsFileToZip(files, zipOut);
+      zipOut.close();
+
+      byte[] zipBytes = baos.toByteArray();
+
+      return DefaultStreamedContent.builder()
+          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName)).contentType(ZIP_CONTENT_TYPE)
+          .stream(() -> new ByteArrayInputStream(zipBytes)).build();
+
+    } finally {
+      CmsFileUtils.closeWorkbooks(workbooks);
+    }
+  }
+
+  private static void writeCmsFileToZip(Map<String, byte[]> files, ZipOutputStream zipOut) throws IOException {
+    // CMS files
+    for (Entry<String, byte[]> entry : files.entrySet()) {
+      zipOut.putNextEntry(new ZipEntry(entry.getKey()));
+      zipOut.write(entry.getValue());
+      zipOut.closeEntry();
     }
   }
 
@@ -435,4 +507,64 @@ public class CmsFileUtils {
     String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
     return FileType.fromExtension(fileExtension);
   }
+
+  public static void addPmvCmsToWorkbooks(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks) {
+    var workbook = createWorkbookFromPmvCms(pmvCms);
+    if (workbook != null) {
+      workbooks.put(projectName, workbook);
+    }
+  }
+
+  public static void addPmvCmsFiles(String projectName, PmvCms pmvCms, Map<String, byte[]> cmsFiles) {
+    var files = collectCmsFiles(projectName, pmvCms);
+    if (files != null) {
+      cmsFiles.putAll(files);
+    }
+  }
+
+  public static void loadFileContentOfCms(Cms selectedCms) {
+    IProcessModelVersion selectedPmv =
+        IApplication.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
+    if (selectedPmv == null) {
+      return;
+    }
+
+    Optional.ofNullable(ContentManagement.cms(selectedPmv)).flatMap(cms -> cms.get(selectedCms.getUri()))
+        .ifPresent(contentObject -> loadFileContentOfCmsContent(selectedCms, contentObject));
+  }
+
+  private static void loadFileContentOfCmsContent(Cms cms, ContentObject contentObject) {
+    try {
+      for (CmsContent cmsContent : cms.getContents()) {
+        if (cmsContent == null) {
+          break;
+        }
+        loadCmsFileFromProjectCms(contentObject, cmsContent);
+        loadCmsFileFromApplicationCms(cms, cmsContent, IApplication.current());
+      }
+    } catch (Exception e) {
+      Ivy.log().error(e);
+    }
+  }
+
+  public static void loadCmsFileFromProjectCms(ContentObject contentObject, CmsContent cmsContent) {
+    ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
+    byte[] bytes = Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElse(null);
+    if (bytes != null) {
+      cmsContent.setFileContent(bytes);
+      cmsContent.setFileSize(FileUtils.calculateToKB(bytes.length));
+    }
+  }
+
+  public static void loadCmsFileFromApplicationCms(Cms cms, CmsContent cmsContent, IApplication currentApplication) {
+    var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
+    ContentObject currentContentObject =
+        cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
+    byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
+    if (bytesOfApplicationCmsFile != null) {
+      cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);
+      cmsContent.setApplicationFileSize(FileUtils.calculateToKB(bytesOfApplicationCmsFile.length));
+    }
+  }
+
 }
