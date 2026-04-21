@@ -65,9 +65,12 @@ public class CmsFileUtils {
   private static final Path BASE_PATH = Path.of("virtual-root").toAbsolutePath().normalize();
 
   public static Map<String, byte[]> collectCmsFiles(String projectName, PmvCms pmvCms) {
-    return pmvCms.getCmsList().stream().filter(Cms::isFile).flatMap(cms -> cms.getContents().stream()).filter(Objects::nonNull)
-        .filter(CmsContent::isFile).map(content -> toZipEntry(projectName, content, BASE_PATH)).filter(Objects::nonNull)
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+    if (pmvCms == null) {
+      return new HashMap<>();
+    }
+    return pmvCms.getCmsList().stream().filter(Cms::isFile).peek(CmsFileUtils::loadFileContentOfCms).flatMap(cms -> cms.getContents().stream())
+        .filter(Objects::nonNull).filter(CmsContent::isFile).map(content -> toZipEntry(projectName, content, BASE_PATH))
+        .filter(Objects::nonNull).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
           return a;
         }));
   }
@@ -80,38 +83,20 @@ public class CmsFileUtils {
         return null;
       }
 
-      String uri = content.getUri();
+      String uri = FileUtils.normalizeUri(content.getUri());
       String fileName = content.getFileName();
 
-      if (uri == null || fileName == null) {
-        return null;
-      }
-
-      // Normalize
-      uri = uri.replace("\\", "/");
-      if (uri.startsWith("/")) {
-        uri = uri.substring(1);
-      }
-
-      // Validate filename
-      if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+      if (!FileUtils.isValidFileName(fileName)) {
         Ivy.log().warn("Invalid filename: " + fileName);
         return null;
       }
 
-      // Security check
-      Path filePath = basePath.resolve(uri).resolve(fileName).normalize();
-      if (!filePath.startsWith(basePath)) {
-        Ivy.log().warn("Blocked path traversal: " + filePath);
+      if (!FileUtils.isSafePath(basePath, uri)) {
+        Ivy.log().warn("Blocked path traversal: " + uri);
         return null;
       }
 
-      // ✅ Normalize ZIP path
-      String zipEntryPath = (projectName + "/" + uri).replace("\\", "/").replaceAll("//+", "/");
-
-      if (zipEntryPath.endsWith("/")) {
-        zipEntryPath = zipEntryPath.substring(0, zipEntryPath.length() - 1);
-      }
+      String zipEntryPath = FileUtils.buildNormalizedPath(projectName, uri);
 
       return new AbstractMap.SimpleEntry<>(zipEntryPath, data);
 

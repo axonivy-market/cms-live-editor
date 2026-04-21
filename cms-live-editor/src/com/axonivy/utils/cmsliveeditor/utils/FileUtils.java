@@ -1,6 +1,9 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
+import java.nio.file.Path;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
@@ -40,5 +43,48 @@ public class FileUtils {
       }
     }
     return extension;
+  }
+
+  public static String normalizeUri(String uri) {
+    if (uri == null) {
+      return Strings.EMPTY;
+    }
+    // Normalize
+    uri = uri.replace("\\", CommonConstants.SLASH_CHARACTER);
+
+    // remove ALL leading slashes
+    while (uri.startsWith(CommonConstants.SLASH_CHARACTER)) {
+      uri = uri.substring(1);
+    }
+    return uri;
+  }
+
+  public static boolean isValidFileName(String fileName) {
+    if (fileName == null || fileName.isBlank()) {
+      return false;
+    }
+
+    return !(fileName.contains("..") || fileName.contains("/") || fileName.contains("\\"));
+  }
+
+  public static boolean isSafePath(Path basePath, String uri) {
+    if (uri == null) {
+      return false;
+    }
+
+    Path resolved = basePath.resolve(uri).normalize();
+    return resolved.startsWith(basePath);
+  }
+
+  public static String buildNormalizedPath(String... parts) {
+    String path = String.join("/", parts);
+
+    path = path.replace("\\", "/").replaceAll("//+", "/");
+
+    if (path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
+    }
+
+    return path;
   }
 }
