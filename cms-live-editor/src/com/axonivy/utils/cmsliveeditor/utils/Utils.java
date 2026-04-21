@@ -2,6 +2,7 @@ package com.axonivy.utils.cmsliveeditor.utils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,15 +13,26 @@ import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
 
 public class Utils {
-  private static final String HTML_TAG_PATTERN = "<.*?>";
+  private static final Pattern VALID_HTML_TAG_PATTERN = Pattern.compile("</?[A-Za-z][^>]*>");
   private static final String TABLE_ELEMENT = "table";
-  private static final String UNORDERED_PATTERN = "<ul> %s </ul>";
+  private static final String UNORDERED_PATTERN = "<ul class='pl-3 ml-2'> %s </ul>";
   private static final String LIST_ITEM_PATTERN = "<li style='padding:0 2rem 0.25rem 0;'> %s </li>";
   private static final String PARAGRAPH_TAG = "p";
   private static final String TEXT_NODE = "#text";
   private static final String BR_TAG = "br";
+  private static final String LESS_THAN = "<";
+  private static final String GREATER_THAN = ">";
+  private static final String ESCAPED_LESS_THAN = "&lt;";
+  private static final String ESCAPED_GREATER_THAN = "&gt;";
+  private static final String HTML_TAG_PATTERN = "<.*?>";
 
   public static String sanitizeContent(String originalContent, String content) {
+    if (!containsHtmlTag(originalContent)) {
+      var safeContent = escapeNonTagAngleBrackets(content);
+      var doc = Jsoup.parseBodyFragment(safeContent);
+      return Parser.unescapeEntities(doc.body().text(), false);
+    }
+
     var doc = Jsoup.parseBodyFragment(content);
     if (!isOnlyWrappedPlainText(content)) {
       var originalDoc = Jsoup.parseBodyFragment(originalContent);
@@ -29,6 +41,28 @@ public class Utils {
       return Parser.unescapeEntities(doc.body().html(), false);
     }
     return doc.body().text();
+  }
+
+  private static String escapeNonTagAngleBrackets(String content) {
+    if (content == null)
+      return null;
+
+    Matcher matcher = VALID_HTML_TAG_PATTERN.matcher(content);
+    StringBuilder result = new StringBuilder();
+    int last = 0;
+
+    while (matcher.find()) {
+      result.append(escapeAngles(content.substring(last, matcher.start())));
+      result.append(matcher.group());
+      last = matcher.end();
+    }
+
+    result.append(escapeAngles(content.substring(last)));
+    return result.toString();
+  }
+
+  private static String escapeAngles(String text) {
+    return text.replace(LESS_THAN, ESCAPED_LESS_THAN).replace(GREATER_THAN, ESCAPED_GREATER_THAN);
   }
 
   public static boolean containsHtmlTag(String str) {

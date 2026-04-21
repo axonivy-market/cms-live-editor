@@ -18,7 +18,7 @@
 }
 
 .se-toolbar.sun-editor-common {
-  padding-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
 }
 
 .sun-editor {
@@ -29,6 +29,7 @@
   border: 1px solid #EBEBEB;
   border-radius: 5px;
   background-color: #FAFAFA;
+  padding-bottom: 3rem;
 }
 
 .sun-editor .se-resizing-bar {
@@ -39,13 +40,27 @@
   padding: 0;
 }
 
-.sun-editor.cms-editor-error .sun-editor-editable {
-  border-color: #E5151C;
-  box-shadow: 0 0 0 1px #E5151C;
+.se-resizing-enabled .se-tooltip-inner {
+  display: none !important;
 }
 
-/* Force everything inside the Sun editor to render in error color */
-.sun-editor.cms-editor-error .sun-editor-editable * {
-  color: #E5151C !important;
-  font-weight: 500;
+.cms-floating-btn {
+  position: absolute !important;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1;
+  margin: 0;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+div:has([id^="content-form:cms-edit-value:"][id$=":editor-wrapper"]) {
+  padding: 0px !important
+}
+
+.se-container {
+  padding: 1rem;
 }

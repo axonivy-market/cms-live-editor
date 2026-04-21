@@ -6,7 +6,9 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_LIVE_ED
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_SETTING_DIALOG;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_COLUMN;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_EDIT_VALUE;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_CMS_VALUES;
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_ERROR_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_EDITABLE_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_PATH_COLUMN;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
@@ -37,10 +39,7 @@ import javax.faces.context.FacesContext;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.primefaces.PF;
-import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.model.StreamedContent;
@@ -48,8 +47,10 @@ import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
+import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.model.ExportOption;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
@@ -82,6 +83,7 @@ import ch.ivyteam.ivy.security.ISecurityContext;
 public class CmsLiveEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
+
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
 
@@ -97,6 +99,7 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
   private String resetConfirmText;
+  private String dialogDetail;
   private String selectedSourceLocale;
   private String selectedTargetLocale;
   private List<Locale> languageList;
@@ -126,7 +129,8 @@ public class CmsLiveEditorBean implements Serializable {
     }
     selectedCms.getContents().forEach(s -> s.setEditing(false));
     onAppChange();
-    PF.current().ajax().update(CONTENT_FORM);
+    PF.current().ajax().update(CONTENT_FORM, CONTENT_FORM_TABLE_CMS_KEYS, CONTENT_FORM_CMS_VALUES,
+        CONTENT_FORM_CMS_EDIT_VALUE, CONTENT_FORM_EDITABLE_COLUMN, CMS_ERROR_CONTAINER_ID);
     lastSelectedCms = null;
   }
 
@@ -163,6 +167,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void resetAllChanges() {
+    lastSelectedCms = null;
     selectedCms = null;
     filteredCMSList.stream().filter(Cms::isDifferentWithApplication).forEach(cms -> {
       if (cms.isFile()) {
@@ -170,7 +175,10 @@ public class CmsLiveEditorBean implements Serializable {
       } else {
         savedCmsMap.remove(cms.getUri());
         cmsService.removeApplicationCmsByUri(cms.getUri());
-        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+        cms.getContents().forEach(content -> {
+          content.saveContent(content.getOriginalContent());
+          content.setEditing(false);
+        });
       }
     });
     onAppChange();
@@ -185,6 +193,7 @@ public class CmsLiveEditorBean implements Serializable {
    * 
    */
   public void undoChange() {
+    lastSelectedCms = null;
     savedCmsMap.remove(selectedCms.getUri());
     filteredCMSList.stream().filter(cms -> cms.getUri().equals(selectedCms.getUri())).forEach(cms -> {
       if (selectedCms.isFile()) {
@@ -192,10 +201,14 @@ public class CmsLiveEditorBean implements Serializable {
         selectedCms.getContents().forEach(cmsContent -> {
           cmsContent.setApplicationFileSize(0);
           cmsContent.setApplicationFileContent(null);
+          cmsContent.setEditing(false);
         });
       } else {
         cmsService.removeApplicationCmsByUri(cms.getUri());
-        cms.getContents().forEach(content -> content.saveContent(content.getOriginalContent()));
+        cms.getContents().forEach(content -> {
+          content.saveContent(content.getOriginalContent());
+          content.setEditing(false);
+        });
       }
     });
     onAppChange();
@@ -210,11 +223,37 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void onCancelEditableButton() {
+    revertSelectedCmsToApplication();
     isEditableCms = false;
     lastSelectedCms.getContents().forEach(s -> s.setEditing(false));
     lastSelectedCms = null;
     clearNewUploadFile();
     PF.current().ajax().update(CONTENT_FORM_PATH_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
+  }
+
+  private void revertSelectedCmsToApplication() {
+    if (selectedCms == null) {
+      return;
+    }
+
+    savedCmsMap.remove(selectedCms.getUri());
+    if (selectedCms.isFile() || selectedCms.getContents() == null) {
+      return;
+    }
+
+    for (CmsContent cmsContent : selectedCms.getContents()) {
+      if (cmsContent == null || cmsContent.getLocale() == null) {
+        continue;
+      }
+
+      String applicationValue = cmsService.getCmsFromApplication(selectedCms.getUri(), cmsContent.getLocale());
+      if (applicationValue == null || applicationValue.isBlank()) {
+        applicationValue = cmsContent.getOriginalContent();
+      }
+      cmsContent.saveContent(applicationValue);
+      cmsContent.setEditing(false);
+      cmsContent.setInvalid(false);
+    }
   }
 
   public void onHideSettingDialog() {
@@ -258,8 +297,8 @@ public class CmsLiveEditorBean implements Serializable {
     String target = content.getLocale().getLanguage().toUpperCase(Locale.ENGLISH);
     String newValue = TranslationService.translate(content.getContent(), src, target);
     content.setContent(newValue);
-    PrimeFaces.current().ajax().addCallbackParam("langIndex", content.getIndex());
-    PrimeFaces.current().ajax().addCallbackParam("newContent", newValue);
+    PF.current().ajax().addCallbackParam("langIndex", content.getIndex());
+    PF.current().ajax().addCallbackParam("newContent", newValue);
   }
 
   public void translateAll() {
@@ -403,10 +442,6 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void checkIsEditingAndShowMessage() {
-    isEditing();
-  }
-
   private boolean isEditing() {
     if (lastSelectedCms == null) {
       return false;
@@ -422,13 +457,22 @@ public class CmsLiveEditorBean implements Serializable {
   private void showHaveNotBeenSavedDialog() {
     var editingCmsList = lastSelectedCms.getContents().stream().filter(CmsContent::isEditing).map(CmsContent::getLocale)
         .map(Locale::getDisplayLanguage).collect(Collectors.toList());
-    var detail = Utils.convertListToHTMLList(editingCmsList);
-    showDialog(cms().co("/Labels/SomeFieldsHaveNotBeenSaved"), detail);
+    dialogDetail = Utils.convertListToHTMLList(editingCmsList);
+    showContentHaveNotBeenSaveDialog();
+  }
+
+  private void showContentHaveNotBeenSaveDialog() {
+    PF.current().executeScript("PF('content-not-been-saved-dlg').show();");
+    PF.current().ajax().update("content-not-been-saved-dlg");
   }
 
   private void showDialog(String summary, String detail) {
     var message = new FacesMessage(SEVERITY_INFO, summary, detail);
-    PrimeFaces.current().dialog().showMessageDynamic(message, false);
+    PF.current().dialog().showMessageDynamic(message, false);
+  }
+
+  public String getDialogDetail() {
+    return dialogDetail;
   }
 
   public void getAllChildren(String pmvName, ContentObject contentObject, List<Locale> locales) {
@@ -510,15 +554,17 @@ public class CmsLiveEditorBean implements Serializable {
     if (sanitizedContent.equals(currentCmsContent.getContent())) {
       return;
     }
+    currentCmsContent.saveContent(newContent);
     currentCmsContent.setEditing(true);
     if (lastSelectedCms != null) {
-      lastSelectedCms.getContents().get(languageIndex).setEditing(true);
+      var lastCmsContent = lastSelectedCms.getContents().get(languageIndex);
+      lastCmsContent.saveContent(newContent);
+      lastCmsContent.setEditing(true);
     }
   }
 
-  public void handleBeforeDownloadFile() throws Exception {
-    String applicationName = IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
-    this.fileDownload = CmsFileUtils.writeCmsToZipStreamedContent(selectedProjectName, applicationName, this.pmvCmsMap);
+  private static String currentApplicationName() {
+    return IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
   }
 
   public void downloadFinished() {
@@ -532,10 +578,9 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public boolean isTheSameContent(String originalContent, String content) {
-    Document originValue = Jsoup.parse(originalContent);
-    Document newValue = Jsoup.parse(content);
-
-    return originValue.body().html().equals(newValue.body().html());
+    String originValue = Utils.sanitizeContent(originalContent, originalContent);
+    String newValue = Utils.sanitizeContent(originalContent, content);
+    return Objects.equals(originValue, newValue);
   }
 
   public void handleFileUpload(FileUploadEvent event) {
@@ -600,6 +645,26 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void saveSettings() {
     IvyUserService.updateUserProperty(selectedSourceLocale, selectedTargetLocale);
+  }
+
+  public List<ExportOption> getExportOptions() {
+    return List.of(
+        new ExportOption(Ivy.cms().co("/Labels/ExcelFormat"), "pi pi-file-excel", ExportType.EXCEL),
+        new ExportOption(Ivy.cms().co("/Labels/YamlFormat"), "pi pi-file-o", ExportType.YAML)
+    );
+  }
+
+  public void exportCms(ExportType type) {
+    try {
+      String applicationName = currentApplicationName();
+      fileDownload = CmsFileUtils.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+    } catch (Exception ex) {
+      Ivy.log().error("CMS export failed", ex);
+    }
+  }
+
+  public StreamedContent getFile() {
+    return fileDownload;
   }
 
   public List<Cms> getFilteredCMSKeys() {
@@ -689,4 +754,15 @@ public class CmsLiveEditorBean implements Serializable {
     this.selectedTargetLocale = selectedTargetLocale;
   }
 
+  public void setFileDownload(StreamedContent fileDownload) {
+    this.fileDownload = fileDownload;
+  }
+
+  public Map<String, Map<String, SavedCms>> getSavedCmsMap() {
+    return savedCmsMap;
+  }
+
+  public void setSavedCmsMap(Map<String, Map<String, SavedCms>> savedCmsMap) {
+    this.savedCmsMap = savedCmsMap;
+  }
 }

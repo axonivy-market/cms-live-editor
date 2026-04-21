@@ -1,5 +1,6 @@
 package com.axonivy.utils.cmsliveeditor.test;
 
+import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_ERROR_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CMS_WARNING_SAVE_CONTAINER_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.DOWNLOAD_BUTTON_ID;
@@ -35,11 +36,13 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -51,8 +54,8 @@ public class CmsLiveEditorWebTest {
   private String testCmsValue = "Test Content";
   private static final String TEST_CMS_FILE_DOCX_URI= "/Test/TestFileDocX";
   private static final String TEST_CMS_TEXT_URI = "/Test/TestContent";
-  private static final String PRIMEFACES_MESSAGE_DIALOG = "primefacesmessagedlg";
-  private static final String RESIZING_CLASS = ".se-btn.se-resizing-enabled.se-tooltip";
+  private static final String CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR = "[id^='content-not-been-saved-dlg']";
+  private static final String MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS = ".se-btn.se-btn-more.se-tooltip";
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String TEST_CMS_HTML_URI = "/Test/TestContentHtml";
@@ -117,14 +120,14 @@ public class CmsLiveEditorWebTest {
   void testTextDecorationFeatureShouldOnlyVisibleInHtmlFormat() {
     var cmsList = $$(CMS_PATH_URI);
     var cmsWithHtmlFormat = cmsList.findBy(exactText(TEST_CMS_HTML_URI));
-    var rawTextCMS = cmsList.get(1);
+    var rawTextCMS = cmsList.findBy(exactText(TEST_CMS_TEXT_URI));
     cmsWithHtmlFormat.click();
     $$(CMS_VALUE_TAB_SELECTOR).shouldHave(sizeGreaterThanOrEqual(1));
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $(RESIZING_CLASS).should(enabled);
+    $(MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS).should(enabled);
     rawTextCMS.click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
-    $$(RESIZING_CLASS).shouldHave(CollectionCondition.size(0));
+    $$(MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS).shouldHave(CollectionCondition.size(0));
   }
 
   @Test
@@ -140,12 +143,12 @@ public class CmsLiveEditorWebTest {
     Selenide.sleep(1000);
     otherElement.click();
 
-    var errorDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    var errorDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR));
     closeDialog(errorDialog);
 
     // assert check save before search items
     sendKeysToSearchInput("Lorem ifsum");
-    errorDialog.should(visible);
+    errorDialog.should(visible, Duration.ofSeconds(2));
     errorDialog.$(".ui-dialog-titlebar-close").click();
   }
 
@@ -179,20 +182,33 @@ public class CmsLiveEditorWebTest {
     cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
-    Selenide.sleep(1000);
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled, Duration.ofSeconds(2)).scrollIntoView(true).shouldBe(interactable).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(2));
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherElement.click();
-    $(By.id(PRIMEFACES_MESSAGE_DIALOG)).should(hidden);
+    $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).should(hidden);
+  }
+
+  @Test
+  public void testSaveWithInvalidPlaceholderAcrossLocalesShouldShowError() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    editors.get(0).setValue("File count {0}");
+    editors.get(1).setValue("Date value {0} {1}");
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(CMS_ERROR_CONTAINER_ID)).shouldBe(visible);
   }
 
   @Test
   public void testResetAllChanges() {
-    openFirstCmsAndEdit();
+    var selectedCms = openFirstCmsAndEdit();
     updateAndSaveContent();
     openResetDialog();
     confirmReset();
+    selectedCms.click();
     $(By.id(RESET_ALL_CHANGES_BUTTON_ID)).shouldNotBe(visible);
     $$(ORANGE_DOT_CLASS).shouldHave(CollectionCondition.size(0));
   }
@@ -209,10 +225,56 @@ public class CmsLiveEditorWebTest {
 
     // reset all change at 2nd time
     selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     updateAndSaveContent();
     openResetDialog();
     $(By.id(RESET_CONFIRM_INPUT_ID)).shouldBe(empty);
+  }
+
+  @Test
+  public void testSaveWithValidPlaceholdersAcrossLocalesShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+
+    fillContentsToEditor(editors, "Files count {0}");
+    editors.first().shouldNotBe(empty);
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled);
+    saveAndUndoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithChoicePlaceholderShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.filter(visible).shouldHave(sizeGreaterThanOrEqual(2));
+
+    fillContentsToEditor(editors, "There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}");
+    saveAndUndoCmsChanges();
+  }
+
+  @Test
+  public void testSaveWithReorderedPlaceholdersShouldSucceed() {
+    openFirstCmsAndEdit();
+
+    var editors = $$(SUN_EDITOR_EDITABLE_SELECTOR);
+    editors.shouldHave(sizeGreaterThanOrEqual(2));
+    editors.first().shouldBe(visible);
+
+    String[] contents =
+        {"{0} has {1} files", "{1} Dateien gehören zu {0}", "{0} tiene {1} archivos", "{1} dosyalar {0} için"};
+
+    for (int i = 0; i < editors.size(); i++) {
+      var editor = editors.get(i);
+      editor.shouldBe(visible).click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      editor.sendKeys(contents[i % contents.length]);
+      editor.pressTab();
+    }
+    saveAndUndoCmsChanges();
   }
 
   @Test
@@ -231,7 +293,7 @@ public class CmsLiveEditorWebTest {
     firstInputElement.uploadFile(docFile);
     errorMessageElement.shouldBe(hidden);
     cmsList.findBy(exactText(TEST_CMS_TEXT_URI)).click();
-    var warningDialog = $(By.id(PRIMEFACES_MESSAGE_DIALOG));
+    var warningDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).shouldBe(visible, Duration.ofSeconds(2));
     closeDialog(warningDialog);
     var removeFileElement = $(".pi-trash");
     removeFileElement.shouldBe(visible).click();
@@ -242,6 +304,26 @@ public class CmsLiveEditorWebTest {
     dialog.should(visible);
     dialog.$(".ui-dialog-titlebar-close").click();
     Selenide.sleep(1000);
+  }
+
+  private void fillContentsToEditor(ElementsCollection editors, String content) {
+    for (var editor : editors) {
+      editor.shouldBe(visible).click();
+      editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+      editor.sendKeys(Keys.DELETE);
+      editor.sendKeys(content);
+      editor.pressTab();
+    }
+  }
+
+  private void saveAndUndoCmsChanges() {
+    $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+
+    var undoButton = $(By.id("content-form:undo-change-path"));
+    if (undoButton.exists()) {
+      undoButton.shouldBe(enabled).click();
+    }
   }
 
   @Test
@@ -306,9 +388,9 @@ public class CmsLiveEditorWebTest {
   }
 
   private SelenideElement openFirstCmsAndEdit() {
-    var selectedCms = $$(CMS_PATH_URI).first();
+    SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
     selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(enabled).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     return selectedCms;
   }
 

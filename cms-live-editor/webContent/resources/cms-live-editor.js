@@ -3,9 +3,13 @@ window.cmsDirtyEditors = new Set();
 window.cmsOriginalPlaceholders = window.cmsOriginalPlaceholders || {};
 window.cmsLiveEditorIds = window.cmsLiveEditorIds || {};
 window.cmsInitialContents = window.cmsInitialContents || {};
+window.cmsClonedButtons = window.cmsClonedButtons || {};
+window.cmsLiveEditorHtmlIds = new Set();
 
 const CMS_PLACEHOLDER_ERROR_CLASS = 'cms-placeholder-error';
 const CMS_SAVE_ERROR_CONTAINER_ID = 'content-form:cms-error-container';
+const SUNEDITOR_WRAPPER_QUERY = '.se-wrapper';
+const CMS_EDITOR_ERROR = 'cms-editor-error';
 const ENTER_KEY = 'Enter';
 const ENTER_KEY_CODE = 13;
 const CTRL_KEY_COPY = 'c';
@@ -14,19 +18,110 @@ const CTRL_KEY_CUT = 'x';
 const CTRL_KEY_ALL = 'a';
 const CTRL_KEY_UNDO = 'z';
 const NON_HTML_ALLOWED_CTRL_KEYS = new Set([CTRL_KEY_COPY, CTRL_KEY_PASTE, CTRL_KEY_CUT, CTRL_KEY_ALL, CTRL_KEY_UNDO]);
-
+const BUTTON_TITLE_ATTR = 'title';
+const SUNEDITOR_CSS_CLASS = 'sun-editor';
+const DATA_CMS_HIDDEN_ATTR = 'data-cms-hidden';
+const FULLSCREEN_COMMAND_BUTTON = 'fullScreen';
+const STATIC_POSITION = 'static';
+const RELATIVE_POSITION = 'relative';
 const FULL_TOOLBAR = [
-  ['font', 'fontSize', 'formatBlock'],
-  ['paragraphStyle', 'blockquote'],
-  ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
-  ['fontColor', 'hiliteColor', 'textStyle'],
-  ['removeFormat'],
-  ['outdent', 'indent'],
-  ['align', 'list', 'lineHeight', 'horizontalRule'],
-  ['table', 'link'],
-  ['fullScreen'],
-  ['undo', 'redo'],
+  ['bold', 'italic','underline', 'strike'],
+  ['align'],
+  ['list'],
+  ['fontColor'],
+  [':t-More-default.more_horizontal', 
+  'font', 'fontSize', 'formatBlock', 'lineHeight', 'horizontalRule', 'paragraphStyle', 'blockquote',
+  'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
+  'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text ?? '';
+  return div.innerHTML;
+}
+
+function removeButtonTitle(cloneButton) {
+  try {
+    cloneButton.removeAttribute(BUTTON_TITLE_ATTR);
+    cloneButton.querySelectorAll(`[${BUTTON_TITLE_ATTR}]`).forEach((child) => child.removeAttribute(BUTTON_TITLE_ATTR));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function findSunEditorForTextarea(textarea) {
+  if (!textarea) return null;
+  return (
+    textarea.nextElementSibling?.classList.contains(SUNEDITOR_CSS_CLASS)
+      ? textarea.nextElementSibling
+      : textarea.parentElement?.querySelector(`.${SUNEDITOR_CSS_CLASS}`)
+  ) || null;
+}
+
+function createCloneFromBtn(btn, textarea, commandName) {
+  const newCloneButton = btn.cloneNode(true);
+  newCloneButton.classList.add('cms-floating-btn');
+  newCloneButton.setAttribute('contenteditable', 'false');
+  newCloneButton.setAttribute('aria-hidden', 'true');
+  newCloneButton.addEventListener('click', function (ev) {
+    ev.preventDefault();
+    const currentSunEditor = findSunEditorForTextarea(textarea);
+    let current = currentSunEditor ? findToolbarBtnFor(currentSunEditor, commandName) : null;
+    if (current) {
+      current.click();
+    } else {
+      btn.click();
+    }
+    setTimeout(() => refreshClone(newCloneButton, textarea, commandName), 50);
+  });
+
+  // remove title attributes to avoid tooltip on the clone
+  removeButtonTitle(newCloneButton);
+  return newCloneButton;
+}
+
+/** Refresh a previously created floating clone to reflect the toolbar button state */
+function refreshClone(currentCloneButton, textarea, commandName) {
+  if (!currentCloneButton) return;
+  const sunEditor = findSunEditorForTextarea(textarea);
+  if (!sunEditor) return;
+
+  const btn = findToolbarBtnFor(sunEditor, commandName);
+  if (!btn) {
+    return;
+  }
+  try {
+    if (getComputedStyle(sunEditor).position === STATIC_POSITION) {
+      sunEditor.style.position = RELATIVE_POSITION;
+    }
+
+    if (currentCloneButton.parentElement !== sunEditor) {
+      sunEditor.appendChild(currentCloneButton);
+    }
+
+    currentCloneButton.innerHTML = btn.innerHTML;
+    removeButtonTitle(currentCloneButton);
+    const hiddenFlag = btn.getAttribute(DATA_CMS_HIDDEN_ATTR);
+    if (hiddenFlag !== 'true') {
+      btn.style.display = 'none';
+      btn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
+    }
+    const isFullscreen = btn.classList.contains('on') || btn.classList.contains('active');
+    currentCloneButton.classList.toggle('on', isFullscreen);
+    if (isFullscreen) {
+      const seWrapper = sunEditor.querySelector(SUNEDITOR_WRAPPER_QUERY);
+      if (seWrapper) {
+        const parentVerticalPaddingInRem = 2;
+        const htmlToolBarHeightInPixel = window.cmsLiveEditorHtmlIds.has(textarea.id) ? 44 : 0;
+        seWrapper.style.height = `calc(100vh - ${htmlToolBarHeightInPixel}px - ${parentVerticalPaddingInRem}rem)`;
+      }
+    }
+    currentCloneButton.classList.toggle('on', btn.classList.contains('on') || btn.classList.contains('active'));
+  } catch (e) {
+    // ignore
+  }
+}
 
 function initSunEditor(languageIndex, editorId, isHtml) {
   const textarea = document.getElementById(editorId);
@@ -34,22 +129,53 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     return;
   }
   const editor = SUNEDITOR.create(textarea, {
-    buttonList: isHtml ? FULL_TOOLBAR : [],
+    buttonList: isHtml ? FULL_TOOLBAR : [[FULLSCREEN_COMMAND_BUTTON]],
     attributesWhitelist: {
       all: 'style|class|width|height|role|border|cellspacing|cellpadding|src|alt|href|target',
     },
     defaultStyle: 'font-family: Inter;',
     font: ['Inter', 'Arial', 'Tahoma', 'Courier New', 'Times New Roman', 'Verdana', 'Georgia', 'Trebuchet MS', 'Impact', 'Comic Sans MS'],
   });
-  restricActionForNonHtml(isHtml, editor);
+
+  if (!isHtml) {
+    const rawText = textarea.value || '';
+    const escapedText = escapeHtml(rawText).replace(/\r\n|\r|\n/g, '<br>');
+    editor.setContents(`<p>${escapedText}</p>`);
+  }
+
+  const initialContent = editor.getContents();
+  restrictActionForNonHtml(isHtml, editor);
   window.cmsLiveEditors[languageIndex] = editor;
   window.cmsLiveEditorIds[languageIndex] = editorId;
 
+  if (!isHtml) {
+    // Hide the toolbar for non-HTML editors as it has only the fullscreen button which is not relevant for non-HTML content.
+    setTimeout(() => {
+      const sunEditor = findSunEditorForTextarea(textarea);
+      if (sunEditor) {
+        const toolbar = sunEditor.querySelector('.se-toolbar.sun-editor-common');
+        if (toolbar) {
+          toolbar.style.display = 'none';
+        }
+      }
+    }, 0);
+  } else {
+    window.cmsLiveEditorHtmlIds.add(editorId);
+  }
+  // Check if this editor's textarea was marked invalid by JSF validation
+  setEditorError(languageIndex, textarea.classList.contains('ui-state-error'));
+
+  try {
+    createFloatingButton(languageIndex, editorId, FULLSCREEN_COMMAND_BUTTON);
+  } catch (e) {
+    // Ignore: creating the floating toolbar button is a best-effort enhancement.
+    // It may fail on older SunEditor versions or when toolbar layout differs.
+  }
+
   // Store original content and placeholder pattern for later comparison
   try {
-    const initialContents = editor.getContents();
-    window.cmsInitialContents[languageIndex] = initialContents;
-    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContents).sort();
+    window.cmsInitialContents[languageIndex] = initialContent;
+    window.cmsOriginalPlaceholders[languageIndex] = extractPlaceholders(initialContent);
   } catch (e) {
     window.cmsInitialContents[languageIndex] = '';
     window.cmsOriginalPlaceholders[languageIndex] = [];
@@ -90,7 +216,58 @@ function markDirtyIfChanged() {
   };
 }
 
-function restricActionForNonHtml(isHtmlContent, editor) {
+function setTabHeaderError(languageIndex, hasError) {
+  const editorId = window.cmsLiveEditorIds[languageIndex];
+  if (!editorId) {
+    return;
+  }
+
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return;
+  }
+
+  const contentPanel = textarea.closest('.ui-accordion-content');
+  if (!contentPanel) {
+    return;
+  }
+
+  const header = contentPanel.previousElementSibling;
+  if (header && header.classList.contains('ui-accordion-header')) {
+    header.classList.toggle(CMS_EDITOR_ERROR, hasError);
+  }
+}
+
+function applyValidationFailedState(failedIndices) {
+  failedIndices = failedIndices || [];
+
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    const indexNumber = Number(languageIndex);
+    const hasError = failedIndices.includes(indexNumber);
+    setEditorError(indexNumber, hasError);
+    setTabHeaderError(indexNumber, hasError);
+  }
+}
+
+function clearValidationFailedState() {
+  for (const languageIndex in window.cmsLiveEditorIds) {
+    setEditorError(Number(languageIndex), false);
+    setTabHeaderError(Number(languageIndex), false);
+  }
+
+  document.querySelectorAll('.sun-editor.cms-editor-error').forEach((element) => {
+    element.classList.remove(CMS_EDITOR_ERROR);
+  });
+
+  const accordion = document.getElementById('content-form:cms-edit-value');
+  if (accordion) {
+    accordion.querySelectorAll('.ui-accordion-header.cms-editor-error').forEach((header) => {
+      header.classList.remove(CMS_EDITOR_ERROR);
+    });
+  }
+}
+
+function restrictActionForNonHtml(isHtmlContent, editor) {
   if (isHtmlContent) {
     return;
   }
@@ -99,7 +276,7 @@ function restricActionForNonHtml(isHtmlContent, editor) {
   };
 
   editor.onKeyDown = function (e) {
-    const key = (e.key || '').toLowerCase();
+    const key = safeLower(e.key);
     const isNotAllowedCtrlKey = (e.ctrlKey || e.metaKey) && !NON_HTML_ALLOWED_CTRL_KEYS.has(key);
     const isEnterKey = key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE;
     if (isNotAllowedCtrlKey || isEnterKey) {
@@ -116,56 +293,23 @@ function restricActionForNonHtml(isHtmlContent, editor) {
 function saveAllEditors() {
   const dirtyEditors = new Set(window.cmsDirtyEditors);
   if (dirtyEditors.size === 0) {
-    return true;
+    return;
   }
 
-  const editorKeys = Object.keys(window.cmsLiveEditors || {});
-  const allLocalesEdited =
-    editorKeys.length > 0 && dirtyEditors.size === editorKeys.length;
   const values = [];
-  let placeholderError = false;
-  let hasAnyError = false;
-  let expectedPlaceholders = null;
-
   for (const languageIndex of dirtyEditors) {
     const editor = window.cmsLiveEditors[languageIndex];
     const contents = editor.getContents();
-
-    if (!validateNotEmpty(editor, languageIndex)) {
-      hasAnyError = true;
-      continue;
-    }
-
-    const validationResult = validatePlaceholders({
-      languageIndex,
-      contents,
-      allLocalesEdited,
-      expectedPlaceholders
-    });
-
-    if (!validationResult.valid) {
-      hasAnyError = true;
-      placeholderError = true;
-      setEditorError(languageIndex, true);
-      continue;
-    }
-
-    expectedPlaceholders = validationResult.expectedPlaceholders;
-    setEditorError(languageIndex, false);
 
     values.push({
       languageIndex: Number(languageIndex),
       contents: contents
     });
+
+    // reset error state before backend validation
+    setEditorError(languageIndex, false);
   }
 
-  if (hasAnyError) {
-    setErrorMessageVisible(placeholderError);
-    return false;
-  }
-
-  setErrorMessageVisible(false);
-  destroyEditors();
   saveAllValue([{
     name: 'values',
     value: JSON.stringify(values)
@@ -190,7 +334,7 @@ function validateNotEmpty(editor, languageIndex) {
 * - If all locales are edited → ensure placeholders are consistent across locales.
 * - If only some locales edited → ensure placeholder numbers match the original of this locale.
 */
-function validatePlaceholders({languageIndex, contents, allLocalesEdited, expectedPlaceholders}) {
+function validatePlaceholders({ languageIndex, contents, allLocalesEdited, expectedPlaceholders }) {
   const newPlaceholders = extractPlaceholders(contents).sort();
 
   if (allLocalesEdited) {
@@ -222,7 +366,7 @@ function setEditorError(languageIndex, hasError) {
     return;
   }
 
-  container.classList.toggle('cms-editor-error', hasError);
+  container.classList.toggle(CMS_EDITOR_ERROR, hasError);
 }
 
 function getEditorContainer(languageIndex) {
@@ -237,39 +381,7 @@ function getEditorContainer(languageIndex) {
   }
 
   // SunEditor creates .sun-editor next to textarea
-  return (
-    textarea.nextElementSibling?.classList.contains('sun-editor')
-      ? textarea.nextElementSibling
-      : textarea.parentElement?.querySelector('.sun-editor')
-  ) || null;
-}
-
-/** Extracts numbered placeholders from the editing content.
-* A placeholder is defined as format {number}, e.g. {0}, {1}
-*/
-function extractPlaceholders(content) {
-  if (!content) {
-    return [];
-  }
-  const matches = content.match(/\{\d+\}/g);
-  return matches ? matches.slice() : [];
-}
-
-/** Compares two placeholder lists for exact equality.
-* The lists must:
-* - Have the same length
-* - Contain the same elements
-*/
-function arePlaceholderListsEqual(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
+  return findSunEditorForTextarea(textarea);
 }
 
 function removeNonPrintableChars(str) {
@@ -292,26 +404,17 @@ function bindCmsWarning(hoverId, warningId) {
     if (targetElement.dataset && targetElement.dataset.forceVisible === 'true') {
       return;
     }
-    hideTimeout = setTimeout(function() {
+    hideTimeout = setTimeout(function () {
       targetElement.style.display = "none";
     }, 500);
   }
 
   hoverElement.addEventListener("mouseenter", showWarning);
   hoverElement.addEventListener("mouseleave", hideWarning);
-  targetElement.addEventListener("mouseenter", function() {
+  targetElement.addEventListener("mouseenter", function () {
     clearTimeout(hideTimeout);
   });
   targetElement.addEventListener("mouseleave", hideWarning);
-}
-
-function setErrorMessageVisible(isVisible) {
-  const element = document.getElementById(CMS_SAVE_ERROR_CONTAINER_ID);
-  if (!element) {
-    return;
-  }
-  element.dataset.forceVisible = isVisible ? 'true' : 'false';
-  element.style.display = isVisible ? 'block' : 'none';
 }
 
 function initCmsWarnings() {
@@ -321,7 +424,7 @@ function initCmsWarnings() {
 
 function showDialog(dialogId) {
   PF(dialogId).show();
-  setTimeout(function() {
+  setTimeout(function () {
     PF(dialogId).hide();
   }, 1500);
 }
@@ -330,10 +433,87 @@ function destroyEditors() {
   for (const key in window.cmsLiveEditors) {
     try {
       window.cmsLiveEditors[key].destroy();
-    } catch (e) {}
+      const cloned = window.cmsClonedButtons[key];
+      if (cloned) {
+        if (cloned._cmsToolbarObserver && typeof cloned._cmsToolbarObserver.disconnect === 'function') {
+          cloned._cmsToolbarObserver.disconnect();
+        }
+        if (cloned.parentElement) {
+          cloned.parentElement.removeChild(cloned);
+        }
+      }
+      delete window.cmsClonedButtons[key];
+    } catch (e) {
+      // Ignored: destruction may fail if editor was already removed during page teardown
+      // & removal may fail if DOM changed concurrently.
+    }
   }
   window.cmsLiveEditors = {};
   window.cmsDirtyEditors.clear();
+}
+
+function safeLower(s) {
+  return (s || "").toLowerCase();
+}
+
+/** Find a toolbar button inside a SunEditor instance */
+function findToolbarBtnFor(sunEditor, commandName) {
+  const container = sunEditor || document;
+  let btn = container.querySelector(`.se-toolbar .se-btn[data-command='${commandName}']`);
+  if (btn) return btn;
+  const lowerCmd = safeLower(commandName);
+  const buttons = Array.from(container.querySelectorAll('.se-toolbar .se-btn'));
+  return (
+    buttons.find((btn) => {
+      const cmd = safeLower(btn.getAttribute('data-command'));
+      return cmd.includes(lowerCmd);
+    }) || null
+  );
+}
+
+function createFloatingButton(languageIndex, editorId, commandName) {
+  const textarea = document.getElementById(editorId);
+  if (!textarea) {
+    return;
+  }
+  const sunEditor = findSunEditorForTextarea(textarea);
+  if (!sunEditor) {
+    return;
+  }
+
+  // ensure editor container is positioned for absolute children
+  if (getComputedStyle(sunEditor).position === 'static') {
+    sunEditor.style.position = 'relative';
+  }
+
+  const toolbar = sunEditor.querySelector('.se-toolbar');
+  if (!toolbar) {
+    return;
+  }
+
+  const originalBtn = findToolbarBtnFor(sunEditor, commandName);
+  if (!originalBtn) {
+    return;
+  }
+  let clone = createCloneFromBtn(originalBtn, textarea, commandName);
+
+  try {
+    sunEditor.appendChild(clone);
+    window.cmsClonedButtons[languageIndex] = clone;
+
+    if (originalBtn?.style) {
+      originalBtn.style.display = 'none';
+      originalBtn.setAttribute(DATA_CMS_HIDDEN_ATTR, 'true');
+    }
+  } catch (e) {
+    // ignore: benign DOM mutation failure
+  }
+
+  const observer = new MutationObserver(() => {
+    refreshClone(clone, textarea, commandName);
+  });
+  observer.observe(toolbar, { childList: true, subtree: true });
+  clone._cmsToolbarObserver = observer;
 }
 
 function updateEditorContent(xhr, status, args) {
@@ -363,6 +543,24 @@ function showSaveSuccess() {
   bar.hideTimeout = setTimeout(() => {
     bar.classList.remove('show');
   }, 3500);
+}
+
+function handleCmsSaveComplete(args) {
+  const validationFailed = Boolean(args?.validationFailed);
+
+  if (!validationFailed) {
+    destroyEditors();
+    initCmsWarnings();
+    restorePathPanelScroll();
+    showSaveSuccess();
+    return;
+  }
+
+  var invalidIndices = [];
+  try {
+    invalidIndices = JSON.parse(args.invalidIndices || '[]');
+  } catch (e) {}
+  applyValidationFailedState(invalidIndices);
 }
 
 let pathPanelScrollTop = 0;
