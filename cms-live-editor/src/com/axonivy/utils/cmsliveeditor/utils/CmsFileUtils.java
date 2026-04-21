@@ -68,9 +68,10 @@ public class CmsFileUtils {
     if (pmvCms == null) {
       return new HashMap<>();
     }
-    return pmvCms.getCmsList().stream().filter(Cms::isFile).peek(CmsFileUtils::loadFileContentOfCms).flatMap(cms -> cms.getContents().stream())
-        .filter(Objects::nonNull).filter(CmsContent::isFile).map(content -> toZipEntry(projectName, content, BASE_PATH))
-        .filter(Objects::nonNull).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+    return pmvCms.getCmsList().stream().filter(Cms::isFile).peek(CmsFileUtils::loadFileContentOfCms)
+        .flatMap(cms -> cms.getContents().stream()).filter(Objects::nonNull).filter(CmsContent::isFile)
+        .map(content -> toZipEntry(projectName, content, BASE_PATH)).filter(Objects::nonNull)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
           return a;
         }));
   }
@@ -154,8 +155,8 @@ public class CmsFileUtils {
   }
 
   private static String getContentValue(Cms cms, String language) {
-    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language)).findFirst()
-        .map(CmsContent::getContent).orElse(StringUtils.EMPTY);
+    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
+        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
   }
 
   public static byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
@@ -219,12 +220,14 @@ public class CmsFileUtils {
    * 3. Convert map to YAML
    * 4. Generate archive path (optionally grouped by project)
    */
-  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData, boolean includeProjectFolderInPath) {
+  private static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData,
+      boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
     }
 
-    List<Locale> validLocales = cmsData.getLocales().stream().filter(locale -> StringUtils.isNotBlank(locale.getLanguage())).toList();
+    List<Locale> validLocales =
+        cmsData.getLocales().stream().filter(locale -> StringUtils.isNotBlank(locale.getLanguage())).toList();
 
     for (Locale locale : validLocales) {
       Map<String, String> uriToContentMap = buildUriToContentMap(cmsData, locale);
@@ -444,16 +447,16 @@ public class CmsFileUtils {
 
       byte[] zipBytes = baos.toByteArray();
       return DefaultStreamedContent.builder()
-          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName)).contentType(ZIP_CONTENT_TYPE)
-          .stream(() -> new ByteArrayInputStream(zipBytes)).build();
+          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
+          .contentType(ZIP_CONTENT_TYPE).stream(() -> new ByteArrayInputStream(zipBytes)).build();
     } catch (IOException e) {
       Ivy.log().error("Error creating YAML zip", e);
       return null;
     }
   }
 
-  public static StreamedContent convertToZip(String projectName, String applicationName, Map<String, Workbook> workbooks,
-      Map<String, byte[]> files) throws Exception {
+  public static StreamedContent convertToZip(String projectName, String applicationName,
+      Map<String, Workbook> workbooks, Map<String, byte[]> files) throws Exception {
 
     try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
 
@@ -471,8 +474,8 @@ public class CmsFileUtils {
       byte[] zipBytes = baos.toByteArray();
 
       return DefaultStreamedContent.builder()
-          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName)).contentType(ZIP_CONTENT_TYPE)
-          .stream(() -> new ByteArrayInputStream(zipBytes)).build();
+          .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
+          .contentType(ZIP_CONTENT_TYPE).stream(() -> new ByteArrayInputStream(zipBytes)).build();
 
     } finally {
       CmsFileUtils.closeWorkbooks(workbooks);
@@ -508,8 +511,8 @@ public class CmsFileUtils {
   }
 
   public static void loadFileContentOfCms(Cms selectedCms) {
-    IProcessModelVersion selectedPmv =
-        IApplication.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
+    IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
+        .filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
     if (selectedPmv == null) {
       return;
     }
@@ -534,7 +537,8 @@ public class CmsFileUtils {
 
   public static void loadCmsFileFromProjectCms(ContentObject contentObject, CmsContent cmsContent) {
     ContentObjectValue value = contentObject.value().get(cmsContent.getLocale());
-    byte[] bytes = Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElse(null);
+    byte[] bytes =
+        Optional.ofNullable(value).map(ContentObjectValue::read).map(ContentObjectReader::bytes).orElse(null);
     if (bytes != null) {
       cmsContent.setFileContent(bytes);
       cmsContent.setFileSize(FileUtils.calculateToKB(bytes.length));
@@ -543,8 +547,8 @@ public class CmsFileUtils {
 
   public static void loadCmsFileFromApplicationCms(Cms cms, CmsContent cmsContent, IApplication currentApplication) {
     var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
-    ContentObject currentContentObject =
-        cmsEntity.orElseGet(() -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
+    ContentObject currentContentObject = cmsEntity.orElseGet(
+        () -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));
     byte[] bytesOfApplicationCmsFile = currentContentObject.value().get(cmsContent.getLocale()).read().bytes();
     if (bytesOfApplicationCmsFile != null) {
       cmsContent.setApplicationFileContent(bytesOfApplicationCmsFile);

@@ -18,16 +18,15 @@ public class CmsDownloadService {
   /**
    * Export CMS to ZIP file
    *
-   * Supports:
-   * - EXCEL → multiple Excel files zipped
-   * - YAML  → multiple YAML files zipped
+   * Supports: - EXCEL → multiple Excel files zipped - YAML → multiple YAML files zipped
    */
   public static StreamedContent exportCmsToZip(String projectName, String applicationName,
       Map<String, PmvCms> pmvCmsMap, ExportType type) throws Exception {
     String normalizedProjectName = StringUtils.isBlank(projectName) ? Ivy.cms().co("/Labels/AllProjects") : projectName;
     var cmsFiles = new HashMap<String, byte[]>();
     if (type == ExportType.EXCEL) {
-      Map<String, Workbook> workbooks = CmsFileUtils.collectWorkbooksAndCmsFiles(normalizedProjectName, pmvCmsMap, cmsFiles);
+      Map<String, Workbook> workbooks =
+          CmsFileUtils.collectWorkbooksAndCmsFiles(normalizedProjectName, pmvCmsMap, cmsFiles);
       return CmsFileUtils.convertToZip(normalizedProjectName, applicationName, workbooks, cmsFiles);
     } else {
       Map<String, String> files = CmsFileUtils.collectYamlFilesAndCmsFiles(normalizedProjectName, pmvCmsMap, cmsFiles);
