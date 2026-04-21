@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
+import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 
@@ -32,17 +33,26 @@ public class CmsDownloadService {
 
     if (StringUtils.isEmpty(projectName)) {
       projectName = Ivy.cms().co("/Labels/AllProjects");
+
       for (var entry : cmsPmvMap.entrySet()) {
-        CmsFileUtils.addPmvCmsToWorkbooks(entry.getKey(), entry.getValue(), workbooks);
-        CmsFileUtils.addPmvCmsFiles(entry.getKey(), entry.getValue(), cmsFiles);
+        processProject(entry.getKey(), entry.getValue(), workbooks, cmsFiles);
       }
+
     } else {
       PmvCms pmvCms = cmsPmvMap.get(projectName);
-      CmsFileUtils.addPmvCmsToWorkbooks(projectName, pmvCms, workbooks);
-      CmsFileUtils.addPmvCmsFiles(projectName, pmvCms, cmsFiles);
+      processProject(projectName, pmvCms, workbooks, cmsFiles);
     }
 
     return convertToZip(projectName, applicationName, workbooks, cmsFiles);
+  }
+
+  private static void processProject(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks, Map<String, byte[]> cmsFiles) {
+    var workbook = CmsFileUtils.createWorkbookFromPmvCms(pmvCms);
+    if (workbook != null) {
+      workbooks.put(projectName, workbook);
+    }
+    pmvCms.getCmsList().stream().filter(Cms::isFile).forEach(CmsFileUtils::loadFileContentOfCms);
+    cmsFiles.putAll(CmsFileUtils.collectCmsFiles(projectName, pmvCms));
   }
 
   public static StreamedContent convertToZip(String projectName, String applicationName, Map<String, Workbook> workbooks,
@@ -60,7 +70,7 @@ public class CmsDownloadService {
       }
 
       // CMS files
-      for (Map.Entry<String, byte[]> entry : files.entrySet()) {
+      for (Entry<String, byte[]> entry : files.entrySet()) {
         zipOut.putNextEntry(new ZipEntry(entry.getKey()));
         zipOut.write(entry.getValue());
         zipOut.closeEntry();

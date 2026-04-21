@@ -35,26 +35,18 @@ import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
-  
+
   private static final Path BASE_PATH = Path.of("virtual-root").toAbsolutePath().normalize();
 
   public static Map<String, byte[]> collectCmsFiles(String projectName, PmvCms pmvCms) {
-
-    return pmvCms.getCmsList().stream()
-        .filter(Cms::isFile)
-        .peek(CmsFileUtils::loadFileContentOfCms)
-        .flatMap(cms -> cms.getContents().stream())
-        .filter(Objects::nonNull)
-        .filter(CmsContent::isFile)
-        .map(content -> toZipEntry(projectName, content, BASE_PATH))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            Map.Entry::getValue,
-            (a, b) -> a // handle duplicate keys (keep first)
-        ));
+    return pmvCms.getCmsList().stream().filter(Cms::isFile).flatMap(cms -> cms.getContents().stream()).filter(Objects::nonNull)
+        .filter(CmsContent::isFile).map(content -> toZipEntry(projectName, content, BASE_PATH)).filter(Objects::nonNull)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+          Ivy.log().warn("Duplicate ZIP entry: " + a);
+          return a;
+        }));
   }
-  
+
   private static Map.Entry<String, byte[]> toZipEntry(String projectName, CmsContent content, Path basePath) {
     try {
       byte[] data = resolveFileContent(content);
@@ -82,15 +74,15 @@ public class CmsFileUtils {
         return null;
       }
 
-      // Validate path (security)
+      // Security check
       Path filePath = basePath.resolve(uri).resolve(fileName).normalize();
       if (!filePath.startsWith(basePath)) {
         Ivy.log().warn("Blocked path traversal: " + filePath);
         return null;
       }
 
-      // 🔥 FIX: avoid folder issue → DO NOT end with "/"
-      String zipEntryPath = projectName + "/" + uri;
+      // ✅ Normalize ZIP path
+      String zipEntryPath = (projectName + "/" + uri).replace("\\", "/").replaceAll("//+", "/");
 
       if (zipEntryPath.endsWith("/")) {
         zipEntryPath = zipEntryPath.substring(0, zipEntryPath.length() - 1);
@@ -152,8 +144,8 @@ public class CmsFileUtils {
   }
 
   private static String getContentValue(Cms cms, String language) {
-    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
-        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
+    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language)).findFirst()
+        .map(CmsContent::getContent).orElse(StringUtils.EMPTY);
   }
 
   public static byte[] convertWorkbookToByteArray(Workbook workbook) throws Exception {
@@ -183,10 +175,10 @@ public class CmsFileUtils {
     String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
     return FileType.fromExtension(fileExtension);
   }
-  
+
   public static void loadFileContentOfCms(Cms selectedCms) {
-    IProcessModelVersion selectedPmv = IApplication.current().getProcessModelVersions()
-        .filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
+    IProcessModelVersion selectedPmv =
+        IApplication.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName())).findFirst().orElse(null);
     if (selectedPmv == null) {
       return;
     }
@@ -235,12 +227,12 @@ public class CmsFileUtils {
       workbooks.put(projectName, workbook);
     }
   }
-  
+
   public static void addPmvCmsFiles(String projectName, PmvCms pmvCms, HashMap<String, byte[]> cmsFiles) {
     var files = collectCmsFiles(projectName, pmvCms);
     if (files != null) {
       cmsFiles.putAll(files);
     }
   }
-  
+
 }
