@@ -1,13 +1,10 @@
 package com.axonivy.utils.cmsliveeditor.utils;
 
-import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_CONTENT_TYPE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.ZIP_FILE_NAME;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -18,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.poi.ss.usermodel.Workbook;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
@@ -89,53 +85,6 @@ public class CmsFileUtils {
     }
   }
 
-  public static StreamedContent convertToZipYaml(String projectName, String applicationName, Map<String, String> files,
-      Map<String, byte[]> cmsFiles) {
-    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
-      for (Entry<String, String> entry : files.entrySet()) {
-        writeTextEntry(zipOut, entry.getKey(), entry.getValue());
-      }
-      writeCmsFileToZip(cmsFiles, zipOut);
-      zipOut.finish();
-
-      return buildStreamedContent(baos.toByteArray(), projectName, applicationName);
-    } catch (IOException e) {
-      Ivy.log().error("Error creating YAML zip", e);
-      return null;
-    }
-  }
-
-  public static StreamedContent convertToZip(String projectName, String applicationName,
-      Map<String, Workbook> workbooks, Map<String, byte[]> files) throws Exception {
-    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
-      for (Entry<String, Workbook> entry : workbooks.entrySet()) {
-        String fileName = String.format(EXCEL_FILE_NAME, entry.getKey());
-        zipOut.putNextEntry(new ZipEntry(fileName));
-        zipOut.write(convertWorkbookToByteArray(entry.getValue()));
-        zipOut.closeEntry();
-      }
-      writeCmsFileToZip(files, zipOut);
-      zipOut.finish();
-
-      return buildStreamedContent(baos.toByteArray(), projectName, applicationName);
-    } finally {
-      closeWorkbooks(workbooks);
-    }
-  }
-
-  public static byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
-    try (var outputStream = new ByteArrayOutputStream()) {
-      workbook.write(outputStream);
-      return outputStream.toByteArray();
-    }
-  }
-
-  private static void writeTextEntry(ZipOutputStream zipOut, String name, String content) throws IOException {
-    zipOut.putNextEntry(new ZipEntry(name));
-    zipOut.write(content.getBytes(StandardCharsets.UTF_8));
-    zipOut.closeEntry();
-  }
-
   public static void writeCmsFileToZip(Map<String, byte[]> files, ZipOutputStream zipOut) throws IOException {
     for (Entry<String, byte[]> entry : files.entrySet()) {
       zipOut.putNextEntry(new ZipEntry(entry.getKey()));
@@ -144,21 +93,7 @@ public class CmsFileUtils {
     }
   }
 
-  public static void closeWorkbooks(Map<String, Workbook> workbooks) {
-    workbooks.values().forEach(CmsFileUtils::closeWorkbook);
-  }
-
-  private static void closeWorkbook(Workbook workbook) {
-    try {
-      if (workbook != null) {
-        workbook.close();
-      }
-    } catch (IOException e) {
-      Ivy.log().error("Error closing workbook", e);
-    }
-  }
-
-  private static StreamedContent buildStreamedContent(byte[] zipBytes, String projectName, String applicationName) {
+  public static StreamedContent buildStreamedContent(byte[] zipBytes, String projectName, String applicationName) {
     return DefaultStreamedContent.builder()
         .name(String.format(ZIP_FILE_NAME, Ivy.cms().co("/Labels/CMSDownload"), projectName, applicationName))
         .contentType(ZIP_CONTENT_TYPE).stream(() -> new ByteArrayInputStream(zipBytes)).build();

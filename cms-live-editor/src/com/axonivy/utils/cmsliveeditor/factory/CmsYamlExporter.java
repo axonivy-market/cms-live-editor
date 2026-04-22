@@ -11,11 +11,17 @@ import static org.apache.commons.lang3.StringUtils.INDEX_NOT_FOUND;
 import static org.apache.commons.lang3.StringUtils.LF;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.primefaces.model.StreamedContent;
@@ -24,7 +30,10 @@ import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
+import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
+
+import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsYamlExporter implements CmsExporter {
 
@@ -34,10 +43,24 @@ public class CmsYamlExporter implements CmsExporter {
   public StreamedContent export(String projectName, String applicationName, Map<String, PmvCms> pmvCmsMap) {
     Map<String, byte[]> cmsFiles = new HashMap<>();
     Map<String, String> yamlFiles = collectYamlFilesAndCmsFiles(projectName, pmvCmsMap, cmsFiles);
-    return CmsFileUtils.convertToZipYaml(projectName, applicationName, yamlFiles, cmsFiles);
+    return convertToZipYaml(projectName, applicationName, yamlFiles, cmsFiles);
   }
 
-  // ==================== YAML Archive Building ====================
+  public static StreamedContent convertToZipYaml(String projectName, String applicationName, Map<String, String> files,
+      Map<String, byte[]> cmsFiles) {
+    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
+      for (Entry<String, String> entry : files.entrySet()) {
+        writeTextEntry(zipOut, entry.getKey(), entry.getValue());
+      }
+      CmsFileUtils.writeCmsFileToZip(cmsFiles, zipOut);
+      zipOut.finish();
+
+      return CmsFileUtils.buildStreamedContent(baos.toByteArray(), projectName, applicationName);
+    } catch (IOException e) {
+      Ivy.log().error("Error creating YAML zip", e);
+      return null;
+    }
+  }
 
   public static Map<String, String> collectYamlFilesAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
       Map<String, byte[]> cmsFiles) {
@@ -88,7 +111,8 @@ public class CmsYamlExporter implements CmsExporter {
       if (cmsEntry == null || cmsEntry.isFile()) {
         continue;
       }
-      localizedContentByUri.put(cmsEntry.getUri(), CmsExcelExporter.getContentValue(cmsEntry, locale.getLanguage()));
+      localizedContentByUri.put(cmsEntry.getUri(),
+          CmsContentUtils.getContentValueByLanguage(cmsEntry, locale.getLanguage()));
     }
     return localizedContentByUri;
   }
@@ -100,8 +124,6 @@ public class CmsYamlExporter implements CmsExporter {
     }
     return fileName;
   }
-
-  // ==================== YAML Serialization ====================
 
   private static String convertFlatMapToYaml(Map<String, String> flatKeyValueMap) {
     Map<String, Object> hierarchicalMap = new TreeMap<>();
@@ -171,8 +193,6 @@ public class CmsYamlExporter implements CmsExporter {
     return StringUtils.repeat(SPACE, indentLevel);
   }
 
-  // ==================== YAML Escaping ====================
-
   /**
    * Escapes a YAML value if necessary.
    *
@@ -229,5 +249,11 @@ public class CmsYamlExporter implements CmsExporter {
       result = result.replace(entry.getKey(), entry.getValue());
     }
     return result;
+  }
+
+  private static void writeTextEntry(ZipOutputStream zipOut, String name, String content) throws IOException {
+    zipOut.putNextEntry(new ZipEntry(name));
+    zipOut.write(content.getBytes(StandardCharsets.UTF_8));
+    zipOut.closeEntry();
   }
 }

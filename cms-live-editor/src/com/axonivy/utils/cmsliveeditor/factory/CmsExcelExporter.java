@@ -1,22 +1,26 @@
 package com.axonivy.utils.cmsliveeditor.factory;
 
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.EXCEL_FILE_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.SHEET_NAME;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.URI_HEADER;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.model.StreamedContent;
 
-import com.axonivy.utils.cmsliveeditor.model.Cms;
-import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
+import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 
 import ch.ivyteam.ivy.environment.Ivy;
@@ -28,14 +32,14 @@ public class CmsExcelExporter implements CmsExporter {
     Map<String, byte[]> cmsFiles = new HashMap<>();
     Map<String, Workbook> workbooks = collectWorkbooksAndCmsFiles(projectName, pmvCmsMap, cmsFiles);
     try {
-      return CmsFileUtils.convertToZip(projectName, applicationName, workbooks, cmsFiles);
+      return convertToZip(projectName, applicationName, workbooks, cmsFiles);
     } catch (Exception e) {
       Ivy.log().error("Error exporting Excel zip", e);
       return null;
     }
   }
 
-  public static XSSFWorkbook createWorkbookFromPmvCms(PmvCms pmvCms) {
+  private XSSFWorkbook createWorkbookFromPmvCms(PmvCms pmvCms) {
     if (pmvCms == null) {
       return null;
     }
@@ -63,7 +67,7 @@ public class CmsExcelExporter implements CmsExporter {
         if (columnCount == 0) {
           cell.setCellValue(cms.getUri());
         } else {
-          cell.setCellValue(getContentValue(cms, headers.get(columnCount)));
+          cell.setCellValue(CmsContentUtils.getContentValueByLanguage(cms, headers.get(columnCount)));
         }
       }
     }
@@ -71,12 +75,7 @@ public class CmsExcelExporter implements CmsExporter {
     return workbook;
   }
 
-  public static String getContentValue(Cms cms, String language) {
-    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
-        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
-  }
-
-  public static Map<String, Workbook> collectWorkbooksAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
+  private Map<String, Workbook> collectWorkbooksAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
       Map<String, byte[]> cmsFiles) {
     Map<String, Workbook> workbooks = new HashMap<>();
     boolean isAllProjects = StringUtils.isBlank(projectName);
@@ -95,10 +94,49 @@ public class CmsExcelExporter implements CmsExporter {
     return workbooks;
   }
 
-  public static void addPmvCmsToWorkbooks(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks) {
+  private void addPmvCmsToWorkbooks(String projectName, PmvCms pmvCms, Map<String, Workbook> workbooks) {
     XSSFWorkbook workbook = createWorkbookFromPmvCms(pmvCms);
     if (workbook != null) {
       workbooks.put(projectName, workbook);
+    }
+  }
+
+  private StreamedContent convertToZip(String projectName, String applicationName, Map<String, Workbook> workbooks,
+      Map<String, byte[]> files) throws Exception {
+    try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
+      for (Entry<String, Workbook> entry : workbooks.entrySet()) {
+        String fileName = String.format(EXCEL_FILE_NAME, entry.getKey());
+        zipOut.putNextEntry(new ZipEntry(fileName));
+        zipOut.write(convertWorkbookToByteArray(entry.getValue()));
+        zipOut.closeEntry();
+      }
+      CmsFileUtils.writeCmsFileToZip(files, zipOut);
+      zipOut.finish();
+
+      return CmsFileUtils.buildStreamedContent(baos.toByteArray(), projectName, applicationName);
+    } finally {
+      closeWorkbooks(workbooks);
+    }
+  }
+
+  private byte[] convertWorkbookToByteArray(Workbook workbook) throws IOException {
+    try (var outputStream = new ByteArrayOutputStream()) {
+      workbook.write(outputStream);
+      return outputStream.toByteArray();
+    }
+  }
+
+  private void closeWorkbooks(Map<String, Workbook> workbooks) {
+    workbooks.values().forEach(this::closeWorkbook);
+  }
+
+  private void closeWorkbook(Workbook workbook) {
+    try {
+      if (workbook != null) {
+        workbook.close();
+      }
+    } catch (IOException e) {
+      Ivy.log().error("Error closing workbook", e);
     }
   }
 }
