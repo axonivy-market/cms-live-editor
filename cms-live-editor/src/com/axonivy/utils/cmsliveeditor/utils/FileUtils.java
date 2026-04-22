@@ -7,9 +7,11 @@ import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.DOUBLE_S
 import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.LEADING_SLASH_REGEX;
 import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.SLASH_CHARACTER;
 import static com.axonivy.utils.cmsliveeditor.constants.CommonConstants.WINDOWS_DRIVE_REGEX;
+import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTENSION_FORMAT;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 
 import ch.ivyteam.ivy.environment.Ivy;
 
@@ -37,6 +40,12 @@ public class FileUtils {
       Ivy.log().error(e);
       return FileConstants.DEFAULT_VALID_SIZE_MB;
     }
+  }
+
+
+  public static FileType getFileTypeByExtension(String extension) {
+    String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));
+    return FileType.fromExtension(fileExtension);
   }
 
   public static String getFileExtension(UploadedFile file) {

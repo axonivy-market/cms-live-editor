@@ -53,12 +53,12 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.ExportOption;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
+import com.axonivy.utils.cmsliveeditor.service.CmsContentLoader;
 import com.axonivy.utils.cmsliveeditor.service.CmsDownloadService;
 import com.axonivy.utils.cmsliveeditor.service.CmsService;
 import com.axonivy.utils.cmsliveeditor.service.IvyUserService;
 import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
-import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
@@ -266,7 +266,7 @@ public class CmsLiveEditorBean implements Serializable {
         cmsContent.setNewFileSize(0);
         cmsContent.setNewFileContent(null);
         cmsContent.setEditing(false);
-        CmsFileUtils.loadCmsFileFromApplicationCms(selectedCms, cmsContent, IApplication.current());
+        CmsContentLoader.loadCmsFileFromApplicationCms(selectedCms, cmsContent, IApplication.current());
       });
     }
   }
@@ -381,7 +381,7 @@ public class CmsLiveEditorBean implements Serializable {
       this.selectedCms = event.getObject();
     }
     if (selectedCms.isFile()) {
-      CmsFileUtils.loadFileContentOfCms(selectedCms);
+      CmsContentLoader.loadFileContentOfCms(selectedCms);
     }
     PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_CMS_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
