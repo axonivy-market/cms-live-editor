@@ -1,8 +1,6 @@
 package com.axonivy.utils.cmsliveeditor.test.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
@@ -13,6 +11,7 @@ import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.DocumentConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
 import ch.ivyteam.ivy.environment.IvyTest;
@@ -124,19 +123,12 @@ public class FileUtilsTest {
   @Test
   void testGetFileTypeByExtension() {
     // valid cases
-    assertNotNull(FileUtils.getFileTypeByExtension("xlsx"));
-    assertNotNull(FileUtils.getFileTypeByExtension("XLSX"));
+    assertEquals(FileType.EXCEL, FileUtils.getFileTypeByExtension("xlsx"));
+    assertEquals(FileType.EXCEL, FileUtils.getFileTypeByExtension("XLSX"));
 
     // unknown extension
-    var unknown = FileUtils.getFileTypeByExtension("abc");
-    assertTrue(unknown == null || unknown.name().equals("UNKNOWN"));
-
-    // null / empty
-    var nullResult = FileUtils.getFileTypeByExtension(null);
-    var emptyResult = FileUtils.getFileTypeByExtension(Strings.EMPTY);
-
-    assertTrue(nullResult == null || nullResult.name().equals("UNKNOWN"));
-    assertTrue(emptyResult == null || emptyResult.name().equals("UNKNOWN"));
+    assertEquals(FileType.OTHERS, FileUtils.getFileTypeByExtension("invalid"));
+    assertEquals(FileType.OTHERS, FileUtils.getFileTypeByExtension(null));
   }
 }
 
