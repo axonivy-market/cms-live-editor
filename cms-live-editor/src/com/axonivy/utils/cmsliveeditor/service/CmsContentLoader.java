@@ -18,8 +18,6 @@ public class CmsContentLoader {
 
   private CmsContentLoader() {}
 
-  // ==================== CMS Content Loading ====================
-
   public static void loadFileContentOfCms(Cms selectedCms) {
     IApplication.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName()))
         .findFirst().ifPresent(pmv -> loadFileContentFromPmv(selectedCms, pmv));
