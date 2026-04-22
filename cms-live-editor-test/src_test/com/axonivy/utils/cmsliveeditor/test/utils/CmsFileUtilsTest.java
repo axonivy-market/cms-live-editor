@@ -1,125 +1,162 @@
-// package com.axonivy.utils.cmsliveeditor.test.utils;
-//
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertNotNull;
-// import static org.junit.jupiter.api.Assertions.assertTrue;
-//
-// import java.util.Collections;
-// import java.util.HashMap;
-// import java.util.List;
-// import java.util.Locale;
-// import java.util.Map;
-//
-// import org.apache.poi.ss.usermodel.Workbook;
-// import org.junit.jupiter.api.Test;
-//
-// import com.axonivy.utils.cmsliveeditor.model.Cms;
-// import com.axonivy.utils.cmsliveeditor.model.CmsContent;
-// import com.axonivy.utils.cmsliveeditor.model.PmvCms;
-// import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
-//
-// public class CmsFileUtilsTest {
-//
-// // ==================== collectCmsFiles ====================
-//
-// @Test
-// public void testCollectCmsFilesShouldReturnEmptyMapWhenPmvCmsIsNull() {
-// Map<String, byte[]> result = CmsFileUtils.collectCmsFiles("project", null);
-// assertNotNull(result);
-// assertTrue(result.isEmpty());
-// }
-//
-// @Test
-// public void testCollectCmsFilesShouldReturnEmptyMapWhenCmsListIsEmpty() {
-// PmvCms pmvCms = buildPmvCms("project", List.of(Locale.ENGLISH), Collections.emptyList());
-//
-// Map<String, byte[]> result = CmsFileUtils.collectCmsFiles("project", pmvCms);
-//
-// assertNotNull(result);
-// assertTrue(result.isEmpty());
-// }
-//
-// @Test
-// public void testCollectCmsFilesShouldReturnEmptyMapWhenNoCmsEntryIsFile() {
-// PmvCms pmvCms =
-// buildPmvCms("project", List.of(Locale.ENGLISH), List.of(buildTextCms("/Labels/Hello", "en", "Hello")));
-//
-// Map<String, byte[]> result = CmsFileUtils.collectCmsFiles("project", pmvCms);
-//
-// assertNotNull(result);
-// assertTrue(result.isEmpty());
-// }
-//
-// // ==================== addPmvCmsToWorkbooks ====================
-//
-// @Test
-// public void testAddPmvCmsToWorkbooksShouldNotAddWhenPmvCmsIsNull() {
-// Map<String, Workbook> workbooks = new HashMap<>();
-// CmsFileUtils.addPmvCmsToWorkbooks("project", null, workbooks);
-// assertTrue(workbooks.isEmpty());
-// }
-//
-// @Test
-// public void testAddPmvCmsToWorkbooksShouldAddWorkbookForValidPmvCms() {
-// PmvCms pmvCms = buildPmvCms("project", List.of(Locale.ENGLISH), Collections.emptyList());
-// Map<String, Workbook> workbooks = new HashMap<>();
-//
-// CmsFileUtils.addPmvCmsToWorkbooks("project", pmvCms, workbooks);
-//
-// assertEquals(1, workbooks.size());
-// assertTrue(workbooks.containsKey("project"));
-// assertNotNull(workbooks.get("project"));
-// }
-//
-// @Test
-// public void testAddPmvCmsToWorkbooksShouldUseProvidedProjectNameAsKey() {
-// PmvCms pmvCms = buildPmvCms("internal-name", List.of(Locale.ENGLISH), Collections.emptyList());
-// Map<String, Workbook> workbooks = new HashMap<>();
-//
-// CmsFileUtils.addPmvCmsToWorkbooks("display-name", pmvCms, workbooks);
-//
-// assertTrue(workbooks.containsKey("display-name"));
-// }
-//
-// // ==================== addPmvCmsFiles ====================
-//
-// @Test
-// public void testAddPmvCmsFilesShouldNotAddWhenPmvCmsIsNull() {
-// Map<String, byte[]> cmsFiles = new HashMap<>();
-// CmsFileUtils.addPmvCmsFiles("project", null, cmsFiles);
-// assertTrue(cmsFiles.isEmpty());
-// }
-//
-// @Test
-// public void testAddPmvCmsFilesShouldNotAddWhenNoCmsEntryIsFile() {
-// PmvCms pmvCms =
-// buildPmvCms("project", List.of(Locale.ENGLISH), List.of(buildTextCms("/Labels/Hello", "en", "Hello")));
-// Map<String, byte[]> cmsFiles = new HashMap<>();
-//
-// CmsFileUtils.addPmvCmsFiles("project", pmvCms, cmsFiles);
-//
-// assertTrue(cmsFiles.isEmpty());
-// }
-//
-// // ==================== Helpers ====================
-//
-// private PmvCms buildPmvCms(String name, List<Locale> locales, List<Cms> cmsList) {
-// PmvCms pmvCms = new PmvCms();
-// pmvCms.setPmvName(name);
-// pmvCms.setLocales(locales);
-// pmvCms.setCmsList(cmsList);
-// return pmvCms;
-// }
-//
-// private Cms buildTextCms(String uri, String language, String contentValue) {
-// CmsContent content = new CmsContent();
-// content.setLocale(Locale.forLanguageTag(language));
-// content.setContent(contentValue);
-//
-// Cms cms = new Cms();
-// cms.setUri(uri);
-// cms.setContents(List.of(content));
-// cms.setFile(false);
-// return cms;
-// }
-// }
+package com.axonivy.utils.cmsliveeditor.test.utils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.junit.jupiter.api.Test;
+import org.primefaces.model.StreamedContent;
+
+import com.axonivy.utils.cmsliveeditor.model.Cms;
+import com.axonivy.utils.cmsliveeditor.model.CmsContent;
+import com.axonivy.utils.cmsliveeditor.model.PmvCms;
+import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
+
+import ch.ivyteam.ivy.environment.IvyTest;
+
+@IvyTest
+class CmsFileUtilsTest {
+
+  private final String PROJECT = "projectA";
+
+  @Test
+  void testCollectCmsFilesShouldReturnEmptyWhenNull() {
+    Map<String, byte[]> result = CmsFileUtils.collectCmsFiles(PROJECT, null);
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void testCollectCmsFilesShouldCollectValidFile() {
+    PmvCms pmv = new PmvCms(PROJECT, List.of(Locale.ENGLISH));
+
+    Cms cms = new Cms();
+    cms.setFile(true);
+
+    CmsContent content = new CmsContent();
+    content.setFile(true);
+    content.setUri("folder/file.txt");
+    content.setFileName("file.txt");
+    content.setFileContent("data".getBytes());
+
+    cms.setContents(List.of(content));
+    pmv.setCmsList(List.of(cms));
+
+    Map<String, byte[]> result = CmsFileUtils.collectCmsFiles(PROJECT, pmv);
+
+    assertEquals(1, result.size());
+    assertTrue(result.keySet().iterator().next().contains("folder/file.txt"));
+  }
+
+  @Test
+  void testCollectCmsFilesShouldSkipInvalidFileName() {
+    PmvCms pmv = new PmvCms(PROJECT, List.of(Locale.ENGLISH));
+
+    Cms cms = new Cms();
+    cms.setFile(true);
+
+    CmsContent content = new CmsContent();
+    content.setFile(true);
+    content.setUri("folder/file.txt");
+    content.setFileName("../file.txt"); // invalid
+    content.setFileContent("data".getBytes());
+
+    cms.setContents(List.of(content));
+    pmv.setCmsList(List.of(cms));
+
+    Map<String, byte[]> result = CmsFileUtils.collectCmsFiles(PROJECT, pmv);
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void testCollectCmsFilesShouldBlockUnsafePath() {
+    PmvCms pmv = new PmvCms(PROJECT, List.of(Locale.ENGLISH));
+
+    Cms cms = new Cms();
+    cms.setFile(true);
+
+    CmsContent content = new CmsContent();
+    content.setFile(true);
+    content.setUri("../etc/passwd"); // unsafe
+    content.setFileName("file.txt");
+    content.setFileContent("data".getBytes());
+
+    cms.setContents(List.of(content));
+    pmv.setCmsList(List.of(cms));
+
+    Map<String, byte[]> result = CmsFileUtils.collectCmsFiles(PROJECT, pmv);
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void testAddPmvCmsFilesShouldMergeFiles() {
+    Map<String, byte[]> target = new HashMap<>();
+
+    PmvCms pmv = new PmvCms(PROJECT, List.of(Locale.ENGLISH));
+
+    Cms cms = new Cms();
+    cms.setFile(true);
+
+    CmsContent content = new CmsContent();
+    content.setFile(true);
+    content.setUri("file.txt");
+    content.setFileName("file.txt");
+    content.setFileContent("data".getBytes());
+
+    cms.setContents(List.of(content));
+    pmv.setCmsList(List.of(cms));
+
+    CmsFileUtils.addPmvCmsFiles(PROJECT, pmv, target);
+
+    assertEquals(1, target.size());
+  }
+
+  @Test
+  void testWriteCmsFileToZip() throws Exception {
+    Map<String, byte[]> files = new HashMap<>();
+    files.put("file.txt", "data".getBytes());
+
+    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+    java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(baos);
+
+    CmsFileUtils.writeCmsFileToZip(files, zos);
+    zos.close();
+
+    List<String> names = new ArrayList<>();
+
+    try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        names.add(entry.getName());
+      }
+    }
+
+    assertEquals(1, names.size());
+    assertTrue(names.contains("file.txt"));
+  }
+
+  @Test
+  void testBuildStreamedContent() throws Exception {
+    byte[] data = "zipdata".getBytes();
+
+    StreamedContent result = CmsFileUtils.buildStreamedContent(data, PROJECT, "app");
+
+    assertNotNull(result);
+    assertNotNull(result.getStream());
+
+    ByteArrayInputStream stream = (ByteArrayInputStream) result.getStream().get();
+
+    assertTrue(stream.readAllBytes().length > 0);
+  }
+}

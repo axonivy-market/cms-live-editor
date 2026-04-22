@@ -27,7 +27,7 @@ import ch.ivyteam.ivy.environment.Ivy;
 
 public class CmsFileUtils {
 
-  private static final Path BASE_PATH = Path.of("virtual-root").toAbsolutePath().normalize();
+  private static final Path BASE_PATH = Path.of("export").toAbsolutePath().normalize();
 
   private CmsFileUtils() {}
 
@@ -71,6 +71,7 @@ public class CmsFileUtils {
     }
   }
 
+  // Get getApplicationFileContent if present, if not get original one
   private static byte[] resolveFileContent(CmsContent content) {
     if (content.getApplicationFileContent() != null && content.getApplicationFileSize() > 0) {
       return content.getApplicationFileContent();

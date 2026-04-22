@@ -115,4 +115,31 @@ public class CmsContentUtilsTest {
     assertEquals(2, filtered.size());
     assertFalse(filtered.stream().anyMatch(l -> "fr".equalsIgnoreCase(l.toLanguageTag())));
   }
+
+  @Test
+  public void testGetContentValueByLanguage() {
+    Cms cms = new Cms();
+
+    CmsContent en = new CmsContent();
+    en.setLocale(Locale.ENGLISH);
+    en.setContent("Hello");
+
+    CmsContent fr = new CmsContent();
+    fr.setLocale(Locale.FRENCH);
+    fr.setContent("Bonjour");
+
+    cms.setContents(List.of(en, fr));
+
+    // existing language
+    String enResult = CmsContentUtils.getContentValueByLanguage(cms, "en");
+    assertEquals("Hello", enResult);
+
+    String frResult = CmsContentUtils.getContentValueByLanguage(cms, "fr");
+    assertEquals("Bonjour", frResult);
+
+    // missing language → should return empty string
+    String missing = CmsContentUtils.getContentValueByLanguage(cms, "de");
+    assertNotNull(missing);
+    assertEquals("", missing);
+  }
 }

@@ -46,7 +46,7 @@ public class CmsYamlExporter implements CmsExporter {
     return convertToZipYaml(projectName, applicationName, yamlFiles, cmsFiles);
   }
 
-  public static StreamedContent convertToZipYaml(String projectName, String applicationName, Map<String, String> files,
+  private StreamedContent convertToZipYaml(String projectName, String applicationName, Map<String, String> files,
       Map<String, byte[]> cmsFiles) {
     try (var baos = new ByteArrayOutputStream(); var zipOut = new ZipOutputStream(baos)) {
       for (Entry<String, String> entry : files.entrySet()) {
@@ -62,7 +62,7 @@ public class CmsYamlExporter implements CmsExporter {
     }
   }
 
-  public static Map<String, String> collectYamlFilesAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
+  private Map<String, String> collectYamlFilesAndCmsFiles(String projectName, Map<String, PmvCms> pmvCmsMap,
       Map<String, byte[]> cmsFiles) {
     Map<String, String> files = new TreeMap<>();
     if (StringUtils.isBlank(projectName)) {
@@ -83,7 +83,7 @@ public class CmsYamlExporter implements CmsExporter {
    * Flow: 1. Filter valid locales (non-empty language) 2. Build URI → localized content map 3. Convert map to YAML 4.
    * Generate archive path (optionally grouped by project)
    */
-  static void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData,
+  private void addCmsYamlFilesToArchive(Map<String, String> archiveFiles, PmvCms cmsData,
       boolean includeProjectFolderInPath) {
     if (cmsData == null) {
       return;
@@ -105,7 +105,7 @@ public class CmsYamlExporter implements CmsExporter {
   /**
    * Builds a map of URI → localized content for a given locale. If CMS entries are files, skip them.
    */
-  private static Map<String, String> buildUriToContentMap(PmvCms cmsData, Locale locale) {
+  private Map<String, String> buildUriToContentMap(PmvCms cmsData, Locale locale) {
     Map<String, String> localizedContentByUri = new HashMap<>();
     for (Cms cmsEntry : cmsData.getCmsList()) {
       if (cmsEntry == null || cmsEntry.isFile()) {
@@ -117,7 +117,7 @@ public class CmsYamlExporter implements CmsExporter {
     return localizedContentByUri;
   }
 
-  private static String buildArchivePath(PmvCms cmsData, Locale locale, boolean includeProjectFolderInPath) {
+  private String buildArchivePath(PmvCms cmsData, Locale locale, boolean includeProjectFolderInPath) {
     String fileName = String.format(YAML_FILE_FORMAT, locale.getLanguage());
     if (includeProjectFolderInPath) {
       return cmsData.getPmvName() + CommonConstants.SLASH_CHARACTER + fileName;
@@ -125,7 +125,7 @@ public class CmsYamlExporter implements CmsExporter {
     return fileName;
   }
 
-  private static String convertFlatMapToYaml(Map<String, String> flatKeyValueMap) {
+  private String convertFlatMapToYaml(Map<String, String> flatKeyValueMap) {
     Map<String, Object> hierarchicalMap = new TreeMap<>();
     for (var entry : flatKeyValueMap.entrySet()) {
       insertPathIntoTree(hierarchicalMap, entry.getKey(), entry.getValue());
@@ -136,7 +136,7 @@ public class CmsYamlExporter implements CmsExporter {
   }
 
   @SuppressWarnings("unchecked")
-  private static void insertPathIntoTree(Map<String, Object> rootMap, String path, String value) {
+  private void insertPathIntoTree(Map<String, Object> rootMap, String path, String value) {
     String normalizedPath = path;
     if (StringUtils.isNotEmpty(normalizedPath) && normalizedPath.startsWith(CommonConstants.SLASH_CHARACTER)) {
       normalizedPath = normalizedPath.substring(1);
@@ -157,7 +157,7 @@ public class CmsYamlExporter implements CmsExporter {
   }
 
   @SuppressWarnings("unchecked")
-  private static void buildYamlString(Map<String, Object> currentMap, StringBuilder yamlBuilder, int indentLevel) {
+  private void buildYamlString(Map<String, Object> currentMap, StringBuilder yamlBuilder, int indentLevel) {
     String indentSpaces = generateIndent(indentLevel);
     for (var entry : currentMap.entrySet()) {
       String key = entry.getKey();
@@ -180,16 +180,16 @@ public class CmsYamlExporter implements CmsExporter {
     }
   }
 
-  private static boolean containsLineBreak(String value) {
+  private boolean containsLineBreak(String value) {
     return value.contains(LF) || value.contains(CR);
   }
 
-  private static String[] splitIntoLines(String value) {
+  private String[] splitIntoLines(String value) {
     String normalized = value.replace("\r\n", LF).replace(CR, LF);
     return normalized.split(LF, INDEX_NOT_FOUND);
   }
 
-  private static String generateIndent(int indentLevel) {
+  private String generateIndent(int indentLevel) {
     return StringUtils.repeat(SPACE, indentLevel);
   }
 
@@ -201,7 +201,7 @@ public class CmsYamlExporter implements CmsExporter {
    *
    * Example: hello → hello true → "true" (keyword) value:123 → "value:123" (contains special char)
    */
-  private static String escapeYamlValue(String value) {
+  private String escapeYamlValue(String value) {
     if (value == null) {
       return "\"\"";
     }
@@ -217,7 +217,7 @@ public class CmsYamlExporter implements CmsExporter {
    * Quoting is required if: - Value can be misinterpreted (e.g. "true", "null", "yes") - Starts with special YAML
    * prefixes (?, :, -, space) - Contains special characters (:, #, \, ", tab) - Ends with whitespace
    */
-  private static boolean requiresQuoting(String value) {
+  private boolean requiresQuoting(String value) {
     if (isPotentiallyMisinterpretedByYaml(value)) {
       return true;
     }
@@ -231,7 +231,7 @@ public class CmsYamlExporter implements CmsExporter {
    *
    * Also checks: - Leading special characters - Trailing spaces
    */
-  private static boolean isPotentiallyMisinterpretedByYaml(String value) {
+  private boolean isPotentiallyMisinterpretedByYaml(String value) {
     return value == null || value.isEmpty() || value.endsWith(SPACE)
         || YAML_PREFIXES.stream().anyMatch(value::startsWith) || YAML_KEYWORDS.contains(value.toLowerCase(Locale.ROOT));
   }
@@ -243,7 +243,7 @@ public class CmsYamlExporter implements CmsExporter {
    *
    * Applied only when quoting is required.
    */
-  private static String escapeYamlSpecialCharacters(String value) {
+  private String escapeYamlSpecialCharacters(String value) {
     String result = value;
     for (var entry : YAML_ESCAPE_MAP.entrySet()) {
       result = result.replace(entry.getKey(), entry.getValue());
@@ -251,7 +251,7 @@ public class CmsYamlExporter implements CmsExporter {
     return result;
   }
 
-  private static void writeTextEntry(ZipOutputStream zipOut, String name, String content) throws IOException {
+  private void writeTextEntry(ZipOutputStream zipOut, String name, String content) throws IOException {
     zipOut.putNextEntry(new ZipEntry(name));
     zipOut.write(content.getBytes(StandardCharsets.UTF_8));
     zipOut.closeEntry();

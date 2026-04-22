@@ -1,9 +1,15 @@
 package com.axonivy.utils.cmsliveeditor.test.factory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,23 +27,25 @@ import ch.ivyteam.ivy.environment.IvyTest;
 @IvyTest
 public class CmsYamlExporterTest {
 
-  private final String PROJECT = "projectA";
-  private final String APPLICATION = "TestApp";
   private final String YAML_FILE = "cms_en.yaml";
+  private final String PROJECT_A = "projectA";
+  private final String PROJECT_B = "projectB";
+  private final String APPLICATION = "TestApp";
 
   private Map<String, PmvCms> cmsMap;
 
   @BeforeEach
   void setup() {
     cmsMap = new HashMap<>();
-    cmsMap.put(PROJECT, createMockPmvCms());
+    cmsMap.put(PROJECT_A, createMockPmvCms(PROJECT_A));
+    cmsMap.put(PROJECT_B, createMockPmvCms(PROJECT_B));
   }
 
-  private PmvCms createMockPmvCms() {
-    PmvCms pmv = new PmvCms(PROJECT, List.of(Locale.ENGLISH));
+  private PmvCms createMockPmvCms(String project) {
+    PmvCms pmv = new PmvCms(project, List.of(Locale.ENGLISH));
 
     Cms cms = new Cms();
-    cms.setUri("a/b");
+    cms.setUri("uriA");
 
     CmsContent content = new CmsContent(0, Locale.ENGLISH, "Hello", "Hello");
     cms.setContents(List.of(content));
@@ -47,22 +55,11 @@ public class CmsYamlExporterTest {
   }
 
   @Test
-  void testCollectYamlFilesAndCmsFiles() {
-    Map<String, byte[]> files = new HashMap<>();
-
-    Map<String, String> result =
-        CmsYamlExporter.collectYamlFilesAndCmsFiles(PROJECT, cmsMap, files);
-
-    assertEquals(1, result.size());
-    assertTrue(result.containsKey(YAML_FILE));
-  }
-
-  @Test
   void testExportShouldReturnZipWithYaml() throws Exception {
     CmsYamlExporter exporter = new CmsYamlExporter();
 
     StreamedContent result =
-        exporter.export(PROJECT, APPLICATION, cmsMap);
+        exporter.export(PROJECT_A, APPLICATION, cmsMap);
 
     assertNotNull(result);
 
@@ -81,5 +78,29 @@ public class CmsYamlExporterTest {
 
     assertEquals(1, fileNames.size());
     assertTrue(fileNames.contains(YAML_FILE));
+  }
+
+  @Test
+  void testExportAllProjectsShouldReturnZipWithMultipleYamlFiles() throws Exception {
+    CmsYamlExporter exporter = new CmsYamlExporter();
+    StreamedContent result = exporter.export("", APPLICATION, cmsMap);
+    assertNotNull(result);
+
+    List<String> fileNames = new ArrayList<>();
+
+    try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
+        ZipInputStream zis = new ZipInputStream(bais)) {
+
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        if (!entry.isDirectory()) {
+          fileNames.add(entry.getName());
+        }
+      }
+    }
+    assertEquals(2, fileNames.size());
+    assertTrue(fileNames.stream().allMatch(name -> name.endsWith(".yaml")));
+    assertTrue(fileNames.stream().anyMatch(name -> name.contains("projectA/")));
+    assertTrue(fileNames.stream().anyMatch(name -> name.contains("projectB/")));
   }
 }
