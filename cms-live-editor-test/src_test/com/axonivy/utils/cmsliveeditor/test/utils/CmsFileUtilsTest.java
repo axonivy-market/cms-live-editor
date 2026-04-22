@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.StreamedContent;
@@ -127,8 +129,8 @@ class CmsFileUtilsTest {
     Map<String, byte[]> files = new HashMap<>();
     files.put("file.txt", "data".getBytes());
 
-    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-    java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(baos);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ZipOutputStream zos = new ZipOutputStream(baos);
 
     CmsFileUtils.writeCmsFileToZip(files, zos);
     zos.close();
