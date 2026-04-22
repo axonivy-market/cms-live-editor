@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.file.CommonsUploadedFile;
 import org.primefaces.model.file.UploadedFile;
@@ -77,7 +77,7 @@ public class FileUtilsTest {
     assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_1));
     assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_2));
     assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_3));
-    assertEquals(Strings.EMPTY, FileUtils.normalizeUri(null));
+    assertEquals(StringUtils.EMPTY, FileUtils.normalizeUri(null));
   }
 
   @Test
@@ -87,7 +87,7 @@ public class FileUtilsTest {
     assertEquals(false, FileUtils.isValidFileName(INVALID_FILE_2));
     assertEquals(false, FileUtils.isValidFileName(INVALID_FILE_3));
     assertEquals(false, FileUtils.isValidFileName(null));
-    assertEquals(false, FileUtils.isValidFileName(Strings.EMPTY));
+    assertEquals(false, FileUtils.isValidFileName(StringUtils.EMPTY));
   }
 
   @Test
@@ -106,14 +106,14 @@ public class FileUtilsTest {
 
     // ❌ null / blank
     assertEquals(false, FileUtils.isSafePath(base, null));
-    assertEquals(false, FileUtils.isSafePath(base, Strings.EMPTY));
+    assertEquals(false, FileUtils.isSafePath(base, StringUtils.EMPTY));
   }
 
   @Test
   public void testBuildNormalizedPath() {
     assertEquals(PATH_A_B_C, FileUtils.buildNormalizedPath("a", "b", "c"));
     assertEquals(PATH_A_B_C, FileUtils.buildNormalizedPath("a/", "/b/", "c"));
-    assertEquals(PATH_A_B, FileUtils.buildNormalizedPath("a", Strings.EMPTY, "b"));
+    assertEquals(PATH_A_B, FileUtils.buildNormalizedPath("a", StringUtils.EMPTY, "b"));
     assertEquals(PATH_A_B, FileUtils.buildNormalizedPath("a", null, "b"));
 
     // mixed slashes

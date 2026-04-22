@@ -15,7 +15,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
@@ -65,12 +64,12 @@ public class FileUtils {
 
   public static String normalizeUri(String uri) {
     if (uri == null) {
-      return Strings.EMPTY;
+      return StringUtils.EMPTY;
     }
     // Normalize
     uri = uri.replace(BACKSLASH_CHARACTER, SLASH_CHARACTER);
 
-    uri = uri.replaceAll(LEADING_SLASH_REGEX, Strings.EMPTY);
+    uri = uri.replaceAll(LEADING_SLASH_REGEX, StringUtils.EMPTY);
     return uri;
   }
 

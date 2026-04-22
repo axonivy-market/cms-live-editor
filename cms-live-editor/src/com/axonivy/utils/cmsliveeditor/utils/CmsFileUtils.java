@@ -45,7 +45,7 @@ public class CmsFileUtils {
   private static Map.Entry<String, byte[]> toZipEntry(String projectName, CmsContent content, Path basePath) {
     try {
       byte[] data = resolveFileContent(content);
-      if (data == null || data.length == 0) {
+      if (data == null) {
         Ivy.log().error("File content not found for: " + content.getFileName());
         return null;
       }
@@ -71,7 +71,7 @@ public class CmsFileUtils {
     }
   }
 
-  // Get getApplicationFileContent if present, if not get original one
+  // Get applicationFileContent if present, otherwise get the original one
   private static byte[] resolveFileContent(CmsContent content) {
     if (content.getApplicationFileContent() != null && content.getApplicationFileSize() > 0) {
       return content.getApplicationFileContent();
