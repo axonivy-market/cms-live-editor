@@ -84,6 +84,8 @@ public class CmsLiveEditorBean implements Serializable {
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private final CmsService cmsService = CmsService.getInstance();
+  private final CmsDownloadService downloadService = CmsDownloadService.getInstance();
+
 
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
@@ -610,7 +612,7 @@ public class CmsLiveEditorBean implements Serializable {
   public void exportCms(ExportType type) {
     try {
       String applicationName = currentApplicationName();
-      fileDownload = CmsDownloadService.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
+      fileDownload = downloadService.exportCmsToZip(selectedProjectName, applicationName, pmvCmsMap, type);
     } catch (Exception ex) {
       Ivy.log().error("CMS export failed", ex);
     }

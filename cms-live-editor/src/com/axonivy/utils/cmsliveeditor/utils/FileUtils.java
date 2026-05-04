@@ -11,6 +11,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.FILE_EXTEN
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,8 @@ import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import ch.ivyteam.ivy.environment.Ivy;
 
 public class FileUtils {
+
+  private static final List<String> INVALID_FILE_NAME_PARTS = List.of(DOUBLE_DOT, SLASH_CHARACTER, BACKSLASH_CHARACTER);
 
   public static long calculateToKB(long numberOfBytes) {
     return (long) Math.ceil(numberOfBytes / FileConstants.BYTE_IN_KB);
@@ -74,16 +77,11 @@ public class FileUtils {
   }
 
   public static boolean isValidFileName(String fileName) {
-    if (fileName == null || fileName.isBlank()) {
-      return false;
-    }
-
-    return !(fileName.contains(DOUBLE_DOT) || fileName.contains(SLASH_CHARACTER)
-        || fileName.contains(BACKSLASH_CHARACTER));
+    return StringUtils.isBlank(fileName) && INVALID_FILE_NAME_PARTS.stream().noneMatch(fileName::contains);
   }
 
   public static boolean isSafePath(Path basePath, String uri) {
-    if (uri == null || uri.isBlank()) {
+    if (StringUtils.isBlank(uri)) {
       return false;
     }
 

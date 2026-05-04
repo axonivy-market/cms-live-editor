@@ -1,6 +1,5 @@
 package com.axonivy.utils.cmsliveeditor.factory;
 
-import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.DOUBLE_QUOTE;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_ESCAPE_MAP;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_KEYWORDS;
 import static com.axonivy.utils.cmsliveeditor.constants.FileConstants.YAML_PREFIXES;
@@ -163,18 +162,19 @@ public class CmsYamlExporter implements CmsExporter {
       String key = entry.getKey();
       Object value = entry.getValue();
       if (value instanceof Map<?, ?> nestedMap) {
-        yamlBuilder.append(indentSpaces).append(key).append(":\n");
+        yamlBuilder.append(indentSpaces).append(key).append(CommonConstants.COLON).append(LF);
         buildYamlString((Map<String, Object>) nestedMap, yamlBuilder, indentLevel + 1);
       } else {
         String stringValue = value == null ? EMPTY : value.toString();
         if (containsLineBreak(stringValue)) {
-          yamlBuilder.append(indentSpaces).append(key).append(": |-").append(LF);
+          yamlBuilder.append(indentSpaces).append(key).append(FileConstants.BLOCK_SCALAR).append(LF);
           String blockIndent = generateIndent(indentLevel + 1);
           for (String line : splitIntoLines(stringValue)) {
             yamlBuilder.append(blockIndent).append(line).append(LF);
           }
         } else {
-          yamlBuilder.append(indentSpaces).append(key).append(": ").append(escapeYamlValue(stringValue)).append(LF);
+          yamlBuilder.append(indentSpaces).append(key).append(FileConstants.COLON_SPACE)
+              .append(escapeYamlValue(stringValue)).append(LF);
         }
       }
     }
@@ -185,7 +185,7 @@ public class CmsYamlExporter implements CmsExporter {
   }
 
   private String[] splitIntoLines(String value) {
-    String normalized = value.replace("\r\n", LF).replace(CR, LF);
+    String normalized = value.replace(FileConstants.CRLF, LF).replace(CR, LF);
     return normalized.split(LF, INDEX_NOT_FOUND);
   }
 
@@ -203,12 +203,12 @@ public class CmsYamlExporter implements CmsExporter {
    */
   private String escapeYamlValue(String value) {
     if (value == null) {
-      return "\"\"";
+      return FileConstants.EMPTY_QUOTES;
     }
     if (!requiresQuoting(value)) {
       return value;
     }
-    return FileConstants.DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + DOUBLE_QUOTE;
+    return CommonConstants.DOUBLE_QUOTE + escapeYamlSpecialCharacters(value) + CommonConstants.DOUBLE_QUOTE;
   }
 
   /**

@@ -58,15 +58,14 @@ public class CmsYamlExporterTest {
   void testExportShouldReturnZipWithYaml() throws Exception {
     CmsYamlExporter exporter = new CmsYamlExporter();
 
-    StreamedContent result =
-        exporter.export(PROJECT_A, APPLICATION, cmsMap);
+    StreamedContent result = exporter.export(PROJECT_A, APPLICATION, cmsMap);
 
     assertNotNull(result);
 
     List<String> fileNames = new ArrayList<>();
 
     try (ByteArrayInputStream bais = (ByteArrayInputStream) result.getStream().get();
-         ZipInputStream zis = new ZipInputStream(bais)) {
+        ZipInputStream zis = new ZipInputStream(bais)) {
 
       ZipEntry entry;
       while ((entry = zis.getNextEntry()) != null) {

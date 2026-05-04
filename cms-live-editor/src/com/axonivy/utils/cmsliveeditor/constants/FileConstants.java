@@ -17,30 +17,31 @@ public class FileConstants {
   public static final String CMS_FILE_FORMAT = "%s_%s.%s";
   public static final String FILE_EXTENSION_FORMAT = ".%s";
 
-  // YAML Constant
-  public static final String DOUBLE_QUOTE = "\"";
-  public static final String BACKSLASH = "\\";
-  public static final String TAB = "\t";
-  public static final String COLON = ":";
-  public static final String HASH = "#";
-  public static final String QUESTION_MARK = "?";
-  public static final String TILDE = "~";
+  public static final String COLON_SPACE = ": ";
+  public static final String BLOCK_SCALAR = ": |-";
+  public static final String EMPTY_QUOTES = "\"\"";
 
-  // YAML file
-  public static final String YAML_FILE_FORMAT = "cms_%s.yaml";
-
+  // Line ending
+  public static final String CRLF = "\r\n";
   // Escaping
-  public static final Map<String, String> YAML_ESCAPE_MAP = Map.of(BACKSLASH, "\\\\", DOUBLE_QUOTE, "\\\"", TAB, "\\t");
+  public static final String ESCAPED_BACKSLASH = "\\\\";
+  public static final String ESCAPED_DOUBLE_QUOTE = "\\\"";
+  public static final String ESCAPED_TAB = "\\t";
+
+  public static final Map<String, String> YAML_ESCAPE_MAP = Map.of(CommonConstants.BACKSLASH, ESCAPED_BACKSLASH,
+      CommonConstants.DOUBLE_QUOTE, ESCAPED_DOUBLE_QUOTE, CommonConstants.TAB, ESCAPED_TAB);
 
   // Special prefixes (need quoting)
-  public static final List<String> YAML_PREFIXES = List.of(" ", // SPACE (keep literal for readability)
-      "-", // HYPHEN
-      QUESTION_MARK, COLON);
+  public static final List<String> YAML_PREFIXES =
+      List.of(CommonConstants.SPACE, CommonConstants.HYPHEN_CHARACTER, CommonConstants.QUESTION_MARK,
+          CommonConstants.COLON);
 
   // Special characters (require escaping/quoting)
-  public static final List<String> YAML_SPECIALS = List.of(COLON, HASH, TAB, BACKSLASH, DOUBLE_QUOTE);
+  public static final List<String> YAML_SPECIALS = List.of(CommonConstants.COLON, CommonConstants.HASH,
+      CommonConstants.TAB, CommonConstants.BACKSLASH, CommonConstants.DOUBLE_QUOTE);
 
   // YAML keywords (must be quoted)
-  public static final Set<String> YAML_KEYWORDS = Set.of("true", "false", "null", TILDE, "yes", "no", "on", "off");
+  public static final Set<String> YAML_KEYWORDS =
+      Set.of("true", "false", "null", CommonConstants.TILDE, "yes", "no", "on", "off");
 
 }

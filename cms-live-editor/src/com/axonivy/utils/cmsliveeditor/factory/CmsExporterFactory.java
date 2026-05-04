@@ -10,6 +10,7 @@ public class CmsExporterFactory {
     return switch (type) {
       case EXCEL -> new CmsExcelExporter();
       case YAML -> new CmsYamlExporter();
+      default -> throw new IllegalArgumentException("Unsupported export type: " + type);
     };
   }
 }

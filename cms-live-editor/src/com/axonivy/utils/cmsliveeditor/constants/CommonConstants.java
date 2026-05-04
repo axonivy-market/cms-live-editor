@@ -11,6 +11,12 @@ public class CommonConstants {
   public static final String COLON = ":";
   public static final String SPACE = " ";
   public static final String EMPTY = "";
+  public static final String DOUBLE_QUOTE = "\"";
+  public static final String BACKSLASH = "\\";
+  public static final String TAB = "\t";
+  public static final String HASH = "#";
+  public static final String QUESTION_MARK = "?";
+  public static final String TILDE = "~";
 
   // Path-related
   public static final String DOUBLE_SLASH_REGEX = "//+";
