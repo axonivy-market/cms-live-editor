@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.file.CommonsUploadedFile;
 import org.primefaces.model.file.UploadedFile;
 
 import com.axonivy.utils.cmsliveeditor.constants.DocumentConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
+import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
 import ch.ivyteam.ivy.environment.IvyTest;
@@ -18,6 +20,30 @@ import ch.ivyteam.ivy.environment.IvyTest;
 public class FileUtilsTest {
 
   private static final long ONE_HUNDRED = 100;
+
+  // ===== Common constants =====
+  private static final String BASE_FOLDER = "base";
+
+  // ===== File names =====
+  private static final String FILE_TXT = "file.txt";
+  private static final String INVALID_FILE_1 = "../file.txt";
+  private static final String INVALID_FILE_2 = "a/b.txt";
+  private static final String INVALID_FILE_3 = "a\\b.txt";
+
+  // ===== Paths =====
+  private static final String VALID_PATH = "folder/file.txt";
+  private static final String VALID_PATH_WITH_SLASH = "/folder/file.txt";
+  private static final String PATH_TRAVERSAL_1 = "../file.txt";
+  private static final String PATH_TRAVERSAL_2 = "a/../../file.txt";
+  private static final String WINDOWS_PATH = "C:\\evil.txt";
+
+  private static final String PATH_A_B = "a/b";
+  private static final String PATH_A_B_C = "a/b/c";
+
+  // ===== Normalize inputs =====
+  private static final String RAW_PATH_1 = "/a/b/c";
+  private static final String RAW_PATH_2 = "///a/b/c";
+  private static final String RAW_PATH_3 = "\\a\\b\\c";
 
   @Test
   public void testCalculateToKB() {
@@ -34,7 +60,7 @@ public class FileUtilsTest {
     assertEquals(true, FileUtils.isValidFileSize(oneMBFileSize, 1));
   }
 
-  @Test()
+  @Test
   public void testGetMaxUploadedFileSize() {
     assertEquals(50, FileUtils.getMaxUploadedFileSize());
   }
@@ -44,6 +70,65 @@ public class FileUtilsTest {
     FileItem fileItem = new DiskFileItem("", DocumentConstants.PDF_CONTENT_TYPE, false, "test.pdf", 0, null);
     UploadedFile file = new CommonsUploadedFile(fileItem, 1L);
     assertEquals("pdf", FileUtils.getFileExtension(file));
+  }
+
+  @Test
+  public void testNormalizeUri() {
+    assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_1));
+    assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_2));
+    assertEquals(PATH_A_B_C, FileUtils.normalizeUri(RAW_PATH_3));
+    assertEquals(StringUtils.EMPTY, FileUtils.normalizeUri(null));
+  }
+
+  @Test
+  public void testIsValidFileName() {
+    assertEquals(true, FileUtils.isValidFileName(FILE_TXT));
+    assertEquals(false, FileUtils.isValidFileName(INVALID_FILE_1));
+    assertEquals(false, FileUtils.isValidFileName(INVALID_FILE_2));
+    assertEquals(false, FileUtils.isValidFileName(INVALID_FILE_3));
+    assertEquals(false, FileUtils.isValidFileName(null));
+    assertEquals(false, FileUtils.isValidFileName(StringUtils.EMPTY));
+  }
+
+  @Test
+  public void testIsSafePath() {
+    var base = java.nio.file.Path.of(BASE_FOLDER).toAbsolutePath().normalize();
+
+    assertEquals(true, FileUtils.isSafePath(base, VALID_PATH));
+    assertEquals(true, FileUtils.isSafePath(base, VALID_PATH_WITH_SLASH));
+
+    // ❌ path traversal
+    assertEquals(false, FileUtils.isSafePath(base, PATH_TRAVERSAL_1));
+    assertEquals(false, FileUtils.isSafePath(base, PATH_TRAVERSAL_2));
+
+    // ❌ Windows absolute path
+    assertEquals(false, FileUtils.isSafePath(base, WINDOWS_PATH));
+
+    // ❌ null / blank
+    assertEquals(false, FileUtils.isSafePath(base, null));
+    assertEquals(false, FileUtils.isSafePath(base, StringUtils.EMPTY));
+  }
+
+  @Test
+  public void testBuildNormalizedPath() {
+    assertEquals(PATH_A_B_C, FileUtils.buildNormalizedPath("a", "b", "c"));
+    assertEquals(PATH_A_B_C, FileUtils.buildNormalizedPath("a/", "/b/", "c"));
+    assertEquals(PATH_A_B, FileUtils.buildNormalizedPath("a", StringUtils.EMPTY, "b"));
+    assertEquals(PATH_A_B, FileUtils.buildNormalizedPath("a", null, "b"));
+
+    // mixed slashes
+    assertEquals(PATH_A_B_C, FileUtils.buildNormalizedPath("a\\b", "c"));
+  }
+
+  @Test
+  void testGetFileTypeByExtension() {
+    // valid cases
+    assertEquals(FileType.EXCEL, FileUtils.getFileTypeByExtension("xlsx"));
+    assertEquals(FileType.EXCEL, FileUtils.getFileTypeByExtension("XLSX"));
+
+    // unknown extension
+    assertEquals(FileType.OTHERS, FileUtils.getFileTypeByExtension("invalid"));
+    assertEquals(FileType.OTHERS, FileUtils.getFileTypeByExtension(null));
   }
 }
 

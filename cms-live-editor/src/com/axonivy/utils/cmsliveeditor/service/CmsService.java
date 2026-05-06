@@ -16,7 +16,7 @@ import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
-import com.axonivy.utils.cmsliveeditor.utils.CmsFileUtils;
+import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
 import ch.ivyteam.ivy.application.IApplication;
 import ch.ivyteam.ivy.cm.ContentManagementSystem;
@@ -152,7 +152,7 @@ public class CmsService {
   public void convertToCmsFile(ContentObject contentObject, List<Locale> locales, Cms cms, String fileExtension) {
     cms.setFile(true);
     cms.setFileExtension(StringUtils.upperCase(fileExtension, Locale.ENGLISH));
-    FileType fileType = CmsFileUtils.getFileTypeByExtension(fileExtension);
+    FileType fileType = FileUtils.getFileTypeByExtension(fileExtension);
     cms.setFileType(fileType);
     for (var i = 0; i < locales.size(); i++) {
       Locale locale = locales.get(i);
