@@ -10,7 +10,7 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.Strings;
 
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
@@ -39,7 +39,7 @@ public class CmsContentUtils {
 
   public static String getContentByLocale(Cms cms, String localeTag) {
     CmsContent content = getCmsContentByLocale(cms, localeTag);
-    return content != null ? content.getContent() : Strings.EMPTY;
+    return content != null ? content.getContent() : StringUtils.EMPTY;
   }
 
   public static List<Cms> getTranslatedCms(List<Cms> cmsList) {
@@ -57,6 +57,11 @@ public class CmsContentUtils {
     }
     String selectedTag = excludedLocale.trim().replace(UNDERSCORE_CHARACTER, HYPHEN_CHARACTER);
     return locales.stream().filter(l -> l != null && !selectedTag.equalsIgnoreCase(l.toLanguageTag())).toList();
+  }
+
+  public static String getContentValueByLanguage(Cms cms, String language) {
+    return cms.getContents().stream().filter(content -> Strings.CS.equals(content.getLocale().getLanguage(), language))
+        .findFirst().map(CmsContent::getContent).orElse(StringUtils.EMPTY);
   }
 
 }
