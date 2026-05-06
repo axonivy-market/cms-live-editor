@@ -71,7 +71,7 @@ public class CmsYamlExporter implements CmsExporter {
       }
     } else {
       addCmsYamlFilesToArchive(files, pmvCmsMap.get(projectName), false);
-      CmsFileUtils.addPmvCmsFiles(projectName, pmvCmsMap.get(projectName), cmsFiles);
+      CmsFileUtils.addPmvCmsFiles(StringUtils.EMPTY, pmvCmsMap.get(projectName), cmsFiles);
     }
     return files;
   }

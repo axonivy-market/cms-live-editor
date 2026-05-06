@@ -88,7 +88,7 @@ public class CmsExcelExporter implements CmsExporter {
       });
     } else {
       addPmvCmsToWorkbooks(projectName, pmvCmsMap.get(projectName), workbooks);
-      CmsFileUtils.addPmvCmsFiles(projectName, pmvCmsMap.get(projectName), cmsFiles);
+      CmsFileUtils.addPmvCmsFiles(StringUtils.EMPTY, pmvCmsMap.get(projectName), cmsFiles);
     }
 
     return workbooks;
