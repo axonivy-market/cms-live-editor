@@ -77,7 +77,7 @@ public class FileUtils {
   }
 
   public static boolean isValidFileName(String fileName) {
-    return StringUtils.isBlank(fileName) && INVALID_FILE_NAME_PARTS.stream().noneMatch(fileName::contains);
+    return !StringUtils.isBlank(fileName) && INVALID_FILE_NAME_PARTS.stream().noneMatch(fileName::contains);
   }
 
   public static boolean isSafePath(Path basePath, String uri) {
