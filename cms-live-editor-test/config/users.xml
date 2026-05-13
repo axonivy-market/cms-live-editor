@@ -9,4 +9,9 @@
         <username>normalUser</username>
         <password>123456</password>
     </user>
+    <user>
+        <username>cmsAdmin1</username>
+        <password>123456</password>
+        <role>CMS_ADMIN</role>
+    </user>
 </userConfig>

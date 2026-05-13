@@ -22,6 +22,14 @@
               <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
             </div>
             <div class="header-actions">
+              <p:toggleSwitch id="switch-view-path-btn" value="#{cmsLiveEditorBean.showFullPath}"
+                styleClass="switch-view-path-btn" onIcon="pi pi-check" offIcon="pi pi-times">
+                <p:ajax listener="#{cmsLiveEditorBean.savePathViewStatus()}"
+                  update="table-cms-keys switch-view-path-btn" />
+                <p:tooltip for="switch-view-path-btn"
+                  value="#{cmsLiveEditorBean.showFullPath ? ivy.cms.co('/Labels/ShowShortPath') : ivy.cms.co('/Labels/ShowFullPath')}" />
+              </p:toggleSwitch>
+              <div class="bg-gray-100 vertical-divider"></div>
               <p:commandLink id="cms-settings-btn"
                 onclick="PF('cmsSettingsDialog').show(); return false;"
                 styleClass="cms-settings-btn">
@@ -91,13 +99,14 @@
                    >
                     <p:column>
                       <div class="path-row">
-                        <h:outputText class="cms-uri" id="cms-uri" value="#{entry.uri}" />
+                        <h:outputText class="cms-uri" id="cms-uri"
+                          value="#{cmsLiveEditorBean.showFullPath ? entry.uri : entry.shortUri}" />
                         <h:panelGroup
                           rendered="#{entry.differentWithApplication}">
                           <span class="orange-dot" />
                         </h:panelGroup>
                       </div>
-                      <p:tooltip value="#{entry.uri} (#{entry.pmvName})"
+                      <p:tooltip value="#{entry.uri} (#{entry.pmvName})" for="cms-uri"
                         position="top" />
                     </p:column>
                     <p:ajax event="rowSelect"

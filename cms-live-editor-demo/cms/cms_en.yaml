@@ -21,3 +21,5 @@ com:
           NumberFormatPlaceholder: 'Hello {0}, your order #{1} contains {2,number,integer} items with a total of {3,number,currency}.'
           SimplePlaceholder: Hello {0}, you are in {1} and have {2} new messages.
           TODO: The content after TODO should be translated. You can click Options > Show only TODO to show all of them.
+Labels:
+  Test: Test
