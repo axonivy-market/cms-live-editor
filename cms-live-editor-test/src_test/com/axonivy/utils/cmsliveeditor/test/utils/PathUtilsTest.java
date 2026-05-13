@@ -13,8 +13,8 @@ import ch.ivyteam.ivy.environment.IvyTest;
 public class PathUtilsTest {
 
   // ===== Paths =====
-  private static final String FULL_PATH_WITH_lONG_URI = "/com/axonivy/utils/demo/EmailFormat/name";
-  private static final String SHORT_PATH_WITH_lONG_URI = "../EmailFormat/name";
+  private static final String lONG_URI = "/com/axonivy/utils/demo/EmailFormat/name";
+  private static final String SHORT_PATH_OF_lONG_URI = "../EmailFormat/name";
   private static final String SHORT_URI = "/Labels/Login";
 
   @Test
@@ -30,7 +30,7 @@ public class PathUtilsTest {
 
   @Test
   public void testGetLastTwoPathSegmentsWithLongUriInput() {
-    assertEquals(SHORT_PATH_WITH_lONG_URI, PathUtils.getLastTwoPathSegments(FULL_PATH_WITH_lONG_URI));
+    assertEquals(SHORT_PATH_OF_lONG_URI, PathUtils.getLastTwoPathSegments(lONG_URI));
   }
 }
 

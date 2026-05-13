@@ -16,9 +16,10 @@ public class PathUtils {
    * Returns a shortened display form of the given Path by joining the last two path segments with a slash,
    * prefixed with "../".
    * For example, {@code /com/axonivy/utils/demo/EmailFormat/name} becomes {@code ../EmailFormat/name}.
+   * {@code /EmailFormat/name} becomes {@code /EmailFormat/name}.
    *
    * @param path the full Path
-   * @return the shortened URI, or the full path if it has fewer than two segments
+   * @return the shortened URI, or the original path if it has fewer than two segments of CMS
    */
   public static String getLastTwoPathSegments(String path) {
     if (StringUtils.isBlank(path)) {

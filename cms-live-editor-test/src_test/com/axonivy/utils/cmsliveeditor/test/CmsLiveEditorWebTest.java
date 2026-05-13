@@ -63,7 +63,7 @@ public class CmsLiveEditorWebTest {
   private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
   private static final String CMS_SETTINGS_SAVE_BUTTON = "[id$='content-form:cms-setting-save-btn']";
   private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
-  private static final String SWICTH_VIEW_PATH_BTN = "[id$=':switch-view-path-btn']";
+  private static final String SWITCH_VIEW_PATH_BTN = "[id$=':switch-view-path-btn']";
   private static final String UI_TOGGLE_SWITCH_CHECKED_CLASS = "ui-toggleswitch-checked";
 
   /**
@@ -336,7 +336,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testViewPathSettingWhenSwitchingViewPathWithTwoUsers() {
-    var switchViewPathButton = $(By.cssSelector(SWICTH_VIEW_PATH_BTN));
+    var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
 
@@ -359,7 +359,7 @@ public class CmsLiveEditorWebTest {
     var cmsElementWithShortPath = cmsList.findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey));
     cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5));
 
-    var switchViewPathButton = $(By.cssSelector(SWICTH_VIEW_PATH_BTN));
+    var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     cmsElementWithShortPath.shouldNotBe(visible);
     cmsList.findBy(matchText(searchKey)).shouldBe(visible, Duration.ofSeconds(5));
