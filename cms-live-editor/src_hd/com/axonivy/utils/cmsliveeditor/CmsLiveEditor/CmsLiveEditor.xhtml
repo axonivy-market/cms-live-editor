@@ -88,39 +88,42 @@
                   </span>
                 </h:panelGroup>
               </div>
-              <h:panelGroup styleClass="panel left w-full" layout="block">
-                  <p:dataTable id="table-cms-keys"
-                    value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
-                    rowKey="#{entry.uri}"
-                    selection="#{cmsLiveEditorBean.selectedCmsEntries}"
-                    selectionMode="multiple" rowSelectMode="new"
-                    widgetVar="tableCmsKeysWidget" scrollHeight="100%"
-                    styleClass="cms-path-table"
-                   >
-                    <p:column>
-                      <div class="path-row">
-                        <h:outputText class="cms-uri" id="cms-uri"
-                          value="#{cmsLiveEditorBean.showFullPath ? entry.uri : entry.shortUri}" />
-                        <h:panelGroup
-                          rendered="#{entry.differentWithApplication}">
-                          <span class="orange-dot" />
-                        </h:panelGroup>
-                      </div>
-                      <p:tooltip value="#{entry.uri} (#{entry.pmvName})" for="cms-uri"
-                        position="top" />
-                    </p:column>
-                    <p:ajax event="rowSelect"
-                      listener="#{cmsLiveEditorBean.onRowSelect}"
-                      process="table-cms-keys" update="@none"
-                      partialSubmit="true" onstart="savePathPanelScroll();"
-                      oncomplete="restorePathPanelScroll(); initCmsWarnings();" />
+              <h:panelGroup styleClass="panel left w-full"
+                layout="block">
+                <p:dataTable id="table-cms-keys"
+                  value="#{cmsLiveEditorBean.lazyDataModel}" var="entry"
+                  rowKey="#{entry.uri}"
+                  selection="#{cmsLiveEditorBean.selectedCmsEntries}"
+                  selectionMode="multiple" rowSelectMode="new"
+                  widgetVar="tableCmsKeysWidget" scrollHeight="100%"
+                  scrollable="true" scrollRows="100" virtualScroll="true"
+                  styleClass="cms-path-table">
+                  <p:column>
+                    <span class="path-row">
+                      <h:outputText
+                        class="cms-uri" id="cms-uri"
+                        value="#{cmsLiveEditorBean.showFullPath ? entry.uri : entry.shortUri}" />
+                      <h:panelGroup
+                        rendered="#{entry.differentWithApplication}">
+                        <span class="orange-dot" />
+                      </h:panelGroup>
+                    </span>
+                    <p:tooltip value="#{entry.uri} (#{entry.pmvName})"
+                      for="cms-uri" position="top" />
+                  </p:column>
+                  <p:ajax event="rowSelect"
+                    listener="#{cmsLiveEditorBean.onRowSelect}"
+                    process="table-cms-keys" update="@none"
+                    partialSubmit="true"
+                    onstart="savePathPanelScroll();"
+                    oncomplete="restorePathPanelScroll(); initCmsWarnings();" />
 
-                    <p:ajax event="rowUnselect" process="table-cms-keys"
-                      update="@none" partialSubmit="true" />
-                    <p:ajax event="toggleSelect" process="table-cms-keys"
-                      update="@none" partialSubmit="true" />
+                  <p:ajax event="rowUnselect" process="table-cms-keys"
+                    update="@none" partialSubmit="true" />
+                  <p:ajax event="toggleSelect" process="table-cms-keys"
+                    update="@none" partialSubmit="true" />
 
-               </p:dataTable>
+                </p:dataTable>
               </h:panelGroup>
             </h:panelGroup>
 
@@ -356,14 +359,15 @@
             actionListener="#{cmsLiveEditorBean.saveAll}" />
         </div>
 
-        <p:dialog id="resetConfirmDlg" widgetVar="resetConfirmDlg" modal="true" closable="true" draggable="false"
+        <p:dialog id="resetConfirmDlg" widgetVar="resetConfirmDlg" modal="true" closable="true" draggable="false" closeOnEscape="true"
           resizable="false" showHeader="false" styleClass="reset-confirm-dialog" width="420">
           <div class="p-4">
             <div class="text-lg font-semibold mb-2">#{ivy.cms.co("/Labels/ResetAllChangeConfirmation")}</div>
             <div class="mb-3">
               <h:outputText value="#{ivy.cms.co('/Labels/ResetAdvice')}" escape="false"
                 styleClass="text-sm text-color-secondary" />
-              <p:inputText id="resetConfirmInput" value="#{cmsLiveEditorBean.resetConfirmText}" styleClass="w-full mt-2">
+              <p:inputText id="resetConfirmInput" value="#{cmsLiveEditorBean.resetConfirmText}" styleClass="w-full mt-2"
+                onkeydown="if(event.key==='Enter'){var btn=document.getElementById('content-form:resetBtn');if(btn&amp;&amp;!btn.disabled){btn.click();}}">
                 <p:ajax event="keyup" update="resetBtn" />
               </p:inputText>
             </div>
@@ -373,7 +377,6 @@
                 onclick="PF('resetConfirmDlg').hide(); return false;" />
               <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}"
                 styleClass="ui-button-danger w-full" actionListener="#{cmsLiveEditorBean.resetAllChanges}"
-                update="column-container table-cms-keys cms-values cms-edit-value"
                 disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
             </div>
           </div>

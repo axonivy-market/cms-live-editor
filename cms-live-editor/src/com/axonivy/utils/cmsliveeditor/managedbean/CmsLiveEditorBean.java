@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.Strings;
 import org.primefaces.PF;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
+import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
@@ -51,6 +53,7 @@ import com.axonivy.utils.cmsliveeditor.enums.ExportType;
 import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.ExportOption;
+import com.axonivy.utils.cmsliveeditor.model.LazyCmsDataModel;
 import com.axonivy.utils.cmsliveeditor.model.PmvCms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.CmsContentLoader;
@@ -91,6 +94,7 @@ public class CmsLiveEditorBean implements Serializable {
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
   private List<Cms> filteredCMSList;
+  private LazyDataModel<Cms> lazyDataModel;
   private Cms lastSelectedCms;
   private Cms selectedCms;
   private String selectedProjectName;
@@ -111,7 +115,7 @@ public class CmsLiveEditorBean implements Serializable {
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
-    pmvCmsMap = new HashMap<>();
+    pmvCmsMap = new ConcurrentHashMap<>();
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
@@ -291,6 +295,7 @@ public class CmsLiveEditorBean implements Serializable {
       selectedCms =
           filteredCMSList.stream().filter(entry -> entry.getUri().equals(selectedCms.getUri())).findAny().orElse(null);
     }
+    lazyDataModel = new LazyCmsDataModel(filteredCMSList);
     initLocales();
     PF.current().ajax().update(CONTENT_FORM, CMS_SETTING_DIALOG);
   }
@@ -444,21 +449,19 @@ public class CmsLiveEditorBean implements Serializable {
       return;
     }
 
-    if (contentObject.isRoot()) {
-      locales =
-          contentObject.cms().locales().stream().filter(locale -> isNotBlank(locale.getLanguage())).collect(toList());
-    }
+    final List<Locale> effectiveLocales = contentObject.isRoot()
+        ? contentObject.cms().locales().stream().filter(locale -> isNotBlank(locale.getLanguage())).collect(toList())
+        : locales;
 
     for (ContentObject child : contentObject.children()) {
       if (child.children().isEmpty()) {
-        var cms = convertToCms(child, locales, pmvName, child.meta().fileExtension());
+        var cms = convertToCms(child, effectiveLocales, pmvName, child.meta().fileExtension());
         if (cms.getContents() != null) {
-          var contents = pmvCmsMap.getOrDefault(pmvName, new PmvCms(pmvName, locales));
-          contents.addCms(cms);
-          pmvCmsMap.putIfAbsent(pmvName, contents);
+          pmvCmsMap.computeIfAbsent(pmvName, key -> new PmvCms(pmvName, effectiveLocales)).addCms(cms);
         }
+      } else {
+        getAllChildren(pmvName, child, effectiveLocales);
       }
-      getAllChildren(pmvName, child, locales);
     }
   }
 
@@ -735,5 +738,13 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setShowFullPath(boolean showFullPath) {
     this.showFullPath = showFullPath;
+  }
+
+  public LazyDataModel<Cms> getLazyDataModel() {
+    return lazyDataModel;
+  }
+
+  public void setLazyDataModel(LazyDataModel<Cms> lazyDataModel) {
+    this.lazyDataModel = lazyDataModel;
   }
 }
