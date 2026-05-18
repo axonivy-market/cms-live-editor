@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,6 +36,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -115,15 +115,66 @@ public class CmsLiveEditorBean implements Serializable {
   private void init() {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
-    pmvCmsMap = new ConcurrentHashMap<>();
+    pmvCmsMap = new HashMap<>();
     for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
       app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
           .filter(CmsLiveEditorBean::isActive)
-          .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
+          .forEach(pmv -> getAllChildrenOfPmv(pmv.getName(), ContentManagement.cms(pmv).root()));
     }
     onAppChange();
     initLocales();
     showFullPath = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
+  }
+
+  private static boolean isActive(IActivity processModelVersion) {
+    return processModelVersion != null && ActivityState.ACTIVE == processModelVersion.getActivityState();
+  }
+
+  private void getAllChildrenOfPmv(String pmvName, ContentObject rootElement) {
+    // Exclude the CMS of itself
+    if (!isShowEditorCms && Strings.CS.contains(pmvName, CMS_LIVE_EDITOR_PMV_NAME)
+        && !Strings.CS.contains(pmvName, CMS_LIVE_EDITOR_DEMO_PMV_NAME)) {
+      return;
+    }
+
+    List<Locale> locales = rootElement.cms().locales().stream().filter(locale -> isNotBlank(locale.getLanguage())).collect(toList());
+    PmvCms pmvCms = new PmvCms(pmvName, locales);
+    getAllValidChildren(pmvCms, rootElement);
+    if (CollectionUtils.isNotEmpty(pmvCms.getCmsList())) {
+      pmvCmsMap.put(pmvName, pmvCms);
+    }
+  }
+
+  private void getAllValidChildren(PmvCms pmvCms, ContentObject contentObject) {
+    var children = contentObject.children();
+
+    if (children.isEmpty()) {
+      var cms = convertToCms(contentObject, pmvCms.getLocales(), pmvCms.getPmvName());
+      if (cms.getContents() != null) {
+        pmvCms.addCms(cms);
+      }
+      return;
+    }
+
+    for (ContentObject child : children) {
+      getAllValidChildren(pmvCms, child);
+    }
+  }
+
+  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName) {
+    var cms = new Cms();
+    cms.setUri(contentObject.uri());
+    cms.setShortUri(PathUtils.getLastTwoPathSegments(cms.getUri()));
+    cms.setPmvName(pmvName);
+    String fileExtension = contentObject.meta().fileExtension();
+    boolean isFile = StringUtils.isNotBlank(fileExtension);
+    if (isFile) {
+      cmsService.convertToCmsFile(contentObject, locales, cms, fileExtension);
+    } else {
+      cmsService.convertToCmsText(contentObject, locales, cms);
+    }
+
+    return cms;
   }
 
   public void writeCmsToApplication() {
@@ -440,48 +491,6 @@ public class CmsLiveEditorBean implements Serializable {
 
   public String getDialogDetail() {
     return dialogDetail;
-  }
-
-  public void getAllChildren(String pmvName, ContentObject contentObject, List<Locale> locales) {
-    // Exclude the CMS of itself
-    if (!isShowEditorCms && Strings.CS.contains(pmvName, CMS_LIVE_EDITOR_PMV_NAME)
-        && !Strings.CS.contains(pmvName, CMS_LIVE_EDITOR_DEMO_PMV_NAME)) {
-      return;
-    }
-
-    final List<Locale> effectiveLocales = contentObject.isRoot()
-        ? contentObject.cms().locales().stream().filter(locale -> isNotBlank(locale.getLanguage())).collect(toList())
-        : locales;
-
-    for (ContentObject child : contentObject.children()) {
-      if (child.children().isEmpty()) {
-        var cms = convertToCms(child, effectiveLocales, pmvName, child.meta().fileExtension());
-        if (cms.getContents() != null) {
-          pmvCmsMap.computeIfAbsent(pmvName, key -> new PmvCms(pmvName, effectiveLocales)).addCms(cms);
-        }
-      } else {
-        getAllChildren(pmvName, child, effectiveLocales);
-      }
-    }
-  }
-
-  private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName, String fileExtension) {
-    var cms = new Cms();
-    cms.setUri(contentObject.uri());
-    cms.setShortUri(PathUtils.getLastTwoPathSegments(cms.getUri()));
-    cms.setPmvName(pmvName);
-    boolean isFile = StringUtils.isNotBlank(fileExtension);
-    if (isFile) {
-      cmsService.convertToCmsFile(contentObject, locales, cms, fileExtension);
-    } else {
-      cmsService.convertToCmsText(contentObject, locales, cms);
-    }
-
-    return cms;
-  }
-
-  private static boolean isActive(IActivity processModelVersion) {
-    return processModelVersion != null && ActivityState.ACTIVE == processModelVersion.getActivityState();
   }
 
   private boolean isCmsMatchSearchKey(Cms entry, String searchKey) {

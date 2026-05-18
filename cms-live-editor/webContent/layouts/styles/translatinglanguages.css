@@ -62,16 +62,11 @@
 }
 
 .column-header {
-  background: #FAFAFA;
   padding: 6px 10px;
   font-weight: 600;
   font-size: 12px;
   height: 36px;
   border-bottom: 2px solid #E7E7E7;
-}
-
-body.dark .column-header {
-  color: #1B1B1B;
 }
 
 .right-border {
@@ -103,18 +98,15 @@ body.dark .column-header {
 .cms-info-icon {
   font-size: 12px;
   color: #007095;
-  cursor: pointer;
 }
 
-.cms-warning, body.dark .cms-warning {
+.cms-warning {
   border: 1px solid #FFC696;
-  background: #fff7ed;
   border-radius: 6px;
-  padding: 12px;
-}
-
-body.dark .cms-warning {
   color: #1B1B1B;
+  background: #fff7ed;
+  padding: 12px;
+  display: none;
 }
 
 .cms-warning-title {
@@ -123,15 +115,10 @@ body.dark .cms-warning {
   margin-bottom: 4px;
 }
 
-.cms-warning {
-  display: none;
-}
-
-.cms-error, body.dark .cms-error,
-.cms-file-error-message .ui-messages-error.ui-corner-all,
-body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
+.cms-error,
+.cms-file-error-message .ui-messages-error.ui-corner-all {
   border: 1px solid #E5151C;
-  background: rgba(229, 21, 28, 0.1);
+  background: #fff7ed;
   border-radius: 6px;
   padding: 12px;
   color: #000000;
@@ -366,65 +353,35 @@ body.dark .cms-file-error-message .ui-messages-error.ui-corner-all  {
     var(--ivy-primary-color-l), 0.2);
 }
 
+.cms-tooltip a {
+  color: #007095;
+}
+
 .cms-tooltip {
-  max-width: 420px;
   line-height: 1.4;
 }
 
-.cms-tooltip a {
-  color: #007095;
+.cms-info-hint {
+  max-width: 650px;
+}
+
+.edit-cms-info-hint {
+  max-width: 420px;
 }
 
 .switch-view-path-btn {
   margin-right: 12px;
 }
 
-.cms-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.ui-button.ui-button-flat.cms-settings-btn, .ui-button.ui-button-flat.cms-translate-btn {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  color: #6b7280;
-  transition: all 0.2s ease;
-}
-
-.cms-settings-btn:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-.cms-translate-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  color: #6b7280;
-  transition: all 0.2s ease;
-}
-
-.cms-translate-btn:hover  {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-/* Default icon color if no theme class is present */
-.cms-translate-btn i, .cms-settings-btn i {
-  color: black !important; /* Default to black */
-}
-
-/* For dark mode */
-.body-hd.dark .cms-translate-btn i, .body-hd.dark .cms-settings-btn i {
-  color: white !important;
-}
-
-/* For light mode */
-.body-hd.light .cms-translate-btn i, .body-hd.light .cms-settings-btn i
-  {
   color: black !important;
+}
+
+.body-hd.dark .ui-button.ui-button-flat.cms-settings-btn,
+.body-hd.dark .ui-button.ui-button-flat.cms-translate-btn {
+  color: white !important;
 }
 
 .column-header {

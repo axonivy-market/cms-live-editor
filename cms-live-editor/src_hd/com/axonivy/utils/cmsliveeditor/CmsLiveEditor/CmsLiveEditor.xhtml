@@ -13,9 +13,9 @@
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
       <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card mb-0">
-        <ui:include src="/resources/cms-settings-dialog.xhtml"/>
-        <ui:include src="/resources/translation-review-dialog.xhtml"/>
-          <h:panelGroup styleClass="flex flex-column" layout="block">
+        <ui:include src="/resources/cms-settings-dialog.xhtml" />
+        <ui:include src="/resources/translation-review-dialog.xhtml" />
+        <h:panelGroup styleClass="flex flex-column" layout="block">
           <div
             class="flex align-items-center justify-content-between mb-1">
             <div class="mb-3">
@@ -29,48 +29,54 @@
                 <p:tooltip for="switch-view-path-btn"
                   value="#{cmsLiveEditorBean.showFullPath ? ivy.cms.co('/Labels/ShowShortPath') : ivy.cms.co('/Labels/ShowFullPath')}" />
               </p:toggleSwitch>
-              <div class="bg-gray-100 vertical-divider"></div>
-              <p:commandLink id="cms-settings-btn"
-                onclick="PF('cmsSettingsDialog').show(); return false;"
-                styleClass="cms-settings-btn">
-                <i class="pi pi-cog"></i>
-                <p:tooltip for="cms-settings-btn"
-                  value="#{ivy.cms.co('/Labels/Settings')}" />
-              </p:commandLink>
-              <div class="bg-gray-100 vertical-divider"></div>
-              <p:commandLink id="cms-translate-btn"
+              <div class="bg-gray-100 vertical-divider" />
+              <p:commandButton id="cms-settings-btn" icon="pi pi-cog"
+                styleClass="rounded-button ui-button-flat cms-settings-btn"
+                onclick="PF('cmsSettingsDialog').show(); return false;" />
+              <p:tooltip for="cms-settings-btn"
+                value="#{ivy.cms.co('/Labels/Settings')}" />
+              <div class="bg-gray-100 vertical-divider" />
+              <p:commandButton id="cms-translate-btn"
+                icon="pi pi-language"
                 actionListener="#{cmsLiveEditorBean.translateAll}"
+                styleClass="rounded-button ui-button-flat cms-translate-btn"
                 process="table-cms-keys"
                 update=":content-form:reviewContent"
-                oncomplete="PF('translationReviewDialog').show();"
-                styleClass="cms-translate-btn">
-                <i class="pi pi-language"></i>
-                <p:tooltip for="cms-translate-btn"
-                  value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
-              </p:commandLink>
+                oncomplete="PF('translationReviewDialog').show();" />
+              <p:tooltip for="cms-translate-btn"
+                value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
             </div>
           </div>
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">
-              <p:selectOneMenu id="app" value="#{cmsLiveEditorBean.selectedProjectName}" class="w-full">
-                <f:selectItem itemLabel="#{ivy.cms.co('/Labels/AllProjects')}" itemValue="#{null}" />
+              <p:selectOneMenu id="app"
+                value="#{cmsLiveEditorBean.selectedProjectName}"
+                class="w-full">
+                <f:selectItem
+                  itemLabel="#{ivy.cms.co('/Labels/AllProjects')}"
+                  itemValue="#{null}" />
                 <f:selectItems value="#{cmsLiveEditorBean.projectCms}" />
-                <p:ajax process="@this" listener="#{cmsLiveEditorBean.onAppChange}" />
+                <p:ajax process="@this"
+                  listener="#{cmsLiveEditorBean.onAppChange}" />
               </p:selectOneMenu>
             </div>
             <div class="search-column w-full">
-              <span class="ui-input-icon-left w-full"> <i class="pi pi-search" /> <p:inputText id="search-input"
-                  value="#{cmsLiveEditorBean.searchKey}" placeholder="#{ivy.cms.co('/Labels/Search')}"
+              <span class="ui-input-icon-left w-full"> <i
+                class="pi pi-search" /> <p:inputText id="search-input"
+                  value="#{cmsLiveEditorBean.searchKey}"
+                  placeholder="#{ivy.cms.co('/Labels/Search')}"
                   styleClass="w-full p-inputtext">
-                  <p:ajax event="keyup" listener="#{cmsLiveEditorBean.search}"
-                    update="table-cms-keys content-form:cms-values content-form:cms-edit-value" delay="500"
-                    process="@this" />
+                  <p:ajax event="keyup"
+                    listener="#{cmsLiveEditorBean.search}"
+                    update="table-cms-keys content-form:cms-values content-form:cms-edit-value"
+                    delay="500" process="@this" />
                 </p:inputText>
               </span>
             </div>
           </div>
 
-          <h:panelGroup layout="block" class="column-container flex" id="column-container">
+          <h:panelGroup layout="block" class="column-container flex"
+            id="column-container">
             <h:panelGroup layout="block" id="path-column"
               styleClass="col-5 p-0 h-full right-border flex flex-column">
               <div
@@ -96,11 +102,10 @@
                   selection="#{cmsLiveEditorBean.selectedCmsEntries}"
                   selectionMode="multiple" rowSelectMode="new"
                   widgetVar="tableCmsKeysWidget" scrollHeight="100%"
-                  scrollable="true" scrollRows="100" virtualScroll="true"
-                  styleClass="cms-path-table">
+                  scrollable="true" scrollRows="5000"
+                  virtualScroll="true" styleClass="cms-path-table">
                   <p:column>
-                    <span class="path-row">
-                      <h:outputText
+                    <span class="path-row"> <h:outputText
                         class="cms-uri" id="cms-uri"
                         value="#{cmsLiveEditorBean.showFullPath ? entry.uri : entry.shortUri}" />
                       <h:panelGroup
@@ -127,16 +132,27 @@
               </h:panelGroup>
             </h:panelGroup>
 
-            <h:panelGroup layout="block" id="cms-columns" styleClass="col-7 p-0 flex">
+            <h:panelGroup layout="block" id="cms-columns"
+              styleClass="col-7 p-0 flex">
               <h:panelGroup layout="block" id="current-cms-column"
                 styleClass="#{cmsLiveEditorBean.editableCms ? 'col-6' : 'col-12'} flex flex-column p-0">
-                <div class="column-header flex align-items-center justify-content-between">
-                  <div class="flex align-items-center gap-2">
-                    <span class="font-semibold text-lg cms-title"> #{ivy.cms.co('/Labels/CMS')} </span>
-                    <i class="pi pi-info-circle cms-info-icon" title="#{ivy.cms.co('/Labels/ProjectCMSApplication')}" />
+                <div
+                  class="column-header flex align-items-center justify-content-between">
+                  <div
+                    class="flex align-items-center gap-2 cms-title-column">
+                    <span class="font-semibold text-lg cms-title">
+                      #{ivy.cms.co('/Labels/CMS')} </span>
+                    <p:outputPanel id="cms-info"
+                      styleClass="cms-info-icon">
+                      <i class="pi pi-info-circle cms-info-icon" />
+                    </p:outputPanel>
+                    <p:tooltip for="cms-info" position="top"
+                      value="#{ivy.cms.co('/Labels/ProjectCMSApplication')}"
+                      styleClass="cms-tooltip cms-info-hint" />
                   </div>
 
-                  <p:commandLink id="undo-change-path" rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
+                  <p:commandLink id="undo-change-path"
+                    rendered="#{cmsLiveEditorBean.isRenderUndoChange()}"
                     actionListener="#{cmsLiveEditorBean.undoChange}"
                     update="column-container table-cms-keys cms-values cms-edit-value"
                     oncomplete="restorePathPanelScroll(); clearValidationFailedState();"
@@ -145,16 +161,27 @@
                     <span> #{ivy.cms.co('/Labels/UndoChanges')} </span>
                   </p:commandLink>
                 </div>
-                <h:panelGroup styleClass="panel w-full flex flex-column justify-content-between" layout="block">
-                  <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
-                    <p:accordionPanel id="cms-values" multiple="true" widgetVar="multiple"
-                      value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
+                <h:panelGroup
+                  styleClass="panel w-full flex flex-column justify-content-between"
+                  layout="block">
+                  <h:panelGroup
+                    styleClass="overflow-auto cms-scroll-wrapper"
+                    layout="block">
+                    <p:accordionPanel id="cms-values" multiple="true"
+                      widgetVar="multiple"
+                      value="#{cmsLiveEditorBean.selectedCms.contents}"
+                      activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language">
-                      <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}">
-                        <h:panelGroup styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
-                          <ic:com.axonivy.utils.cmsliveeditor.component.Editor originalContent="#{language.originalContent}"
-                            content="#{language.content}" languageIndex="#{language.index}"
-                            managedBean="#{cmsLiveEditorBean}" isReadOnly="true"
+                      <p:tab id="cms-values-tab"
+                        title="#{language.locale.displayLanguage}">
+                        <h:panelGroup styleClass="ui-fluid"
+                          rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
+                          <ic:com.axonivy.utils.cmsliveeditor.component.Editor
+                            originalContent="#{language.originalContent}"
+                            content="#{language.content}"
+                            languageIndex="#{language.index}"
+                            managedBean="#{cmsLiveEditorBean}"
+                            isReadOnly="true"
                             isHtmlFormat="#{language.html}" />
                         </h:panelGroup>
                         <h:panelGroup
@@ -166,17 +193,21 @@
                             actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, false)}"
                             update="preview-document-dialog"
                             oncomplete="PF('preview-document-dialog').show();">
-                            <h:panelGroup layout="block" class="cms-file-item-icon">
-                              <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
+                            <h:panelGroup layout="block"
+                              class="cms-file-item-icon">
+                              <i
+                                class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
                             </h:panelGroup>
                             <div class="cms-file-item-description">
                               <h:outputText id="cms-file-item-name"
                                 value="#{language.fileName}"
                                 styleClass="cms-file-item-name" />
-                              <h:outputText rendered="#{cmsLiveEditorBean.editableCms eq false}"
+                              <h:outputText
+                                rendered="#{cmsLiveEditorBean.editableCms eq false}"
                                 value="#{cmsLiveEditorBean.selectedCms.fileExtension} - #{language.applicationFileSize > 0 ? language.applicationFileSize : language.fileSize} KB"
                                 styleClass="cms-file-item-type" />
-                              <h:outputText rendered="#{cmsLiveEditorBean.editableCms eq true}"
+                              <h:outputText
+                                rendered="#{cmsLiveEditorBean.editableCms eq true}"
                                 value="#{cmsLiveEditorBean.selectedCms.fileExtension} - #{language.fileSize} KB"
                                 styleClass="cms-file-item-type" />
                             </div>
@@ -193,88 +224,128 @@
                       <span>#{ivy.cms.co("/Labels/ChangesSaved")}</span>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" styleClass="cms-warning mt-2" id="cms-warning-container">
+                    <h:panelGroup layout="block"
+                      styleClass="cms-warning mt-2"
+                      id="cms-warning-container">
                       <div class="cms-warning-title">
-                        <i class="pi pi-exclamation-triangle cms-warning-icon" /> <span>
-                          #{ivy.cms.co('/Labels/Warning')} </span>
+                        <i
+                          class="pi pi-exclamation-triangle cms-warning-icon" />
+                        <span> #{ivy.cms.co('/Labels/Warning')} </span>
                       </div>
                       <div class="cms-warning-content">
-                        <span> #{ivy.cms.co('/Labels/CMSWarningTextForDownload')}</span>
+                        <span>
+                          #{ivy.cms.co('/Labels/CMSWarningTextForDownload')}</span>
                       </div>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" id="download-edit-button-container" styleClass="flex gap-2">
-                      <p:menuButton id="download-button" value="#{ivy.cms.co('/Labels/Download')}" icon="pi pi-download"
-                        styleClass="w-full mt-3" buttonStyleClass="cms-download-btn w-full" menuStyleClass="cms-download-menu">
-                        <c:forEach items="#{cmsLiveEditorBean.exportOptions}" var="option">
-                          <p:menuitem value="#{option.label}" icon="#{option.icon}"
-                            actionListener="#{cmsLiveEditorBean.exportCms(option.type)}" ajax="false"
-                            onstart="initCmsWarnings();"
+                    <h:panelGroup layout="block"
+                      id="download-edit-button-container"
+                      styleClass="flex gap-2">
+                      <p:menuButton id="download-button"
+                        value="#{ivy.cms.co('/Labels/Download')}"
+                        icon="pi pi-download" styleClass="w-full mt-3"
+                        buttonStyleClass="cms-download-btn w-full"
+                        menuStyleClass="cms-download-menu">
+                        <c:forEach
+                          items="#{cmsLiveEditorBean.exportOptions}"
+                          var="option">
+                          <p:menuitem value="#{option.label}"
+                            icon="#{option.icon}"
+                            actionListener="#{cmsLiveEditorBean.exportCms(option.type)}"
+                            ajax="false" onstart="initCmsWarnings();"
                             onclick="PrimeFaces.monitorDownload(function() {}, showDialog('downloadSuccessDlg'));">
-                            <p:fileDownload value="#{cmsLiveEditorBean.file}" />
+                            <p:fileDownload
+                              value="#{cmsLiveEditorBean.file}" />
                           </p:menuitem>
                         </c:forEach>
                       </p:menuButton>
 
-                      <p:commandButton id="edit-button" value="#{ivy.cms.co('/Labels/Edit')}" icon="pi pi-pencil"
-                        process="@this" update="cms-columns" oncomplete="initCmsWarnings(); restorePathPanelScroll();"
+                      <p:commandButton id="edit-button"
+                        value="#{ivy.cms.co('/Labels/Edit')}"
+                        icon="pi pi-pencil" process="@this"
+                        update="cms-columns"
+                        oncomplete="initCmsWarnings(); restorePathPanelScroll();"
                         styleClass="w-full mt-3 ui-button-outlined ui-button-secondary cms-edit-button"
                         actionListener="#{cmsLiveEditorBean.onEditableButton()}"
                         rendered="#{!cmsLiveEditorBean.editableCms}"
-                        disabled="#{cmsLiveEditorBean.disableEditableButton}" partialSubmit="true" />
+                        disabled="#{cmsLiveEditorBean.disableEditableButton}"
+                        partialSubmit="true" />
                     </h:panelGroup>
                   </h:panelGroup>
                 </h:panelGroup>
               </h:panelGroup>
 
-              <h:panelGroup layout="block" id="editable-column" rendered="#{cmsLiveEditorBean.editableCms}"
+              <h:panelGroup layout="block" id="editable-column"
+                rendered="#{cmsLiveEditorBean.editableCms}"
                 styleClass="col-6 flex flex-column editable-column p-0 left-border h-full">
                 <div class="column-header flex align-items-center">
                   <div class="flex align-items-center gap-2">
                     <span class="font-semibold text-lg cms-title">#{ivy.cms.co('/Labels/Edit')}</span>
-                    <p:outputPanel id="message-format-info" styleClass="cms-info-icon">
+                    <p:outputPanel id="message-format-info"
+                      styleClass="cms-info-icon">
                       <i class="pi pi-info-circle"></i>
                     </p:outputPanel>
-                    <p:tooltip for="message-format-info" value="#{ivy.cms.co('/Labels/MessageFormatHint')}"
-                      escape="false" position="right" showDelay="200" styleClass="cms-tooltip" autoHide="false" />
+                    <p:tooltip for="message-format-info"
+                      value="#{ivy.cms.co('/Labels/MessageFormatHint')}"
+                      escape="false" position="right" showDelay="200"
+                      styleClass="cms-tooltip edit-cms-info-hint"
+                      autoHide="false" />
                   </div>
                 </div>
-                <h:panelGroup styleClass="panel end w-full flex flex-column justify-content-between" layout="block">
-                  <h:panelGroup styleClass="overflow-auto cms-scroll-wrapper" layout="block">
-                    <p:accordionPanel id="cms-edit-value" multiple="true" widgetVar="multipleEdit"
-                      value="#{cmsLiveEditorBean.selectedCms.contents}" activeIndex="#{cmsLiveEditorBean.activeIndex}"
+                <h:panelGroup
+                  styleClass="panel end w-full flex flex-column justify-content-between"
+                  layout="block">
+                  <h:panelGroup
+                    styleClass="overflow-auto cms-scroll-wrapper"
+                    layout="block">
+                    <p:accordionPanel id="cms-edit-value"
+                      multiple="true" widgetVar="multipleEdit"
+                      value="#{cmsLiveEditorBean.selectedCms.contents}"
+                      activeIndex="#{cmsLiveEditorBean.activeIndex}"
                       var="language" onTabClose="handleTabClose(panel)">
-                      <p:tab id="cms-values-tab" title="#{language.locale.displayLanguage}"
+                      <p:tab id="cms-values-tab"
+                        title="#{language.locale.displayLanguage}"
                         titleStyleClass="#{language.invalid ? 'cms-editor-error' : ''}">
                         <f:facet name="actions">
                           <h:panelGroup id="upload-pannel">
                             <p:fileUpload id="upload"
                               listener="#{cmsLiveEditorBean.handleFileUpload}"
                               rendered="#{cmsLiveEditorBean.selectedCms.isFile()}"
-                              value="#{language.newUploadedFile}" virusScan="true"
-                              process="@this" auto="true" accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
+                              value="#{language.newUploadedFile}"
+                              virusScan="true" process="@this"
+                              auto="true"
+                              accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
                               chooseIcon="pi pi-paperclip change-document-link"
                               update="@this content-form:cms-edit-value:#{language.index}:cms-file-item-container content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
                               styleClass="change-document-link-text"
                               label="#{(language.applicationFileSize > 0 or language.fileSize > 0 or language.newFileSize > 0) ? ivy.cms.co('/Labels/ChangeDocument') : ivy.cms.co('/Labels/AttachDocument')}"
                               fileLimit="1" mode="simple"
                               skinSimple="true">
-                              <f:attribute name="index" value="#{language.index}" />
+                              <f:attribute name="index"
+                                value="#{language.index}" />
                             </p:fileUpload>
-                            <p:commandLink rendered="#{cmsLiveEditorBean.isRenderTranslateButton(language)}"
-                              actionListener="#{cmsLiveEditorBean.translate(language)}"
-                              process="@this" update="@none"
-                              oncomplete="updateEditorContent(xhr, status, args)"
-                              styleClass="cms-translate-btn"
-                              title="#{ivy.cms.co('/Labels/Translate')}">
-                              <i class="pi pi-language"></i>
-                            </p:commandLink>
                           </h:panelGroup>
+                          <p:commandButton id="cms-translate-btn"
+                            icon="pi pi-language"
+                            rendered="#{cmsLiveEditorBean.isRenderTranslateButton(language)}"
+                            styleClass="rounded-button ui-button-flat cms-translate-btn -mt-2"
+                            actionListener="#{cmsLiveEditorBean.translate(language)}"
+                            process="@this" update="@none"
+                            title="#{ivy.cms.co('/Labels/Translate')}"
+                            oncomplete="updateEditorContent(xhr, status, args)">
+                          </p:commandButton>
+                          <p:tooltip for="cms-translate-btn"
+                            value="#{ivy.cms.co('/Labels/Translate')}" />
                         </f:facet>
-                        <h:panelGroup id="editor-wrapper" styleClass="ui-fluid" rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
-                          <ic:com.axonivy.utils.cmsliveeditor.component.Editor content="#{language.content}"
-                            languageIndex="#{language.index}" managedBean="#{cmsLiveEditorBean}"
-                            isReadOnly="#{!cmsLiveEditorBean.editableCms}" isHtmlFormat="#{language.isHtmlContent}" />
+                        <h:panelGroup id="editor-wrapper"
+                          styleClass="ui-fluid"
+                          rendered="#{!cmsLiveEditorBean.selectedCms.isFile()}">
+                          <ic:com.axonivy.utils.cmsliveeditor.component.Editor
+                            content="#{language.content}"
+                            languageIndex="#{language.index}"
+                            managedBean="#{cmsLiveEditorBean}"
+                            isReadOnly="#{!cmsLiveEditorBean.editableCms}"
+                            isHtmlFormat="#{language.isHtmlContent}" />
                         </h:panelGroup>
                         <h:panelGroup id="cms-file-item-container">
                           <h:panelGroup id="cms-file-item"
@@ -286,8 +357,10 @@
                               actionListener="#{logic.previewDocument(language, cmsLiveEditorBean.editableCms, true)}"
                               update="preview-document-dialog"
                               oncomplete="PF('preview-document-dialog').show();">
-                              <h:panelGroup layout="block" class="cms-file-item-icon">
-                                <i class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
+                              <h:panelGroup layout="block"
+                                class="cms-file-item-icon">
+                                <i
+                                  class="#{cmsLiveEditorBean.selectedCms.fileType.iconClasses}" />
                               </h:panelGroup>
                               <div class="cms-file-item-description">
                                 <h:outputText id="cms-file-item-name"
@@ -298,48 +371,66 @@
                                   styleClass="cms-file-item-type" />
                               </div>
                             </p:commandLink>
-                            <p:commandLink rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}" action="#{cmsLiveEditorBean.removeCmsFileInApplicationCms(language.index)}"
-                              styleClass="remove-document-icon" update="content-form:cms-edit-value:#{language.index}:cms-file-item-container">
+                            <p:commandLink
+                              rendered="#{language.newFileSize > 0 or language.applicationFileSize > 0}"
+                              action="#{cmsLiveEditorBean.removeCmsFileInApplicationCms(language.index)}"
+                              styleClass="remove-document-icon"
+                              update="content-form:cms-edit-value:#{language.index}:cms-file-item-container">
                               <i class="pi pi-trash" />
                             </p:commandLink>
                           </h:panelGroup>
                         </h:panelGroup>
-                        <p:messages id="cms-file-content-msg" styleClass="cms-file-error-message" showDetail="true" />
+                        <p:messages id="cms-file-content-msg"
+                          styleClass="cms-file-error-message"
+                          showDetail="true" />
                       </p:tab>
                     </p:accordionPanel>
                   </h:panelGroup>
 
                   <h:panelGroup layout="block" styleClass="button-group">
-                    <h:panelGroup layout="block" styleClass="cms-warning" id="cms-warning-save-container">
+                    <h:panelGroup layout="block"
+                      styleClass="cms-warning"
+                      id="cms-warning-save-container">
                       <div class="cms-warning-title">
-                        <i class="pi pi-exclamation-triangle cms-warning-icon" />
+                        <i
+                          class="pi pi-exclamation-triangle cms-warning-icon" />
                         <span>#{ivy.cms.co('/Labels/Warning')}</span>
                       </div>
                       <div class="cms-warning-content">
-                        <span> #{ivy.cms.co('/Labels/CMSWarningTextForSave')}</span>
+                        <span>
+                          #{ivy.cms.co('/Labels/CMSWarningTextForSave')}</span>
                       </div>
                     </h:panelGroup>
 
                     <h:panelGroup layout="block" id="cms-error-wrapper">
-                      <h:panelGroup layout="block" id="cms-error-container" styleClass="cms-error" rendered="#{facesContext.validationFailed}">
+                      <h:panelGroup layout="block"
+                        id="cms-error-container" styleClass="cms-error"
+                        rendered="#{facesContext.validationFailed}">
                         <div class="cms-error-title">
-                          <i class="si-delete-1 cms-error-icon" /> 
-                          <span>#{ivy.cms.co('/Labels/Error')}</span>
+                          <i class="si-delete-1 cms-error-icon" /> <span>#{ivy.cms.co('/Labels/Error')}</span>
                         </div>
                         <div class="cms-error-content">
-                          <span> #{ivy.cms.co('/Labels/CMSPlaceHolderErrorMessage')}</span>
+                          <span>
+                            #{ivy.cms.co('/Labels/CMSPlaceHolderErrorMessage')}</span>
                         </div>
                       </h:panelGroup>
                     </h:panelGroup>
 
-                    <h:panelGroup layout="block" id="cancel-save-button-container" styleClass="flex gap-2">
-                      <p:commandButton id="cancel-edit-button" value="#{ivy.cms.co('/Labels/Cancel')}"
+                    <h:panelGroup layout="block"
+                      id="cancel-save-button-container"
+                      styleClass="flex gap-2">
+                      <p:commandButton id="cancel-edit-button"
+                        value="#{ivy.cms.co('/Labels/Cancel')}"
                         icon="pi pi-times" process="@this"
                         styleClass="flex-1 mt-3 ui-button-outlined ui-button-secondary cms-cancel-button"
-                        update="column-container" actionListener="#{cmsLiveEditorBean.onCancelEditableButton()}"
+                        update="column-container"
+                        actionListener="#{cmsLiveEditorBean.onCancelEditableButton()}"
                         oncomplete="restorePathPanelScroll(); initCmsWarnings(); clearValidationFailedState();" />
-                      <p:commandButton id="save-button" value="#{ivy.cms.co('/Labels/Save')}" icon="pi pi-save"
-                        process="@this table-cms-keys editable-column" actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
+                      <p:commandButton id="save-button"
+                        value="#{ivy.cms.co('/Labels/Save')}"
+                        icon="pi pi-save"
+                        process="@this table-cms-keys editable-column"
+                        actionListener="#{cmsLiveEditorBean.writeCmsToApplication()}"
                         update="cms-error-wrapper"
                         styleClass="flex-1 mt-3 ui-button-raised ui-button-primary cms-save-button"
                         onclick="saveAllEditors();"
@@ -353,20 +444,26 @@
           </h:panelGroup>
         </h:panelGroup>
         <div>
-          <p:remoteCommand name="stop" global="false" partialSubmit="true" process="@this" update="content-form"
+          <p:remoteCommand name="stop" global="false"
+            partialSubmit="true" process="@this" update="content-form"
             actionListener="#{cmsLiveEditorBean.downloadFinished}" />
-          <p:remoteCommand name="saveAllValue" global="false" partialSubmit="true" process="@this"
+          <p:remoteCommand name="saveAllValue" global="false"
+            partialSubmit="true" process="@this"
             actionListener="#{cmsLiveEditorBean.saveAll}" />
         </div>
 
-        <p:dialog id="resetConfirmDlg" widgetVar="resetConfirmDlg" modal="true" closable="true" draggable="false" closeOnEscape="true"
-          resizable="false" showHeader="false" styleClass="reset-confirm-dialog" width="420">
+        <p:dialog id="resetConfirmDlg" widgetVar="resetConfirmDlg"
+          modal="true" closable="true" draggable="false"
+          closeOnEscape="true" resizable="false" showHeader="false"
+          styleClass="reset-confirm-dialog" width="420">
           <div class="p-4">
             <div class="text-lg font-semibold mb-2">#{ivy.cms.co("/Labels/ResetAllChangeConfirmation")}</div>
             <div class="mb-3">
-              <h:outputText value="#{ivy.cms.co('/Labels/ResetAdvice')}" escape="false"
-                styleClass="text-sm text-color-secondary" />
-              <p:inputText id="resetConfirmInput" value="#{cmsLiveEditorBean.resetConfirmText}" styleClass="w-full mt-2"
+              <h:outputText value="#{ivy.cms.co('/Labels/ResetAdvice')}"
+                escape="false" styleClass="text-sm text-color-secondary" />
+              <p:inputText id="resetConfirmInput"
+                value="#{cmsLiveEditorBean.resetConfirmText}"
+                styleClass="w-full mt-2"
                 onkeydown="if(event.key==='Enter'){var btn=document.getElementById('content-form:resetBtn');if(btn&amp;&amp;!btn.disabled){btn.click();}}">
                 <p:ajax event="keyup" update="resetBtn" />
               </p:inputText>
@@ -375,49 +472,61 @@
               <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
                 styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
                 onclick="PF('resetConfirmDlg').hide(); return false;" />
-              <p:commandButton id="resetBtn" value="#{ivy.cms.co('/Labels/ResetAll')}"
-                styleClass="ui-button-danger w-full" actionListener="#{cmsLiveEditorBean.resetAllChanges}"
-                disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}" oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
+              <p:commandButton id="resetBtn"
+                value="#{ivy.cms.co('/Labels/ResetAll')}"
+                styleClass="ui-button-danger w-full"
+                actionListener="#{cmsLiveEditorBean.resetAllChanges}"
+                disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}"
+                oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
             </div>
           </div>
         </p:dialog>
       </h:form>
 
-      <p:dialog id="downloadSuccessDlg" widgetVar="downloadSuccessDlg" modal="true" closable="false" draggable="false"
-        resizable="false" showEffect="fade" hideEffect="fade" showHeader="false" styleClass="success-dialog">
+      <p:dialog id="downloadSuccessDlg" widgetVar="downloadSuccessDlg"
+        modal="true" closable="false" draggable="false"
+        resizable="false" showEffect="fade" hideEffect="fade"
+        showHeader="false" styleClass="success-dialog">
         <div class="text-center p-4">
           <i class="pi pi-check icon-checked" />
           <div class="text-lg font-semibold">
-            <h:outputText value="#{ivy.cms.co('/Labels/CmsDownloaded')}" escape="false" />
+            <h:outputText value="#{ivy.cms.co('/Labels/CmsDownloaded')}"
+              escape="false" />
           </div>
         </div>
       </p:dialog>
 
-      <p:dialog id="content-not-been-saved-dlg" widgetVar="content-not-been-saved-dlg" modal="true" closable="true"
-        draggable="false" resizable="false" showHeader="true" styleClass="custom-message-dialog" width="420">
+      <p:dialog id="content-not-been-saved-dlg"
+        widgetVar="content-not-been-saved-dlg" modal="true"
+        closable="true" draggable="false" resizable="false"
+        showHeader="true" styleClass="custom-message-dialog" width="420">
         <f:facet name="header">
-          <span class="align-items-center gap-2">
-            <i class="si-road-sign-warning" />
-            <h:outputText styleClass="ml-2" value="#{ivy.cms.co('/Labels/Warning')}" escape="false" />
+          <span class="align-items-center gap-2"> <i
+            class="si-road-sign-warning" /> <h:outputText
+              styleClass="ml-2" value="#{ivy.cms.co('/Labels/Warning')}"
+              escape="false" />
           </span>
         </f:facet>
 
         <div class="mb-3 ml-4">
-          <h:outputText value="#{ivy.cms.co('/Labels/FieldHasNotBeenSavedMessage')}" />
-          <h:outputText value="#{cmsLiveEditorBean.dialogDetail}" escape="false" />
+          <h:outputText
+            value="#{ivy.cms.co('/Labels/FieldHasNotBeenSavedMessage')}" />
+          <h:outputText value="#{cmsLiveEditorBean.dialogDetail}"
+            escape="false" />
         </div>
       </p:dialog>
 
       <!-- Dialog for previewing document -->
       <p:dialog widgetVar="preview-document-dialog"
-        id="preview-document-dialog" header="#{ivy.cms.co('/Labels/Preview')}" modal="true"
+        id="preview-document-dialog"
+        header="#{ivy.cms.co('/Labels/Preview')}" modal="true"
         maximizable="true" width="850" height="650" showEffect="fade"
         hideEffect="fade" dynamic="true" fitViewport="true"
         responsive="true">
 
         <div class="ui-g-12">
-          <p:media value="#{data.streamedContent}" width="100%" height="620"
-            cache="false" id="media-content" player="pdf" />
+          <p:media value="#{data.streamedContent}" width="100%"
+            height="620" cache="false" id="media-content" player="pdf" />
         </div>
       </p:dialog>
       <script type="text/javascript">
