@@ -4,6 +4,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 
@@ -115,5 +116,23 @@ public class Cms implements Serializable {
 
   public boolean hasTextContents() {
     return !isFile && contents != null && !contents.isEmpty();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Cms)) {
+      return false;
+    }
+
+    Cms cms = (Cms) o;
+    return Objects.equals(uri, cms.getUri());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uri);
   }
 }

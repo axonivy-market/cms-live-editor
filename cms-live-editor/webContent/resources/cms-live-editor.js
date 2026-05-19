@@ -249,6 +249,15 @@ function applyValidationFailedState(failedIndices) {
   }
 }
 
+function submitResetOnEnter(event) {
+  if (event.key === 'Enter') {
+    const resetBtn = document.getElementById('content-form:resetBtn');
+    if (resetBtn && !resetBtn.disabled) {
+      resetBtn.click();
+    }
+  }
+}
+
 function clearValidationFailedState() {
   for (const languageIndex in window.cmsLiveEditorIds) {
     setEditorError(Number(languageIndex), false);

@@ -29,6 +29,7 @@ import ch.ivyteam.ivy.security.exec.Sudo;
 
 public class CmsService {
   private static CmsService instance;
+  private static ContentManagementSystem contentManagementSystem;
 
   public static CmsService getInstance() {
     if (instance == null) {
@@ -38,8 +39,10 @@ public class CmsService {
   }
 
   public ContentManagementSystem getContentManagementSystemOfCurrentApplication() {
-    IApplication currentApplication = IApplication.current();
-    return ContentManagement.cms(currentApplication);
+    if(contentManagementSystem == null) {
+      contentManagementSystem = ContentManagement.cms(IApplication.current());
+    }
+    return contentManagementSystem;
   }
 
   private ContentObject createOrGetCmsByUri(String uri) {
