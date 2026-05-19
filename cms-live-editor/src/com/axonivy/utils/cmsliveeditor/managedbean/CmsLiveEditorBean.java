@@ -103,7 +103,7 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
-  private boolean showFullPath;
+  private boolean isFullPathVisible;
   private String resetConfirmText;
   private String dialogDetail;
   private String selectedSourceLocale;
@@ -123,7 +123,7 @@ public class CmsLiveEditorBean implements Serializable {
     }
     onAppChange();
     initLocales();
-    showFullPath = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
+    isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
   }
 
   private static boolean isActive(IActivity processModelVersion) {
@@ -457,7 +457,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void savePathViewStatus() {
-    IvyUserService.setUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS, showFullPath);
+    IvyUserService.setUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS, isFullPathVisible);
   }
 
   private boolean isEditing() {
@@ -741,12 +741,12 @@ public class CmsLiveEditorBean implements Serializable {
     this.savedCmsMap = savedCmsMap;
   }
 
-  public boolean isShowFullPath() {
-    return showFullPath;
+  public boolean isFullPathVisible() {
+    return isFullPathVisible;
   }
 
-  public void setShowFullPath(boolean showFullPath) {
-    this.showFullPath = showFullPath;
+  public void setFullPathVisible(boolean isFullPathVisible) {
+    this.isFullPathVisible = isFullPathVisible;
   }
 
   public LazyDataModel<Cms> getLazyDataModel() {

@@ -12,7 +12,6 @@ import ch.ivyteam.ivy.environment.IvyTest;
 @IvyTest
 public class PathUtilsTest {
 
-  // ===== Paths =====
   private static final String lONG_URI = "/com/axonivy/utils/demo/EmailFormat/name";
   private static final String SHORT_PATH_OF_lONG_URI = "../EmailFormat/name";
   private static final String SHORT_URI = "/Labels/Login";

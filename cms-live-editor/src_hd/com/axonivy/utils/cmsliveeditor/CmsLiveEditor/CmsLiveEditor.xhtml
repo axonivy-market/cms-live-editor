@@ -22,12 +22,12 @@
               <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
             </div>
             <div class="header-actions">
-              <p:toggleSwitch id="switch-view-path-btn" value="#{cmsLiveEditorBean.showFullPath}"
+              <p:toggleSwitch id="switch-view-path-btn" value="#{cmsLiveEditorBean.fullPathVisible}"
                 styleClass="switch-view-path-btn" onIcon="pi pi-check" offIcon="pi pi-times">
                 <p:ajax listener="#{cmsLiveEditorBean.savePathViewStatus()}"
                   update="table-cms-keys switch-view-path-btn" />
                 <p:tooltip for="switch-view-path-btn"
-                  value="#{cmsLiveEditorBean.showFullPath ? ivy.cms.co('/Labels/ShowShortPath') : ivy.cms.co('/Labels/ShowFullPath')}" />
+                  value="#{ivy.cms.co(cmsLiveEditorBean.fullPathVisible ? '/Labels/ShowShortPath' : '/Labels/ShowFullPath')}" />
               </p:toggleSwitch>
               <div class="bg-gray-100 vertical-divider" />
               <p:commandButton id="cms-settings-btn" icon="pi pi-cog"
@@ -107,7 +107,7 @@
                   <p:column>
                     <span class="path-row"> <h:outputText
                         class="cms-uri" id="cms-uri"
-                        value="#{cmsLiveEditorBean.showFullPath ? entry.uri : entry.shortUri}" />
+                        value="#{cmsLiveEditorBean.fullPathVisible ? entry.uri : entry.shortUri}" />
                       <h:panelGroup
                         rendered="#{entry.differentWithApplication}">
                         <span class="orange-dot" />
