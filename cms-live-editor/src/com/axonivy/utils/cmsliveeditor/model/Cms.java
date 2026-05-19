@@ -14,6 +14,8 @@ public class Cms implements Serializable {
 
   private String uri;
 
+  private String shortUri;
+
   private List<CmsContent> contents;
 
   private String pmvName;
@@ -42,6 +44,14 @@ public class Cms implements Serializable {
 
   public void setUri(String uri) {
     this.uri = uri;
+  }
+
+  public String getShortUri() {
+    return shortUri;
+  }
+
+  public void setShortUri(String shortUri) {
+    this.shortUri = shortUri;
   }
 
   public List<CmsContent> getContents() {

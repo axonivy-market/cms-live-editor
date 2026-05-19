@@ -61,6 +61,7 @@ import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
+import com.axonivy.utils.cmsliveeditor.utils.PathUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -98,6 +99,7 @@ public class CmsLiveEditorBean implements Serializable {
   private boolean isShowEditorCms;
   private Map<String, PmvCms> pmvCmsMap;
   private boolean isEditableCms;
+  private boolean isFullPathVisible;
   private String resetConfirmText;
   private String dialogDetail;
   private String selectedSourceLocale;
@@ -117,6 +119,7 @@ public class CmsLiveEditorBean implements Serializable {
     }
     onAppChange();
     initLocales();
+    isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
   }
 
   public void writeCmsToApplication() {
@@ -397,6 +400,10 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
+  public void savePathViewStatus() {
+    IvyUserService.setUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS, isFullPathVisible);
+  }
+
   private boolean isEditing() {
     if (lastSelectedCms == null) {
       return false;
@@ -458,6 +465,7 @@ public class CmsLiveEditorBean implements Serializable {
   private Cms convertToCms(ContentObject contentObject, List<Locale> locales, String pmvName, String fileExtension) {
     var cms = new Cms();
     cms.setUri(contentObject.uri());
+    cms.setShortUri(PathUtils.getLastTwoPathSegments(cms.getUri()));
     cms.setPmvName(pmvName);
     boolean isFile = StringUtils.isNotBlank(fileExtension);
     if (isFile) {
@@ -598,8 +606,8 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void saveSettings() {
-    IvyUserService.updateUserProperty(selectedSourceLocale, selectedTargetLocale);
+  public void saveTranslationSettings() {
+    IvyUserService.updateTranslationUserProperties(selectedSourceLocale, selectedTargetLocale);
   }
 
   public List<ExportOption> getExportOptions() {
@@ -719,5 +727,13 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setSavedCmsMap(Map<String, Map<String, SavedCms>> savedCmsMap) {
     this.savedCmsMap = savedCmsMap;
+  }
+
+  public boolean isFullPathVisible() {
+    return isFullPathVisible;
+  }
+
+  public void setFullPathVisible(boolean isFullPathVisible) {
+    this.isFullPathVisible = isFullPathVisible;
   }
 }
