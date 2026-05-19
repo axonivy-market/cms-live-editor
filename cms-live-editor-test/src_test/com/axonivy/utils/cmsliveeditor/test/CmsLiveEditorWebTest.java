@@ -38,8 +38,10 @@ import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
+import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
@@ -61,6 +63,8 @@ public class CmsLiveEditorWebTest {
   private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
   private static final String CMS_SETTINGS_SAVE_BUTTON = "[id$='content-form:cms-setting-save-btn']";
   private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
+  private static final String SWITCH_VIEW_PATH_BTN = "[id$=':switch-view-path-btn']";
+  private static final String UI_TOGGLE_SWITCH_CHECKED_CLASS = "ui-toggleswitch-checked";
 
   /**
    * Dear Bug Hunter,
@@ -330,6 +334,40 @@ public class CmsLiveEditorWebTest {
     exception.shouldNotBe(visible);
   }
 
+  @Test
+  public void testViewPathSettingWhenSwitchingViewPathWithTwoUsers() {
+    var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
+    switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
+    switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+
+    loginAndStartProcess("cmsAdmin1", "123456");
+    switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
+        .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(2));
+
+    loginAndStartProcess("cmsAdmin", "123456");
+    switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+    switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
+    switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
+        .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testPathValueWhenSwitchingViewPath() {
+    String searchKey = "/Ivy/LE";
+    sendKeysToSearchInput(searchKey);
+    var cmsList = $$(CMS_PATH_URI);
+    var cmsElementWithShortPath = cmsList.findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey));
+    cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5));
+
+    var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
+    switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
+    cmsElementWithShortPath.shouldNotBe(visible);
+    cmsList.findBy(matchText(searchKey)).shouldBe(visible, Duration.ofSeconds(5));
+
+    switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
+    cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5));
+  }
+
   /**
    * Dear Bug Hunter,
    * This credential is intentionally included for educational purposes only and does not provide access to any production systems.
@@ -387,8 +425,8 @@ public class CmsLiveEditorWebTest {
 
   private SelenideElement openFirstCmsAndEdit() {
     SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
-    selectedCms.click();
-    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
+    selectedCms.shouldBe(enabled, Duration.ofSeconds(5)).click();
+    $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled, Duration.ofSeconds(5)).click();
     return selectedCms;
   }
 
