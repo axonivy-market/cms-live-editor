@@ -102,6 +102,12 @@ After clicking on the translate button, a dialog is displayed showing the genera
 - The system uses the configured **Source Language** as input and translates into the **Target Language**
 - Existing translations in the target language will be overwritten when **Translate** button is clicked
 
+### 9. Switching the Paths column view
+
+By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button. It affects both the main page and the Translation Wizard dialog.
+![](./images/25-cms-live-editor-switching-view-path.png)
+![](./images/26-cms-live-editor-short-path-on-translation-dialog.png)
+
 ## Setup
 
 By default, the maximum file size for CMS uploads is 50 MB. If needed, you can modify this limit by changing the configuration variable `com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize`.

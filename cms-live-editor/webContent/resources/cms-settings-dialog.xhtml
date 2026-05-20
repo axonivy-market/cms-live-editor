@@ -48,7 +48,7 @@
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
           id="cms-setting-save-btn"
           styleClass="w-full border-round-lg cms-setting-save-btn"
-          actionListener="#{cmsLiveEditorBean.saveSettings()}"
+          actionListener="#{cmsLiveEditorBean.saveTranslationSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
         <p:commandButton widgetVar="hidden-exit-btn" styleClass="hidden"
