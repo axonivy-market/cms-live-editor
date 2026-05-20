@@ -36,13 +36,17 @@
               <p:tooltip for="cms-settings-btn"
                 value="#{ivy.cms.co('/Labels/Settings')}" />
               <div class="bg-gray-100 vertical-divider" />
-              <p:commandButton id="cms-translate-btn"
-                icon="pi pi-language"
-                actionListener="#{cmsLiveEditorBean.translateAll}"
-                styleClass="rounded-button ui-button-flat cms-translate-btn"
-                process="table-cms-keys"
-                update=":content-form:reviewContent"
-                oncomplete="PF('translationReviewDialog').show();" />
+              <p:menuButton id="cms-translate-btn" icon="pi pi-language"
+                buttonStyleClass="rounded-button ui-button-flat cms-translate-btn">
+                <p:menuitem
+                  value="#{ivy.cms.co('/Labels/TranslateSelectedEntries')}"
+                  actionListener="#{cmsLiveEditorBean.translateAll}"
+                  process="table-cms-keys"
+                  update=":content-form:reviewContent"
+                  oncomplete="PF('translationReviewDialog').show();" />
+                <p:menuitem
+                  value="#{ivy.cms.co('/Labels/TranslateAllEntries')}" />
+              </p:menuButton>
               <p:tooltip for="cms-translate-btn"
                 value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
             </div>

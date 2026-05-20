@@ -72,7 +72,9 @@ Labels:
   Target: target
   TargetLanguage: Target language
   Translate: Translate
+  TranslateAllEntries: Translate all entries
   TranslateMultiple: Translate multiple entries
+  TranslateSelectedEntries: Translate selected entries
   TranslationWizard: Translation wizard
   Translations: Translations
   UndoChanges: Undo changes
