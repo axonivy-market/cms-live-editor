@@ -12,7 +12,9 @@
       <h:outputStylesheet name="layouts/styles/translatinglanguages.css" />
       <h:outputScript name="resources/cms-live-editor.js" target="head" />
 
-      <h:form id="content-form" enctype="multipart/form-data" onkeypress="if (event.keyCode === 13){return false;}" styleClass="card mb-0">
+      <h:form id="content-form" enctype="multipart/form-data"
+        onkeypress="if (event.keyCode === 13){return false;}"
+        styleClass="card mb-0">
         <ui:include src="/resources/cms-settings-dialog.xhtml" />
         <ui:include src="/resources/translation-review-dialog.xhtml" />
         <h:panelGroup styleClass="flex flex-column" layout="block">
@@ -22,9 +24,12 @@
               <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
             </div>
             <div class="header-actions">
-              <p:toggleSwitch id="switch-view-path-btn" value="#{cmsLiveEditorBean.fullPathVisible}"
-                styleClass="switch-view-path-btn" onIcon="pi pi-check" offIcon="pi pi-times">
-                <p:ajax listener="#{cmsLiveEditorBean.savePathViewStatus()}"
+              <p:toggleSwitch id="switch-view-path-btn"
+                value="#{cmsLiveEditorBean.fullPathVisible}"
+                styleClass="switch-view-path-btn" onIcon="pi pi-check"
+                offIcon="pi pi-times">
+                <p:ajax
+                  listener="#{cmsLiveEditorBean.savePathViewStatus()}"
                   update="table-cms-keys switch-view-path-btn" />
                 <p:tooltip for="switch-view-path-btn"
                   value="#{ivy.cms.co(cmsLiveEditorBean.fullPathVisible ? '/Labels/ShowShortPath' : '/Labels/ShowFullPath')}" />
@@ -40,12 +45,30 @@
                 buttonStyleClass="rounded-button ui-button-flat cms-translate-btn">
                 <p:menuitem
                   value="#{ivy.cms.co('/Labels/TranslateSelectedEntries')}"
-                  actionListener="#{cmsLiveEditorBean.translateAll}"
+                  actionListener="#{cmsLiveEditorBean.translateSelectedCmsEntries}"
                   process="table-cms-keys"
+                  rendered="#{cmsLiveEditorBean.selectedCmsEntries.size() lt cmsLiveEditorBean.maxTranslatedCmsEntriesForWarning}"
                   update=":content-form:reviewContent"
                   oncomplete="PF('translationReviewDialog').show();" />
                 <p:menuitem
-                  value="#{ivy.cms.co('/Labels/TranslateAllEntries')}" />
+                  rendered="#{cmsLiveEditorBean.selectedCmsEntries.size() ge cmsLiveEditorBean.maxTranslatedCmsEntriesForWarning}"
+                  actionListener="#{cmsLiveEditorBean.prepareForTranslatingSelectedCmsEntries}"
+                  value="#{ivy.cms.co('/Labels/TranslateSelectedEntries')}"
+                  process="@this" update="content-form:entries-translation-warning-dialog"
+                  oncomplete="PF('translationWanringDialog').show();" />
+                <p:menuitem
+                  value="#{ivy.cms.co('/Labels/TranslateFilteredEntries')}"
+                  actionListener="#{cmsLiveEditorBean.translateFilteredCmsEntries}"
+                  process="table-cms-keys"
+                  rendered="#{cmsLiveEditorBean.filteredCMSKeys.size() lt cmsLiveEditorBean.maxTranslatedCmsEntriesForWarning}"
+                  update=":content-form:reviewContent"
+                  oncomplete="PF('translationReviewDialog').show();" />
+                <p:menuitem
+                  rendered="#{cmsLiveEditorBean.filteredCMSKeys.size() ge cmsLiveEditorBean.maxTranslatedCmsEntriesForWarning}"
+                  actionListener="#{cmsLiveEditorBean.prepareForTranslatingFilteredCmsEntries}"
+                  value="#{ivy.cms.co('/Labels/TranslateFilteredEntries')}"
+                  process="@this" update="content-form:translation-warning-dialog"
+                  oncomplete="PF('translationWanringDialog').show();" />
               </p:menuButton>
               <p:tooltip for="cms-translate-btn"
                 value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
@@ -106,11 +129,10 @@
                   selection="#{cmsLiveEditorBean.selectedCmsEntries}"
                   selectionMode="multiple" rowSelectMode="new"
                   widgetVar="tableCmsKeysWidget" scrollHeight="100%"
-                  scrollable="true" scrollRows="50"
-                  virtualScroll="true" styleClass="cms-path-table">
+                  scrollable="true" scrollRows="100" virtualScroll="true"
+                  styleClass="cms-path-table">
                   <p:column>
-                    <span class="path-row">
-                      <h:outputText
+                    <span class="path-row"> <h:outputText
                         class="cms-uri" id="cms-uri"
                         value="#{cmsLiveEditorBean.fullPathVisible ? entry.uri : entry.shortUri}" />
                       <h:panelGroup
@@ -123,17 +145,18 @@
                   </p:column>
                   <p:ajax event="rowSelect"
                     listener="#{cmsLiveEditorBean.onRowSelect}"
-                    process="table-cms-keys" update="@none"
+                    process="table-cms-keys" update="content-form:cms-translate-btn"
                     partialSubmit="true"
                     onstart="savePathPanelScroll();"
                     oncomplete="restorePathPanelScroll(); initCmsWarnings();" />
 
                   <p:ajax event="rowUnselect" process="table-cms-keys"
-                    update="@none" partialSubmit="true" />
+                    update="content-form:cms-translate-btn" partialSubmit="true" />
                   <p:ajax event="toggleSelect" process="table-cms-keys"
-                    update="@none" partialSubmit="true" />
+                    update="content-form:cms-translate-btn" partialSubmit="true" />
 
                 </p:dataTable>
+                 <p:commandButton id="hidden-btn" styleClass="hidden" />
               </h:panelGroup>
             </h:panelGroup>
 
@@ -459,31 +482,56 @@
 
         <p:dialog id="resetConfirmDlg" widgetVar="resetConfirmDlg"
           modal="true" closable="true" draggable="false"
-          closeOnEscape="true" resizable="false" showHeader="false"
-          styleClass="reset-confirm-dialog" width="420">
-          <div class="p-4">
-            <div class="text-lg font-semibold mb-2">#{ivy.cms.co("/Labels/ResetAllChangeConfirmation")}</div>
-            <div class="mb-3">
-              <h:outputText value="#{ivy.cms.co('/Labels/ResetAdvice')}"
-                escape="false" styleClass="text-sm text-color-secondary" />
-              <p:inputText id="resetConfirmInput"
-                value="#{cmsLiveEditorBean.resetConfirmText}"
-                styleClass="w-full mt-2"
-                onkeydown="if(event.key==='Enter'){var btn=document.getElementById('content-form:resetBtn');if(btn&amp;&amp;!btn.disabled){btn.click();}}">
-                <p:ajax event="keyup" update="resetBtn" />
-              </p:inputText>
-            </div>
-            <div class="flex justify-content-center gap-2">
-              <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
-                styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
-                onclick="PF('resetConfirmDlg').hide(); return false;" />
-              <p:commandButton id="resetBtn"
-                value="#{ivy.cms.co('/Labels/ResetAll')}"
-                styleClass="ui-button-danger w-full"
-                actionListener="#{cmsLiveEditorBean.resetAllChanges}"
-                disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}"
-                oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
-            </div>
+          closeOnEscape="true" resizable="false"
+          header="#{ivy.cms.co('/Labels/ResetAllChangeConfirmation')}"
+          styleClass="confirmation-dialog" width="380">
+          <div class="mb-3">
+            <h:outputText value="#{ivy.cms.co('/Labels/ResetAdvice')}"
+              escape="false" styleClass="text-sm text-color-secondary" />
+            <p:inputText id="resetConfirmInput"
+              value="#{cmsLiveEditorBean.resetConfirmText}"
+              styleClass="w-full mt-2" onkeydown="submitResetOnEnter();">
+              <p:ajax event="keyup" update="resetBtn" />
+            </p:inputText>
+          </div>
+          <div class="flex justify-content-center gap-2">
+            <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
+              styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
+              onclick="PF('resetConfirmDlg').hide(); return false;" />
+            <p:commandButton id="resetBtn"
+              value="#{ivy.cms.co('/Labels/ResetAll')}"
+              styleClass="ui-button-danger w-full"
+              actionListener="#{cmsLiveEditorBean.resetAllChanges}"
+              disabled="#{cmsLiveEditorBean.resetConfirmText ne 'reset'}"
+              oncomplete="PF('resetConfirmDlg').hide(); clearValidationFailedState();" />
+          </div>
+        </p:dialog>
+
+        <p:dialog id="translation-warning-dialog"
+          widgetVar="translationWanringDialog"
+          modal="true" closable="true" draggable="false"
+          resizable="false" closeOnEscape="true"
+          styleClass="confirmation-dialog" width="380">
+          <f:facet name="header">
+            <span class="align-items-center gap-2">
+              <i class="si-road-sign-warning" />
+              <h:outputText styleClass="ml-2" value="#{ivy.cms.co('/Labels/Warning')}" />
+            </span>
+          </f:facet>
+          <div class="mb-3">
+            <h:outputText
+              value="#{ivy.cms.co('/Labels/TranslateMultipleCmsEntriesWarningMessage', [cmsLiveEditorBean.needToBeTranslatedCmsEntries.size()])}"
+              styleClass="text-sm text-color-secondary" escape="false" />
+          </div>
+          <div class="flex justify-content-center gap-2">
+            <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
+              styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
+              onclick="PF('translationWanringDialog').hide(); return false;" />
+            <p:commandButton value="#{ivy.cms.co('/Labels/Approve')}"
+              actionListener="#{cmsLiveEditorBean.translateCmsEntries}"
+              styleClass="ui-button-danger w-full"
+              update=":content-form:reviewContent"
+              oncomplete="PF('translationWanringDialog').hide(); PF('translationReviewDialog').show();" />
           </div>
         </p:dialog>
       </h:form>
@@ -504,7 +552,7 @@
       <p:dialog id="content-not-been-saved-dlg"
         widgetVar="content-not-been-saved-dlg" modal="true"
         closable="true" draggable="false" resizable="false"
-        showHeader="true" styleClass="custom-message-dialog" width="420">
+        showHeader="true" styleClass="custom-message-dialog" width="440">
         <f:facet name="header">
           <span class="align-items-center gap-2"> <i
             class="si-road-sign-warning" /> <h:outputText
@@ -534,21 +582,12 @@
             height="620" cache="false" id="media-content" player="pdf" />
         </div>
       </p:dialog>
+
       <script type="text/javascript">
         window.isHideTaskName = false;
         window.isHideTaskAction = true;
         window.isHideCaseInfo = true;
         window.isWorkingOnATask = false;
-
-        //<![CDATA[
-        document.addEventListener('keydown', function(e) {
-          const table = document.querySelector('[id$="table-cms-keys"]');
-          if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-            e.preventDefault();
-            PF('tableCmsKeysWidget').selectAllRows();
-          }
-        });
-        //]]>
       </script>
     </ui:define>
   </ui:composition>

@@ -13,3 +13,5 @@ Variables:
         cmsliveeditor:
           # Unit is MB.
           MaxUploadedFileSize: "50"
+          # Maximum number of translated CMS entries that can be processed before showing a warning to prevent performance issues.
+          MaxTranslatedCmsEntriesForWarning: "50"

@@ -21,8 +21,6 @@ import org.primefaces.model.file.UploadedFile;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 
-import ch.ivyteam.ivy.environment.Ivy;
-
 public class FileUtils {
 
   private static final List<String> INVALID_FILE_NAME_PARTS = List.of(DOUBLE_DOT, SLASH_CHARACTER, BACKSLASH_CHARACTER);
@@ -36,14 +34,9 @@ public class FileUtils {
   }
 
   public static long getMaxUploadedFileSize() {
-    try {
-      return Long.parseLong(Ivy.var().get("com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize"));
-    } catch (Exception e) {
-      Ivy.log().error(e);
-      return FileConstants.DEFAULT_VALID_SIZE_MB;
-    }
+    return IvyVariableUtils.getIntegerVariableOrDefault("com.axonivy.utils.cmsliveeditor.MaxUploadedFileSize",
+        FileConstants.DEFAULT_VALID_SIZE_MB);
   }
-
 
   public static FileType getFileTypeByExtension(String extension) {
     String fileExtension = String.format(FILE_EXTENSION_FORMAT, StringUtils.lowerCase(extension, Locale.ENGLISH));

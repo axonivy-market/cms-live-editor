@@ -505,6 +505,15 @@
   background: #E5151C !important;
 }
 
-#content-form\:resetConfirmDlg_content {
-  padding: 0;
+.confirmation-dialog.ui-dialog .ui-dialog-titlebar .ui-dialog-title {
+  font-size: 1rem;
+}
+
+.confirmation-dialog.ui-dialog .ui-dialog-titlebar {
+  padding-bottom: 0.5rem;
+}
+
+.confirmation-dialog.ui-dialog .ui-dialog-content {
+  padding-top: 0.5rem;
+  padding-bottom: 1.5rem;
 }

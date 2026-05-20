@@ -47,6 +47,7 @@ import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
+import com.axonivy.utils.cmsliveeditor.constants.CmsConstants;
 import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.ExportType;
@@ -64,6 +65,7 @@ import com.axonivy.utils.cmsliveeditor.service.TranslationService;
 import com.axonivy.utils.cmsliveeditor.utils.CmsContentUtils;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
+import com.axonivy.utils.cmsliveeditor.utils.IvyVariableUtils;
 import com.axonivy.utils.cmsliveeditor.utils.PathUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -90,7 +92,6 @@ public class CmsLiveEditorBean implements Serializable {
   private final CmsService cmsService = CmsService.getInstance();
   private final CmsDownloadService downloadService = CmsDownloadService.getInstance();
 
-
   private Map<String, Map<String, SavedCms>> savedCmsMap;
   private List<Cms> cmsList;
   private List<Cms> filteredCMSList;
@@ -110,6 +111,8 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
+  private List<Cms> needToBeTranslatedCmsEntries;
+  private int maxTranslatedCmsEntriesForWarning;
 
   @PostConstruct
   private void init() {
@@ -124,6 +127,9 @@ public class CmsLiveEditorBean implements Serializable {
     onAppChange();
     initLocales();
     isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
+    maxTranslatedCmsEntriesForWarning = IvyVariableUtils.getIntegerVariableOrDefault(
+        "com.axonivy.utils.cmsliveeditor.maxTranslatedCmsEntriesForWarning",
+        CmsConstants.MAX_TRANSLATED_CMS_ENTRIES_FOR_WANRING);
   }
 
   private static boolean isActive(IActivity processModelVersion) {
@@ -360,14 +366,32 @@ public class CmsLiveEditorBean implements Serializable {
     PF.current().ajax().addCallbackParam("newContent", newValue);
   }
 
-  public void translateAll() {
+  public void translateFilteredCmsEntries() {
+    prepareForTranslatingFilteredCmsEntries();
+    translateCmsEntries();
+  }
+
+  public void prepareForTranslatingFilteredCmsEntries() {
+    needToBeTranslatedCmsEntries = filteredCMSList;
+  }
+
+  public void translateSelectedCmsEntries() {
+    prepareForTranslatingSelectedCmsEntries();
+    translateCmsEntries();
+  }
+
+  public void prepareForTranslatingSelectedCmsEntries() {
+    needToBeTranslatedCmsEntries = selectedCmsEntries;
+  }
+
+  public void translateCmsEntries() {
     String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage();
     String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage();
-    TranslationService.batchTranslate(selectedCmsEntries, src, target);
+    TranslationService.batchTranslate(needToBeTranslatedCmsEntries, src, target);
   }
 
   public void applyTranslations() {
-    for (Cms cms : CmsContentUtils.getTranslatedCms(selectedCmsEntries)) {
+    for (Cms cms : CmsContentUtils.getTranslatedCms(needToBeTranslatedCmsEntries)) {
       CmsContent target = getTargetCmsContent(cms);
       if (target == null || !target.isTranslated()) {
         continue;
@@ -378,6 +402,7 @@ public class CmsLiveEditorBean implements Serializable {
     }
     cmsService.writeCmsToApplication(savedCmsMap);
     selectedCmsEntries = new ArrayList<>();
+    needToBeTranslatedCmsEntries = new ArrayList<>();
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
   }
@@ -642,6 +667,10 @@ public class CmsLiveEditorBean implements Serializable {
     return fileDownload;
   }
 
+  public int getMaxTranslatedCmsEntriesForWarning() {
+    return maxTranslatedCmsEntriesForWarning;
+  }
+
   public List<Cms> getFilteredCMSKeys() {
     return filteredCMSList;
   }
@@ -755,5 +784,13 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void setLazyDataModel(LazyDataModel<Cms> lazyDataModel) {
     this.lazyDataModel = lazyDataModel;
+  }
+
+  public List<Cms> getNeedToBeTranslatedCmsEntries() {
+    return needToBeTranslatedCmsEntries;
+  }
+
+  public void setNeedToBeTranslatedCmsEntries(List<Cms> needToBeTranslatedCmsEntries) {
+    this.needToBeTranslatedCmsEntries = needToBeTranslatedCmsEntries;
   }
 }
