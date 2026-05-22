@@ -54,7 +54,7 @@
                   rendered="#{cmsLiveEditorBean.selectedCmsEntries.size() ge cmsLiveEditorBean.maxTranslatedCmsEntriesForWarning}"
                   actionListener="#{cmsLiveEditorBean.prepareForTranslatingSelectedCmsEntries}"
                   value="#{ivy.cms.co('/Labels/TranslateSelectedEntries')}"
-                  process="@this" update="content-form:entries-translation-warning-dialog"
+                  process="@this" update="content-form:translation-warning-dialog"
                   oncomplete="PF('translationWanringDialog').show();" />
                 <p:menuitem
                   value="#{ivy.cms.co('/Labels/TranslateFilteredEntries')}"
@@ -490,7 +490,7 @@
               escape="false" styleClass="text-sm text-color-secondary" />
             <p:inputText id="resetConfirmInput"
               value="#{cmsLiveEditorBean.resetConfirmText}"
-              styleClass="w-full mt-2" onkeydown="submitResetOnEnter();">
+              styleClass="w-full mt-2">
               <p:ajax event="keyup" update="resetBtn" />
             </p:inputText>
           </div>

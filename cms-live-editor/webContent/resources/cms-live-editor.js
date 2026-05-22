@@ -45,6 +45,11 @@ document.addEventListener('keydown', function (e) {
       process: '@this',
       update: 'content-form:cms-translate-btn'
     });
+  } else if (event.key === ENTER_KEY) {
+    const resetBtn = document.getElementById('content-form:resetBtn');
+    if (resetBtn && !resetBtn.disabled) {
+      resetBtn.click();
+    }
   }
 });
 
@@ -259,15 +264,6 @@ function applyValidationFailedState(failedIndices) {
     const hasError = failedIndices.includes(indexNumber);
     setEditorError(indexNumber, hasError);
     setTabHeaderError(indexNumber, hasError);
-  }
-}
-
-function submitResetOnEnter(event) {
-  if (event.key === ENTER_KEY) {
-    const resetBtn = document.getElementById('content-form:resetBtn');
-    if (resetBtn && !resetBtn.disabled) {
-      resetBtn.click();
-    }
   }
 }
 
