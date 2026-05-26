@@ -527,7 +527,8 @@
             <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
               styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
               onclick="PF('translationWanringDialog').hide(); return false;" />
-            <p:commandButton value="#{ivy.cms.co('/Labels/Approve')}"
+            <p:commandButton id="approve-to-process"
+              value="#{ivy.cms.co('/Labels/Approve')}"
               actionListener="#{cmsLiveEditorBean.translateCmsEntries}"
               styleClass="ui-button-danger w-full"
               update=":content-form:reviewContent"
