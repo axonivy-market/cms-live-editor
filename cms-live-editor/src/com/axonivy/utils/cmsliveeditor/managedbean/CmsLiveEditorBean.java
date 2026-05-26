@@ -47,7 +47,7 @@ import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
-import com.axonivy.utils.cmsliveeditor.constants.CmsConstants;
+import com.axonivy.utils.cmsliveeditor.constants.IvyVariables;
 import com.axonivy.utils.cmsliveeditor.constants.UserConstants;
 import com.axonivy.utils.cmsliveeditor.dto.CmsValueDto;
 import com.axonivy.utils.cmsliveeditor.enums.ExportType;
@@ -127,9 +127,9 @@ public class CmsLiveEditorBean implements Serializable {
     onAppChange();
     initLocales();
     isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
-    maxTranslatedCmsEntriesForWarning = IvyVariableUtils.getIntegerVariableOrDefault(
-        "com.axonivy.utils.cmsliveeditor.maxTranslatedCmsEntriesForWarning",
-        CmsConstants.MAX_TRANSLATED_CMS_ENTRIES_FOR_WANRING);
+    maxTranslatedCmsEntriesForWarning =
+        IvyVariableUtils.getIntegerVariableOrDefault(IvyVariables.MAX_TRANSLATED_CMS_ENTRIES_FOR_WARNING,
+            IvyVariables.MAX_TRANSLATED_CMS_ENTRIES_FOR_WARNING_DEFAULT_VALUE);
   }
 
   private static boolean isActive(IActivity processModelVersion) {
@@ -416,7 +416,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void cancelTranslations() {
-    for (Cms cms : CmsContentUtils.getTranslatedCms(selectedCmsEntries)) {
+    for (Cms cms : CmsContentUtils.getTranslatedCms(needToBeTranslatedCmsEntries)) {
       cms.getContents().stream().filter(Objects::nonNull).forEach(c -> {
         c.setTranslated(false);
         c.setTranslatedContent(null);

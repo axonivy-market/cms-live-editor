@@ -31,5 +31,4 @@ public class CmsConstants {
   public static final String ORANGE_DOT_CLASS = ".orange-dot";
   public static final String SUN_EDITOR_EDITABLE_SELECTOR = ".sun-editor-editable";
   public static final String ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD = "content-form:cms-edit-value:%d:cms-file-content-msg";
-  public static final int MAX_TRANSLATED_CMS_ENTRIES_FOR_WANRING = 50;
 }

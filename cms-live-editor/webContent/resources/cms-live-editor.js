@@ -41,11 +41,11 @@ document.addEventListener('keydown', function (e) {
     e.preventDefault();
     PF('tableCmsKeysWidget').selectAllRows();
     PrimeFaces.ab({
-      source: 'form:hiddenBtn',
-      process: '@this',
+      source: 'content-form:hidden-btn',
+      process: 'content-form:table-cms-keys',
       update: 'content-form:cms-translate-btn'
     });
-  } else if (event.key === ENTER_KEY) {
+  } else if (e.key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE) {
     const resetBtn = document.getElementById('content-form:resetBtn');
     if (resetBtn && !resetBtn.disabled) {
       resetBtn.click();
@@ -577,7 +577,7 @@ function handleCmsSaveComplete(args) {
   var invalidIndices = [];
   try {
     invalidIndices = JSON.parse(args.invalidIndices || '[]');
-  } catch (e) { }
+  } catch (e) {}
   applyValidationFailedState(invalidIndices);
 }
 

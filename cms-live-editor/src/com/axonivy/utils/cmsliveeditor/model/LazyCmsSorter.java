@@ -16,14 +16,16 @@ public class LazyCmsSorter implements Comparator<Cms> {
   @Override
   public int compare(Cms cms1, Cms cms2) {
     try {
-      String value1 = (cms1 == null || StringUtils.isBlank(cms1.getUri())) ? StringUtils.EMPTY : cms1.getUri();
-      String value2 = (cms2 == null || StringUtils.isBlank(cms2.getUri())) ? StringUtils.EMPTY : cms2.getUri();
-
-      int value = value1.compareToIgnoreCase(value2);
-
-      return SortOrder.ASCENDING.equals(sortOrder) ? value : -1 * value;
+      String value1 = getCmsUri(cms1);
+      String value2 = getCmsUri(cms2);
+      int comparison = value1.compareToIgnoreCase(value2);
+      return SortOrder.ASCENDING.equals(sortOrder) ? comparison : -comparison;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private String getCmsUri(Cms cms) {
+    return cms == null || StringUtils.isBlank(cms.getUri()) ? StringUtils.EMPTY : cms.getUri();
   }
 }

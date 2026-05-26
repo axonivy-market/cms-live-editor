@@ -123,11 +123,11 @@ public class Cms implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof Cms)) {
+
+    if (!(o instanceof Cms cms)) {
       return false;
     }
 
-    Cms cms = (Cms) o;
     return Objects.equals(uri, cms.getUri());
   }
 
