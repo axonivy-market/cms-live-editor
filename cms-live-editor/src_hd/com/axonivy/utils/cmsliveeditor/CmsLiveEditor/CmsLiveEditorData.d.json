@@ -1,35 +1,26 @@
 {
-  "$schema" : "https://json-schema.axonivy.com/data-class/12.0.0/data-class.json",
+  "$schema" : "https://json-schema.axonivy.com/14.0-dev/project/data-class.json",
   "simpleName" : "CmsLiveEditorData",
   "namespace" : "com.axonivy.utils.cmsliveeditor.CmsLiveEditor",
-  "isBusinessCaseData" : false,
   "fields" : [ {
     "name" : "showEditorCms",
-    "type" : "Boolean",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "Boolean"
   }, {
     "name" : "fileContent",
-    "type" : "byte[]",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "byte[]"
   }, {
     "name" : "streamedContent",
-    "type" : "org.primefaces.model.StreamedContent",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "org.primefaces.model.StreamedContent"
   }, {
-    "name" : "fileName",
-    "type" : "String",
-    "modifiers" : [ "PERSISTENT" ]
+    "name" : "fileName"
   }, {
     "name" : "isOnCmsEditColumn",
-    "type" : "Boolean",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "Boolean"
   }, {
     "name" : "cmsContent",
-    "type" : "com.axonivy.utils.cmsliveeditor.model.CmsContent",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "com.axonivy.utils.cmsliveeditor.model.CmsContent"
   }, {
     "name" : "isEditMode",
-    "type" : "Boolean",
-    "modifiers" : [ "PERSISTENT" ]
+    "type" : "Boolean"
   } ]
 }
