@@ -55,7 +55,7 @@
                   actionListener="#{cmsLiveEditorBean.prepareForTranslatingSelectedCmsEntries}"
                   value="#{ivy.cms.co('/Labels/TranslateSelectedEntries')}"
                   process="@this" update="content-form:translation-warning-dialog"
-                  oncomplete="PF('translationWanringDialog').show();" />
+                  oncomplete="PF('translationWarningDialog').show();" />
                 <p:menuitem
                   value="#{ivy.cms.co('/Labels/TranslateFilteredEntries')}"
                   actionListener="#{cmsLiveEditorBean.translateFilteredCmsEntries}"
@@ -68,7 +68,7 @@
                   actionListener="#{cmsLiveEditorBean.prepareForTranslatingFilteredCmsEntries}"
                   value="#{ivy.cms.co('/Labels/TranslateFilteredEntries')}"
                   process="@this" update="content-form:translation-warning-dialog"
-                  oncomplete="PF('translationWanringDialog').show();" />
+                  oncomplete="PF('translationWarningDialog').show();" />
               </p:menuButton>
               <p:tooltip for="cms-translate-btn"
                 value="#{ivy.cms.co('/Labels/TranslateMultiple')}" />
@@ -508,7 +508,7 @@
         </p:dialog>
 
         <p:dialog id="translation-warning-dialog"
-          widgetVar="translationWanringDialog"
+          widgetVar="translationWarningDialog"
           modal="true" closable="true" draggable="false"
           resizable="false" closeOnEscape="true"
           styleClass="confirmation-dialog" width="380">
@@ -526,13 +526,13 @@
           <div class="flex justify-content-center gap-2">
             <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
               styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
-              onclick="PF('translationWanringDialog').hide(); return false;" />
+              onclick="PF('translationWarningDialog').hide(); return false;" />
             <p:commandButton id="approve-to-process"
               value="#{ivy.cms.co('/Labels/Approve')}"
               actionListener="#{cmsLiveEditorBean.translateCmsEntries}"
               styleClass="ui-button-danger w-full"
               update=":content-form:reviewContent"
-              oncomplete="PF('translationWanringDialog').hide(); PF('translationReviewDialog').show();" />
+              oncomplete="PF('translationWarningDialog').hide(); PF('translationReviewDialog').show();" />
           </div>
         </p:dialog>
       </h:form>
