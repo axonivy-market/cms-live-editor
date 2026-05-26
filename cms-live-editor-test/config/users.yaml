@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://json-schema.axonivy.com/14.0-dev/config/users.json
+Users:
+  - Name: cmsAdmin
+    Password: '123456'
+    Roles:
+      - CMS_ADMIN
+  - Name: normalUser
+    Password: '123456'
+  - Name: cmsAdmin1
+    Password: '123456'
+    Roles:
+      - CMS_ADMIN
