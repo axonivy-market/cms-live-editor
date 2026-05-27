@@ -25,15 +25,33 @@ const FULLSCREEN_COMMAND_BUTTON = 'fullScreen';
 const STATIC_POSITION = 'static';
 const RELATIVE_POSITION = 'relative';
 const FULL_TOOLBAR = [
-  ['bold', 'italic','underline', 'strike'],
+  ['bold', 'italic', 'underline', 'strike'],
   ['align'],
   ['list'],
   ['fontColor'],
-  [':t-More-default.more_horizontal', 
-  'font', 'fontSize', 'formatBlock', 'lineHeight', 'horizontalRule', 'paragraphStyle', 'blockquote',
-  'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
-  'table', 'link', 'fullScreen', 'undo', 'redo'],
+  [':t-More-default.more_horizontal',
+    'font', 'fontSize', 'formatBlock', 'lineHeight', 'horizontalRule', 'paragraphStyle', 'blockquote',
+    'subscript', 'superscript', 'hiliteColor', 'textStyle', 'removeFormat', 'outdent', 'indent',
+    'table', 'link', 'fullScreen', 'undo', 'redo'],
 ];
+
+document.addEventListener('keydown', function (e) {
+  const table = document.querySelector('[id$="table-cms-keys"]');
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+    e.preventDefault();
+    PF('tableCmsKeysWidget').selectAllRows();
+    PrimeFaces.ab({
+      source: 'content-form:hidden-btn',
+      process: 'content-form:table-cms-keys',
+      update: 'content-form:cms-translate-btn'
+    });
+  } else if (e.key === ENTER_KEY || e.keyCode === ENTER_KEY_CODE) {
+    const resetBtn = document.getElementById('content-form:resetBtn');
+    if (resetBtn && !resetBtn.disabled) {
+      resetBtn.click();
+    }
+  }
+});
 
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -181,21 +199,21 @@ function initSunEditor(languageIndex, editorId, isHtml) {
     window.cmsOriginalPlaceholders[languageIndex] = [];
   }
 
-function markDirtyIfChanged() {
-  const currentContent = editor.getContents();
-  const originalContents = window.cmsInitialContents[languageIndex] || '';
-  if (currentContent === originalContents) {
-    // Back to original -> not dirty anymore
-    window.cmsDirtyEditors.delete(languageIndex);
-    setEditorError(languageIndex, false);
-  } else {
-    window.cmsDirtyEditors.add(languageIndex);
-    setValueChanged([
-      { name: 'languageIndex', value: languageIndex },
-      { name: 'content', value: currentContent }
-    ]);
+  function markDirtyIfChanged() {
+    const currentContent = editor.getContents();
+    const originalContents = window.cmsInitialContents[languageIndex] || '';
+    if (currentContent === originalContents) {
+      // Back to original -> not dirty anymore
+      window.cmsDirtyEditors.delete(languageIndex);
+      setEditorError(languageIndex, false);
+    } else {
+      window.cmsDirtyEditors.add(languageIndex);
+      setValueChanged([
+        { name: 'languageIndex', value: languageIndex },
+        { name: 'content', value: currentContent }
+      ]);
+    }
   }
-}
 
   function debounce(fn, delay) {
     let timer;
