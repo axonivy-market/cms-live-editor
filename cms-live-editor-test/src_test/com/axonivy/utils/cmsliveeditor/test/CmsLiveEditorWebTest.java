@@ -40,12 +40,14 @@ import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
+import com.axonivy.ivy.webtest.engine.WebAppFixture;
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
+import com.axonivy.utils.cmsliveeditor.constants.IvyVariables;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -385,12 +387,31 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testOpenTranslateDialogShouldBeOpened() {
-    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
-
+    clickOnTranslateMenuItem("Translate selected entries");
     SelenideElement table = $$(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG)).first();
     table.shouldBe(visible, Duration.ofSeconds(5));
     $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
     table.shouldNotBe(visible, Duration.ofSeconds(5));
+  }
+
+  @Test
+  public void testOpenTranslateWarningDialogShouldBeOpened(WebAppFixture fixture) {
+    fixture.var(IvyVariables.MAX_TRANSLATED_CMS_ENTRIES_FOR_WARNING, String.valueOf(5));
+    clickOnTranslateMenuItem("Translate filtered entries");
+    var translationDialog = $(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG));
+    translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    var warningDialog = $(By.id("content-form:translation-warning-dialog"));
+    warningDialog.shouldBe(visible, Duration.ofSeconds(5));
+    $(By.id("content-form:approve-to-process")).shouldBe(visible, Duration.ofSeconds(5)).click();
+    translationDialog.shouldBe(visible, Duration.ofSeconds(5));
+  }
+
+  private void clickOnTranslateMenuItem(String item) {
+    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+    var translationMenu = $(By.id("content-form:cms-translate-btn_menu"));
+    translationMenu.shouldBe(visible, Duration.ofSeconds(5));
+    translationMenu.$$(By.cssSelector(".ui-menuitem-link.ui-corner-all span")).filter(matchText(item)).filter(visible)
+        .first().click();
   }
 
   @Test

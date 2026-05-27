@@ -93,14 +93,15 @@ Users can select CMS entries directly in the translation table:
 ![](./images/22-cms-live-editor-multi-select.png)
 
 #### Auto-Translate Action
-A new **Translate** button is available to translate selected entries.
+A new **Translate** button is available to translate selected/filtered entries.
+![](./images/27-cms-live-editor-translation-menu.png)
 
-![](./images/23-cms-live-editor-translation-dialog.png)
-
-After clicking on the translate button, a dialog is displayed showing the generated translations for the selected CMS entries. Users can review the results and choose which translations to apply by selecting the corresponding checkboxes.
-- Only selected CMS entries are translated
+After clicking on the translate button, a dialog is displayed showing the generated translations for the selected/filtered CMS entries. Users can review the results and choose which translations to apply by selecting the corresponding checkboxes.
+- Only selected/filtered CMS entries are translated
 - The system uses the configured **Source Language** as input and translates into the **Target Language**
 - Existing translations in the target language will be overwritten when **Translate** button is clicked
+
+![](./images/23-cms-live-editor-translation-dialog.png)
 
 ### 9. Switching the Paths column view
 
