@@ -5,20 +5,14 @@ import java.util.Comparator;
 import org.apache.commons.lang3.StringUtils;
 import org.primefaces.model.SortOrder;
 
-public class LazyCmsSorter implements Comparator<Cms> {
-
-  private SortOrder sortOrder;
-
-  public LazyCmsSorter(SortOrder sortOrder) {
-    this.sortOrder = sortOrder;
-  }
+public record LazyCmsSorter(SortOrder sortOrder) implements Comparator<Cms> {
 
   @Override
   public int compare(Cms cms1, Cms cms2) {
     try {
-      String value1 = getCmsUri(cms1);
-      String value2 = getCmsUri(cms2);
-      int comparison = value1.compareToIgnoreCase(value2);
+      String uriValueOfCms1 = getCmsUri(cms1);
+      String uriValueOfCms2 = getCmsUri(cms2);
+      int comparison = uriValueOfCms1.compareToIgnoreCase(uriValueOfCms2);
       return SortOrder.ASCENDING.equals(sortOrder) ? comparison : -comparison;
     } catch (Exception e) {
       throw new RuntimeException(e);

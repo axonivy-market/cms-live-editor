@@ -16,7 +16,7 @@
       styleClass="flex justify-content-center">
       <div class="review-table-wrapper">
         <p:dataTable id="table-translation-review"
-          value="#{cmsLiveEditorBean.needToBeTranslatedCmsEntries}" var="cms"
+          value="#{cmsLiveEditorBean.entriesToTranslate}" var="cms"
           styleClass="p-datatable-sm review-data-table"
           scrollHeight="24rem" scrollable="true" stripedRows="true">
           <c:set var="targetContent"

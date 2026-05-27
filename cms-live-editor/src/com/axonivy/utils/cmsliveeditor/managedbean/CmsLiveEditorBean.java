@@ -111,7 +111,7 @@ public class CmsLiveEditorBean implements Serializable {
   private String selectedTargetLocale;
   private List<Locale> languageList;
   private List<Cms> selectedCmsEntries;
-  private List<Cms> needToBeTranslatedCmsEntries;
+  private List<Cms> entriesToTranslate;
   private int maxTranslatedCmsEntriesForWarning;
 
   @PostConstruct
@@ -372,7 +372,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void prepareForTranslatingFilteredCmsEntries() {
-    needToBeTranslatedCmsEntries = filteredCMSList;
+    entriesToTranslate = filteredCMSList;
   }
 
   public void translateSelectedCmsEntries() {
@@ -381,17 +381,17 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void prepareForTranslatingSelectedCmsEntries() {
-    needToBeTranslatedCmsEntries = selectedCmsEntries;
+    entriesToTranslate = selectedCmsEntries;
   }
 
   public void translateCmsEntries() {
     String src = Locale.forLanguageTag(selectedSourceLocale).getLanguage();
     String target = Locale.forLanguageTag(selectedTargetLocale).getLanguage();
-    TranslationService.batchTranslate(needToBeTranslatedCmsEntries, src, target);
+    TranslationService.batchTranslate(entriesToTranslate, src, target);
   }
 
   public void applyTranslations() {
-    for (Cms cms : CmsContentUtils.getTranslatedCms(needToBeTranslatedCmsEntries)) {
+    for (Cms cms : CmsContentUtils.getTranslatedCms(entriesToTranslate)) {
       CmsContent target = getTargetCmsContent(cms);
       if (target == null || !target.isTranslated()) {
         continue;
@@ -402,7 +402,7 @@ public class CmsLiveEditorBean implements Serializable {
     }
     cmsService.writeCmsToApplication(savedCmsMap);
     selectedCmsEntries = new ArrayList<>();
-    needToBeTranslatedCmsEntries = new ArrayList<>();
+    entriesToTranslate = new ArrayList<>();
     onAppChange();
     PF.current().ajax().update(CONTENT_FORM);
   }
@@ -416,7 +416,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   public void cancelTranslations() {
-    for (Cms cms : CmsContentUtils.getTranslatedCms(needToBeTranslatedCmsEntries)) {
+    for (Cms cms : CmsContentUtils.getTranslatedCms(entriesToTranslate)) {
       cms.getContents().stream().filter(Objects::nonNull).forEach(c -> {
         c.setTranslated(false);
         c.setTranslatedContent(null);
@@ -786,11 +786,11 @@ public class CmsLiveEditorBean implements Serializable {
     this.lazyDataModel = lazyDataModel;
   }
 
-  public List<Cms> getNeedToBeTranslatedCmsEntries() {
-    return needToBeTranslatedCmsEntries;
+  public List<Cms> getEntriesToTranslate() {
+    return entriesToTranslate;
   }
 
-  public void setNeedToBeTranslatedCmsEntries(List<Cms> needToBeTranslatedCmsEntries) {
-    this.needToBeTranslatedCmsEntries = needToBeTranslatedCmsEntries;
+  public void setEntriesToTranslate(List<Cms> entriesToTranslate) {
+    this.entriesToTranslate = entriesToTranslate;
   }
 }
