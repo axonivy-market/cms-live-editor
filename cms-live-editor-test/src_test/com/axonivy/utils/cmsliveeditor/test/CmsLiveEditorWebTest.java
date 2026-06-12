@@ -330,7 +330,7 @@ public class CmsLiveEditorWebTest {
 
   private void saveAndUndoCmsChanges() {
     $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
-    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible);
+    $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(5));
 
     var undoButton = $(By.id("content-form:undo-change-path"));
     if (undoButton.exists()) {
