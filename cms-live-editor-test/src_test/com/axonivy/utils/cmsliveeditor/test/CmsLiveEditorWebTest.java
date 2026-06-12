@@ -319,11 +319,11 @@ public class CmsLiveEditorWebTest {
 
   private void fillContentsToEditor(ElementsCollection editors, String content) {
     for (var editor : editors) {
-      editor.shouldBe(visible).click();
+      editor.shouldBe(visible, Duration.ofSeconds(5)).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
       editor.sendKeys(content);
-      editor.shouldHave(Condition.exactText(content));
+      editor.shouldHave(Condition.exactText(content), Duration.ofSeconds(5));
       editor.pressTab();
     }
   }
