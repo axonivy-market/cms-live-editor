@@ -51,7 +51,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
-@IvyWebTest
+@IvyWebTest(headless = false)
 public class CmsLiveEditorWebTest {
 
   private String testCmsUri = "/TestContent";
@@ -351,11 +351,15 @@ public class CmsLiveEditorWebTest {
     var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+    var saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));
+    saveButton.shouldBe(enabled).click();
 
     loginAndStartProcess("cmsAdmin1", "123456");
     openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
     switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
         .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(2));
+    switchViewPathButton.shouldBe(enabled).click();
+    saveButton.shouldBe(enabled).click();
 
     loginAndStartProcess("cmsAdmin", "123456");
     openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
