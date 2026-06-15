@@ -17,11 +17,10 @@
       <p:toggleSwitch id="switch-view-path-btn"
         value="#{cmsLiveEditorBean.fullPathVisible}"
         styleClass="switch-view-path-btn ml-2">
-        <p:ajax listener="#{cmsLiveEditorBean.savePathViewStatus()}" />
       </p:toggleSwitch>
     </div>
     <div class="section-header font-semibold">#{ivy.cms.co('/Labels/Translations')}</div>
-    <div class="input-section-delimeter">
+    <div class="input-section-delimiter">
       <h:outputLabel for="leadingLocale"
         styleClass="block text-sm mb-2 text-color-secondary"
         value="#{ivy.cms.co('/Labels/SourceLanguage')}" />
@@ -52,7 +51,7 @@
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
           id="cms-setting-save-btn"
           styleClass="w-full border-round-lg cms-setting-save-btn"
-          actionListener="#{cmsLiveEditorBean.saveTranslationSettings()}"
+          actionListener="#{cmsLiveEditorBean.saveSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
         <p:commandButton widgetVar="hidden-exit-btn" styleClass="hidden"

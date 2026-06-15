@@ -108,7 +108,7 @@ After clicking on the translate button, a dialog is displayed showing the genera
 
 By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button **Show full path** on the **Setting** dialog. It affects both the main page and the Translation Wizard dialog.
 
-![](./images/28-cms-live-editor-show-full-path-setting)
+![](./images/28-cms-live-editor-show-full-path-setting.png)
 ![](./images/25-cms-live-editor-switching-view-path.png)
 ![](./images/26-cms-live-editor-short-path-on-translation-dialog.png)
 

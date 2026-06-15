@@ -322,6 +322,7 @@ public class CmsLiveEditorBean implements Serializable {
 
   public void onHideSettingDialog() {
     initLocales();
+    isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
     PF.current().ajax().update(CMS_SETTING_DIALOG);
   }
 
@@ -479,10 +480,6 @@ public class CmsLiveEditorBean implements Serializable {
     for (CmsValueDto currentCmsValue : cmsValues) {
       save(currentCmsValue.getLanguageIndex(), currentCmsValue.getContents());
     }
-  }
-
-  public void savePathViewStatus() {
-    IvyUserService.setUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS, isFullPathVisible);
   }
 
   private boolean isEditing() {
@@ -643,7 +640,16 @@ public class CmsLiveEditorBean implements Serializable {
     }
   }
 
-  public void saveTranslationSettings() {
+  public void saveSettings() {
+    savePathViewStatus();
+    saveTranslationSettings();
+  }
+
+  private void savePathViewStatus() {
+    IvyUserService.setUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS, isFullPathVisible);
+  }
+
+  private void saveTranslationSettings() {
     IvyUserService.updateTranslationUserProperties(selectedSourceLocale, selectedTargetLocale);
   }
 
