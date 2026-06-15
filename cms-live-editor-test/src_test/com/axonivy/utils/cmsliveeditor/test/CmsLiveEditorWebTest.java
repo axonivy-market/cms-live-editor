@@ -365,6 +365,7 @@ public class CmsLiveEditorWebTest {
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
         .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+    saveButton.shouldBe(enabled).click();
   }
 
   @Test
