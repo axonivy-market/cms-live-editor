@@ -395,7 +395,7 @@ public class CmsLiveEditorWebTest {
     var table = $(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG));
     table.shouldBe(visible, Duration.ofSeconds(5));
     table.$$(By.cssSelector(CMS_PATH_URI_ON_TRANSLATION_REVIEW_TABLE))
-        .findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey)).shouldBe(visible, Duration.ofSeconds(5));;
+        .findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey)).shouldBe(visible, Duration.ofSeconds(5));
   }
 
   /**
