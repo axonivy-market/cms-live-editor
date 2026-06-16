@@ -64,9 +64,8 @@ Labels:
   Select: Select
   SelectedCMS: Selected CMS
   Settings: Settings
-  ShowFullPath: Switch to full path view
+  ShowFullPath: Show full path
   ShowOnlyTODO: Show only TODO
-  ShowShortPath: Switch to short path view
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
   Source: source
   SourceLanguage: Source language
