@@ -431,7 +431,14 @@ public class CmsLiveEditorWebTest {
     var warningDialog = $(By.id("content-form:translation-warning-dialog"));
     warningDialog.shouldBe(visible, Duration.ofSeconds(5));
     $(By.id("content-form:cancel-translation")).shouldBe(visible, Duration.ofSeconds(5)).click();
+    warningDialog.shouldNotBe(visible, Duration.ofSeconds(5));
     translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+
+    clickOnTranslateMenuItem(TRANSLATE_FILTERED_ENTRIES_MENU);
+    warningDialog.shouldBe(visible, Duration.ofSeconds(5));
+    $(By.id("content-form:approve-to-process")).shouldBe(visible, Duration.ofSeconds(5)).click();
+    translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    translationDialog.shouldBe(visible, Duration.ofSeconds(5));
   }
 
   private void clickOnTranslateMenuItem(String item) {

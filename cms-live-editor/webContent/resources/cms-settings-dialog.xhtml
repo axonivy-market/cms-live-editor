@@ -19,25 +19,26 @@
         styleClass="switch-view-path-btn ml-2">
       </p:toggleSwitch>
     </div>
+    <p:divider styleClass="settings-divider" />
     <div class="section-header font-semibold">#{ivy.cms.co('/Labels/Translations')}</div>
     <div class="input-section-delimiter">
-      <h:outputLabel for="leadingLocale"
+      <h:outputLabel for="leading-locale"
         styleClass="block text-sm mb-2 text-color-secondary"
         value="#{ivy.cms.co('/Labels/SourceLanguage')}" />
-      <p:selectOneMenu id="leadingLocale"
+      <p:selectOneMenu id="leading-locale"
         value="#{cmsLiveEditorBean.selectedSourceLocale}"
         styleClass="w-full" filter="true" filterMatchMode="contains">
         <f:selectItems value="#{cmsLiveEditorBean.languageList}"
           var="loc" itemLabel="#{loc.displayLanguage}"
           itemValue="#{loc.toLanguageTag()}" />
-        <p:ajax event="change" process="@this" update="targetLocale" />
+        <p:ajax event="change" process="@this" update="target-locale" />
       </p:selectOneMenu>
     </div>
     <div>
-      <h:outputLabel for="targetLocale"
+      <h:outputLabel for="target-locale"
         styleClass="block text-sm mb-2 text-color-secondary"
         value="#{ivy.cms.co('/Labels/TargetLanguage')}" />
-      <p:selectOneMenu id="targetLocale"
+      <p:selectOneMenu id="target-locale"
         value="#{cmsLiveEditorBean.selectedTargetLocale}"
         styleClass="w-full" filter="true" filterMatchMode="contains">
         <f:selectItems value="#{cmsLiveEditorBean.targetLocales}"
