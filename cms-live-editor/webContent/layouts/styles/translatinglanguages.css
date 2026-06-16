@@ -517,3 +517,31 @@
   padding-top: 0.5rem;
   padding-bottom: 1.5rem;
 }
+
+.cms-settings-dialog .ui-dialog-titlebar.ui-widget-header {
+  padding: 20px;
+}
+
+.cms-settings-dialog .ui-dialog-content.ui-widget-content {
+  padding: 0px 20px 26px 20px;
+}
+
+.cms-settings-dialog .ui-dialog-content .section-header,
+.cms-settings-dialog .ui-dialog-content .input-section-delimiter {
+  margin-bottom: 10px;
+}
+
+.cms-settings-dialog .ui-dialog-content .path-section {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cms-settings-dialog .ui-dialog-footer.ui-widget-content {
+  padding: 0px 20px 20px 20px;
+}
+
+.ui-divider.ui-divider-horizontal.settings-divider {
+  border-color: #EBEBEB;
+  padding: 0;
+  margin: 20px 0;
+}
