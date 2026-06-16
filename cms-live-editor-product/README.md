@@ -80,6 +80,7 @@ A new **Settings** button (gear icon) is available in the top-right corner of th
 ![](./images/21-cms-live-editor-setting-dialog.png)
 
 In the **Settings** dialog, users can:
+- Provide configuration to switch between full and short paths.
 - Define the **Source Language** (leading language for translation)
 - Define the **Target Language**
 
@@ -105,7 +106,9 @@ After clicking on the translate button, a dialog is displayed showing the genera
 
 ### 9. Switching the Paths column view
 
-By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button. It affects both the main page and the Translation Wizard dialog.
+By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button **Show full path** on the **Settings** dialog. It affects both the main page and the Translation Wizard dialog.
+
+![](./images/28-cms-live-editor-show-full-path-setting.png)
 ![](./images/25-cms-live-editor-switching-view-path.png)
 ![](./images/26-cms-live-editor-short-path-on-translation-dialog.png)
 

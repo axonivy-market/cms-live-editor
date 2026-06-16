@@ -24,17 +24,6 @@
               <span class="text-xl font-small">#{ivy.cms.co("/Labels/ProjectCmsTitle")}</span>
             </div>
             <div class="header-actions">
-              <p:toggleSwitch id="switch-view-path-btn"
-                value="#{cmsLiveEditorBean.fullPathVisible}"
-                styleClass="switch-view-path-btn" onIcon="pi pi-check"
-                offIcon="pi pi-times">
-                <p:ajax
-                  listener="#{cmsLiveEditorBean.savePathViewStatus()}"
-                  update="table-cms-keys switch-view-path-btn" />
-                <p:tooltip for="switch-view-path-btn"
-                  value="#{ivy.cms.co(cmsLiveEditorBean.fullPathVisible ? '/Labels/ShowShortPath' : '/Labels/ShowFullPath')}" />
-              </p:toggleSwitch>
-              <div class="bg-gray-100 vertical-divider" />
               <p:commandButton id="cms-settings-btn" icon="pi pi-cog"
                 styleClass="rounded-button ui-button-flat cms-settings-btn"
                 onclick="PF('cmsSettingsDialog').show(); return false;" />
@@ -524,7 +513,7 @@
               styleClass="text-sm text-color-secondary" escape="false" />
           </div>
           <div class="flex justify-content-center gap-2">
-            <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}"
+            <p:commandButton value="#{ivy.cms.co('/Labels/Cancel')}" id="cancel-translation"
               styleClass="cancel-confirm ui-button-secondary ui-button-outlined w-full"
               onclick="PF('translationWarningDialog').hide(); return false;" />
             <p:commandButton id="approve-to-process"
