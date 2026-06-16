@@ -190,8 +190,8 @@ public class CmsLiveEditorWebTest {
     cmsElement.click();
     $(By.id(EDIT_BUTTON_ID)).click();
     $(SUN_EDITOR_EDITABLE_SELECTOR).setValue("Content is updated at " + System.currentTimeMillis());
-    $(By.id(SAVE_BUTTON_ID)).shouldBe(enabled, Duration.ofSeconds(2)).scrollIntoView(instant().block(Block.start))
-        .shouldBe(interactable).click();
+    $(By.id(SAVE_BUTTON_ID))
+        .shouldBe(enabled, Duration.ofSeconds(2)).scrollIntoView(true).shouldBe(interactable).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(2));
     $(By.id(UNDO_CHANGES_PATH_ID)).shouldBe(visible);
     otherElement.click();
