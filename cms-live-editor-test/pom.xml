@@ -9,13 +9,13 @@
   </parent>
   <groupId>com.axonivy.utils.cmsliveeditor</groupId>
   <artifactId>cms-live-editor-test</artifactId>
-  <version>13.2.3-SNAPSHOT</version>
+  <version>13.2.3</version>
   <packaging>iar-integration-test</packaging>
   <dependencies>
     <dependency>
       <groupId>com.axonivy.utils.cmsliveeditor</groupId>
       <artifactId>cms-live-editor</artifactId>
-      <version>13.2.3-SNAPSHOT</version>
+      <version>13.2.3</version>
       <type>iar</type>
     </dependency>
     <dependency>
