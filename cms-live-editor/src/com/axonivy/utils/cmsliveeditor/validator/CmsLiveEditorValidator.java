@@ -3,12 +3,12 @@ package com.axonivy.utils.cmsliveeditor.validator;
 import java.util.List;
 import java.util.Map;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.validator.FacesValidator;
-import javax.faces.validator.Validator;
-import javax.faces.validator.ValidatorException;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.component.UIInput;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.validator.FacesValidator;
+import jakarta.faces.validator.Validator;
+import jakarta.faces.validator.ValidatorException;
 
 import org.primefaces.PF;
 
@@ -17,9 +17,11 @@ import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.service.PlaceholderService;
 import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
+import jakarta.enterprise.context.ApplicationScoped;
 
-@FacesValidator(value = "cmsLiveEditorValidator")
-public class CmsLiveEditorValidator implements Validator {
+@FacesValidator(value = "cmsLiveEditorValidator", managed = true)
+@ApplicationScoped
+public class CmsLiveEditorValidator implements Validator<Object> {
   private final PlaceholderService placeholderService = PlaceholderService.getInstance();
 
   @Override

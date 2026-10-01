@@ -14,7 +14,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FOR
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.CONTENT_FORM_TABLE_CMS_KEYS;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.ERROR_MESSAGE_FOR_CMS_FILE_UPLOAD;
 import static java.util.stream.Collectors.toList;
-import static javax.faces.application.FacesMessage.SEVERITY_INFO;
+import static jakarta.faces.application.FacesMessage.SEVERITY_INFO;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serial;
@@ -30,11 +30,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
+import jakarta.annotation.PostConstruct;
+import jakarta.faces.application.FacesMessage;
+import jakarta.inject.Named;
+import jakarta.faces.view.ViewScoped;
+import jakarta.faces.context.FacesContext;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +69,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ivyteam.ivy.application.ActivityState;
 import ch.ivyteam.ivy.application.IActivity;
-import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.app.Application;
 import ch.ivyteam.ivy.application.IProcessModel;
 import ch.ivyteam.ivy.application.app.IApplicationRepository;
 import ch.ivyteam.ivy.cm.ContentObject;
@@ -78,7 +78,7 @@ import ch.ivyteam.ivy.environment.Ivy;
 import ch.ivyteam.ivy.security.ISecurityContext;
 
 @ViewScoped
-@ManagedBean
+@Named
 public class CmsLiveEditorBean implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
@@ -271,7 +271,7 @@ public class CmsLiveEditorBean implements Serializable {
         cmsContent.setNewFileSize(0);
         cmsContent.setNewFileContent(null);
         cmsContent.setEditing(false);
-        CmsContentLoader.loadCmsFileFromApplicationCms(selectedCms, cmsContent, IApplication.current());
+        CmsContentLoader.loadCmsFileFromApplicationCms(selectedCms, cmsContent, Application.current());
       });
     }
   }
@@ -527,7 +527,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private static String currentApplicationName() {
-    return IApplication.current() != null ? IApplication.current().getName() : StringUtils.EMPTY;
+    return Application.current() != null ? Application.current().getName() : StringUtils.EMPTY;
   }
 
   public void downloadFinished() {

@@ -1,5 +1,0 @@
-{
-  "$schema" : "https://json-schema.axonivy.com/14.0-dev/project/data-class.json",
-  "simpleName" : "EditorData",
-  "namespace" : "com.axonivy.utils.cmsliveeditor.component.Editor"
-}
