@@ -18,7 +18,7 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.model.SavedCms;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
-import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.app.Application;
 import ch.ivyteam.ivy.cm.ContentManagementSystem;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
@@ -38,7 +38,7 @@ public class CmsService {
   }
 
   public ContentManagementSystem getContentManagementSystemOfCurrentApplication() {
-    IApplication currentApplication = IApplication.current();
+    Application currentApplication = Application.current();
     return ContentManagement.cms(currentApplication);
   }
 

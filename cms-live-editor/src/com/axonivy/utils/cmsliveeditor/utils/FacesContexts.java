@@ -2,8 +2,8 @@ package com.axonivy.utils.cmsliveeditor.utils;
 
 import java.util.Objects;
 
-import javax.faces.application.Application;
-import javax.faces.context.FacesContext;
+import jakarta.faces.application.Application;
+import jakarta.faces.context.FacesContext;
 
 /**
  * This class is to provide utility functions interacting JSF by FacesContext

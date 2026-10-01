@@ -1,0 +1,33 @@
+{
+  "$schema" : "https://json-schema.axonivy.com/14.0/project/data-class.json",
+  "simpleName" : "CmsLiveEditorData",
+  "namespace" : "com.axonivy.utils.cmsliveeditor.CmsLiveEditor",
+  "fields" : [ {
+    "name" : "showEditorCms",
+    "type" : "Boolean",
+    "modifiers" : [ ]
+  }, {
+    "name" : "fileContent",
+    "type" : "byte[]",
+    "modifiers" : [ ]
+  }, {
+    "name" : "streamedContent",
+    "type" : "org.primefaces.model.StreamedContent",
+    "modifiers" : [ ]
+  }, {
+    "name" : "fileName",
+    "modifiers" : [ ]
+  }, {
+    "name" : "isOnCmsEditColumn",
+    "type" : "Boolean",
+    "modifiers" : [ ]
+  }, {
+    "name" : "cmsContent",
+    "type" : "com.axonivy.utils.cmsliveeditor.model.CmsContent",
+    "modifiers" : [ ]
+  }, {
+    "name" : "isEditMode",
+    "type" : "Boolean",
+    "modifiers" : [ ]
+  } ]
+}

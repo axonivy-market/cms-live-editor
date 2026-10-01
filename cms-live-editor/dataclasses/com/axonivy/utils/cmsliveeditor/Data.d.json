@@ -1,9 +1,0 @@
-{
-  "$schema" : "https://json-schema.axonivy.com/14.0-dev/project/data-class.json",
-  "simpleName" : "Data",
-  "namespace" : "com.axonivy.utils.cmsliveeditor",
-  "fields" : [ {
-    "name" : "showEditorCms",
-    "type" : "Boolean"
-  } ]
-}
