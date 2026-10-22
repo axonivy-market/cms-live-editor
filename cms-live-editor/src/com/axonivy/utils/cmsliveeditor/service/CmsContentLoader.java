@@ -7,7 +7,7 @@ import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
 import ch.ivyteam.ivy.application.app.Application;
-import ch.ivyteam.ivy.application.IProcessModelVersion;
+import ch.ivyteam.ivy.application.project.Project;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
 import ch.ivyteam.ivy.cm.ContentObjectValue;
@@ -19,12 +19,12 @@ public class CmsContentLoader {
   private CmsContentLoader() {}
 
   public static void loadFileContentOfCms(Cms selectedCms) {
-    Application.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName()))
-        .findFirst().ifPresent(pmv -> loadFileContentFromPmv(selectedCms, pmv));
+    Application.current().projects().all().filter(project -> project.name().equals(selectedCms.getPmvName()))
+        .findFirst().ifPresent(project -> loadFileContentFromProject(selectedCms, project));
   }
 
-  private static void loadFileContentFromPmv(Cms cms, IProcessModelVersion pmv) {
-    Optional.ofNullable(ContentManagement.cms(pmv)).flatMap(contentMgmt -> contentMgmt.get(cms.getUri()))
+  private static void loadFileContentFromProject(Cms cms, Project project) {
+    Optional.ofNullable(ContentManagement.cms(project)).flatMap(contentMgmt -> contentMgmt.get(cms.getUri()))
         .ifPresent(contentObject -> loadFileContentOfCmsContent(cms, contentObject));
   }
 

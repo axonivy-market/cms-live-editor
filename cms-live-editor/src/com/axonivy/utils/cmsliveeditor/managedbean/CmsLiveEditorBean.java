@@ -63,15 +63,11 @@ import com.axonivy.utils.cmsliveeditor.utils.FacesContexts;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 import com.axonivy.utils.cmsliveeditor.utils.PathUtils;
 import com.axonivy.utils.cmsliveeditor.utils.Utils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
-import ch.ivyteam.ivy.application.ActivityState;
-import ch.ivyteam.ivy.application.IActivity;
 import ch.ivyteam.ivy.application.app.Application;
-import ch.ivyteam.ivy.application.IProcessModel;
-import ch.ivyteam.ivy.application.app.IApplicationRepository;
+import ch.ivyteam.ivy.application.app.ApplicationRepository;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.exec.ContentManagement;
 import ch.ivyteam.ivy.environment.Ivy;
@@ -112,11 +108,10 @@ public class CmsLiveEditorBean implements Serializable {
     isShowEditorCms = FacesContexts.evaluateValueExpression("#{data.showEditorCms}", Boolean.class);
     savedCmsMap = new HashMap<>();
     pmvCmsMap = new HashMap<>();
-    for (var app : IApplicationRepository.of(ISecurityContext.current()).all()) {
-      app.getProcessModels().stream().filter(CmsLiveEditorBean::isActive).map(IProcessModel::getReleasedProcessModelVersion)
-          .filter(CmsLiveEditorBean::isActive)
-          .forEach(pmv -> getAllChildren(pmv.getName(), ContentManagement.cms(pmv).root(), new ArrayList<>()));
-    }
+    ApplicationRepository.of(ISecurityContext.current()).all()
+        .filter(app -> app.state().running())
+        .flatMap(app -> app.projects().all())
+        .forEach(project -> getAllChildren(project.name(), ContentManagement.cms(project).root(), new ArrayList<>()));
     onAppChange();
     initLocales();
     isFullPathVisible = IvyUserService.getUserPropertyWithBooleanValue(UserConstants.FULL_PATH_VIEW_STATUS);
@@ -391,7 +386,7 @@ public class CmsLiveEditorBean implements Serializable {
     PF.current().ajax().update(CONTENT_FORM_CMS_VALUES, CONTENT_FORM_CMS_COLUMN, CONTENT_FORM_EDITABLE_COLUMN);
   }
 
-  public void saveAll() throws JsonProcessingException {
+  public void saveAll() {
     var languageIndexAndContentJsonString =
         FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("values");
     List<CmsValueDto> cmsValues = mapper.readValue(languageIndexAndContentJsonString, new TypeReference<>() {});
@@ -477,10 +472,6 @@ public class CmsLiveEditorBean implements Serializable {
     return cms;
   }
 
-  private static boolean isActive(IActivity processModelVersion) {
-    return processModelVersion != null && ActivityState.ACTIVE == processModelVersion.getActivityState();
-  }
-
   private boolean isCmsMatchSearchKey(Cms entry, String searchKey) {
     if (StringUtils.isNotBlank(searchKey)) {
       return Strings.CI.contains(entry.getUri(), searchKey)
@@ -490,7 +481,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private void saveCms(SavedCms savedCms) {
-    Map<String, SavedCms> cmsLocaleMap = savedCmsMap.computeIfAbsent(savedCms.getUri(), key -> new HashMap<>());
+    Map<String, SavedCms> cmsLocaleMap = savedCmsMap.computeIfAbsent(savedCms.getUri(), _ -> new HashMap<>());
     cmsLocaleMap.put(savedCms.getLocale(), savedCms);
   }
 
@@ -527,7 +518,7 @@ public class CmsLiveEditorBean implements Serializable {
   }
 
   private static String currentApplicationName() {
-    return Application.current() != null ? Application.current().getName() : StringUtils.EMPTY;
+    return Application.current() != null ? Application.current().name() : StringUtils.EMPTY;
   }
 
   public void downloadFinished() {
