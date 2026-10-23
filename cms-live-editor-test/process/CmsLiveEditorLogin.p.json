@@ -43,7 +43,7 @@
       "name" : "Login User",
       "config" : {
         "output" : {
-          "code" : "Boolean loggedIn = ivy.session.loginSessionUser(in.username, in.password);\nivy.log.warn(\"Test login for \" + in.username + \" returned \" + loggedIn);"
+          "code" : "boolean loggedIn = ivy.session.loginSessionUser(in.username, in.password);\nif (!loggedIn) { throw new RuntimeException(\"Test login failed for \" + in.username); }"
         },
         "sudo" : true
       },
