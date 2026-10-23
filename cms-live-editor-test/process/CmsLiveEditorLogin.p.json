@@ -43,7 +43,7 @@
       "name" : "Login User",
       "config" : {
         "output" : {
-          "code" : "ivy.session.loginSessionUser(in.username, in.password);"
+          "code" : "Boolean loggedIn = ivy.session.loginSessionUser(in.username, in.password);\nivy.log.info(\"Test login for \" + in.username + \" returned \" + loggedIn);"
         },
         "sudo" : true
       },
