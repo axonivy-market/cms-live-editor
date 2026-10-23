@@ -12,9 +12,6 @@
   <artifactId>cms-live-editor-demo</artifactId>
   <version>14.0.0-SNAPSHOT</version>
   <packaging>iar</packaging>
-  <properties>
-    <ivy.engine.version>13.2.0</ivy.engine.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>com.axonivy.utils.cmsliveeditor</groupId>
@@ -58,44 +55,8 @@
         <groupId>com.axonivy.ivy.ci</groupId>
         <artifactId>project-build-plugin</artifactId>
         <extensions>true</extensions>
-        <executions>
-          <execution>
-            <id>annotation-proc</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>compileProject</goal>
-            </goals>
-            <configuration>
-              <compilerOptions>
-                <compilerOption>-ApersistenceXml=${basedir}/src/META-INF/persistence.xml</compilerOption>
-                <compilerOption>-s</compilerOption>
-                <compilerOption>${basedir}/src_generated</compilerOption>
-                <compilerOption>-proc:only</compilerOption>
-              </compilerOptions>
-              <skipScriptValidation>true</skipScriptValidation>
-            </configuration>
-          </execution>
-        </executions>
         <configuration>
           <ivyVersion>${ivy.engine.version}</ivyVersion>
-          <compilerOptions>
-            <compilerOption>-proc:none</compilerOption>
-          </compilerOptions>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${basedir}/src_generated</directory>
-              <followSymlinks>false</followSymlinks>
-              <useDefaultExcludes>true</useDefaultExcludes>
-              <includes>
-                <include>**/*.java</include>
-              </includes>
-            </fileset>
-          </filesets>
         </configuration>
       </plugin>
     </plugins>

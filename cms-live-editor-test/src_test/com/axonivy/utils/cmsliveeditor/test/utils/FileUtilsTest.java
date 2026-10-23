@@ -1,15 +1,13 @@
 package com.axonivy.utils.cmsliveeditor.test.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
-import org.primefaces.model.file.CommonsUploadedFile;
 import org.primefaces.model.file.UploadedFile;
 
-import com.axonivy.utils.cmsliveeditor.constants.DocumentConstants;
 import com.axonivy.utils.cmsliveeditor.constants.FileConstants;
 import com.axonivy.utils.cmsliveeditor.enums.FileType;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
@@ -67,8 +65,8 @@ public class FileUtilsTest {
 
   @Test
   public void testGetFileExtension() {
-    FileItem fileItem = new DiskFileItem("", DocumentConstants.PDF_CONTENT_TYPE, false, "test.pdf", 0, null);
-    UploadedFile file = new CommonsUploadedFile(fileItem, 1L);
+    UploadedFile file = mock(UploadedFile.class);
+    when(file.getFileName()).thenReturn("test.pdf");
     assertEquals("pdf", FileUtils.getFileExtension(file));
   }
 

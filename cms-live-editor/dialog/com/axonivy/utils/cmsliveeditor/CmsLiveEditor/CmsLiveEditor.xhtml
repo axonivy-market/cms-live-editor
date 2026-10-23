@@ -52,7 +52,7 @@
           </div>
           <div class="flex flex-column gap-2">
             <div class="project-column w-full">
-              <p:selectOneMenu id="app" value="#{cmsLiveEditorBean.selectedProjectName}" class="w-full">
+              <p:selectOneMenu id="app" value="#{cmsLiveEditorBean.selectedProjectName}" styleClass="w-full">
                 <f:selectItem itemLabel="#{ivy.cms.co('/Labels/AllProjects')}" itemValue="#{null}" />
                 <f:selectItems value="#{cmsLiveEditorBean.projectCms}" />
                 <p:ajax process="@this" listener="#{cmsLiveEditorBean.onAppChange}" />
@@ -93,7 +93,7 @@
                     value="#{cmsLiveEditorBean.filteredCMSKeys}" var="entry"
                     rowKey="#{entry.uri}"
                     selection="#{cmsLiveEditorBean.selectedCmsEntries}"
-                    selectionMode="multiple" rowSelectMode="new"
+                    selectionMode="multiple" selectionRowMode="new"
                     widgetVar="tableCmsKeysWidget" scrollHeight="100%"
                     styleClass="cms-path-table"
                    >
@@ -248,15 +248,16 @@
                             <p:fileUpload id="upload"
                               listener="#{cmsLiveEditorBean.handleFileUpload}"
                               rendered="#{cmsLiveEditorBean.selectedCms.isFile()}"
-                              value="#{language.newUploadedFile}" virusScan="true"
+                              value="#{language.newUploadedFile}"
                               process="@this" auto="true" accept="#{cmsLiveEditorBean.selectedCms.fileType.fileExtension}"
                               chooseIcon="pi pi-paperclip change-document-link"
                               update="@this content-form:cms-edit-value:#{language.index}:cms-file-item-container content-form:cms-edit-value:#{language.index}:cms-file-content-msg"
                               styleClass="change-document-link-text"
                               label="#{(language.applicationFileSize > 0 or language.fileSize > 0 or language.newFileSize > 0) ? ivy.cms.co('/Labels/ChangeDocument') : ivy.cms.co('/Labels/AttachDocument')}"
-                              fileLimit="1" mode="simple"
+                              mode="simple"
                               skinSimple="true">
                               <f:attribute name="index" value="#{language.index}" />
+                              <p:validateFile fileLimit="1" virusScan="true" />
                             </p:fileUpload>
                             <p:commandLink rendered="#{cmsLiveEditorBean.isRenderTranslateButton(language)}"
                               actionListener="#{cmsLiveEditorBean.translate(language)}"

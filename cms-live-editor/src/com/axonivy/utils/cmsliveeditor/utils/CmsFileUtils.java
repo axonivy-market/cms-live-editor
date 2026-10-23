@@ -39,7 +39,7 @@ public class CmsFileUtils {
     return pmvCms.getCmsList().stream().filter(Cms::isFile).peek(CmsContentLoader::loadFileContentOfCms)
         .flatMap(cms -> cms.getContents().stream()).filter(Objects::nonNull).filter(CmsContent::isFile)
         .map(content -> toZipEntry(projectName, content, BASE_PATH)).filter(Objects::nonNull)
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, _) -> a));
   }
 
   private static Map.Entry<String, byte[]> toZipEntry(String projectName, CmsContent content, Path basePath) {
