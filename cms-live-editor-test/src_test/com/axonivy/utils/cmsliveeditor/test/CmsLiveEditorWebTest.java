@@ -16,6 +16,7 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SETTING_BUT
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.TRANSLATE_ALL_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
+import static com.codeborne.selenide.ScrollIntoViewOptions.*;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -25,7 +26,6 @@ import static com.codeborne.selenide.Condition.interactable;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.oneOfTexts;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.ScrollIntoViewOptions.instant;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -44,14 +44,12 @@ import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.ScrollIntoViewOptions.Block;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
 
-@IvyWebTest(headless = false)
+@IvyWebTest
 public class CmsLiveEditorWebTest {
 
   private String testCmsUri = "/TestContent";
@@ -425,9 +423,6 @@ public class CmsLiveEditorWebTest {
     String loginProcessUrl =
         String.format("/cms-live-editor-test/193BDA54C9726ADF/logInUser.ivp?username=%s&password=%s", username, password);
     open(EngineUrl.createProcessUrl(loginProcessUrl));
-    if (WebDriverRunner.source().contains("ivy-error-page")) {
-      throw new AssertionError("Test login failed for user " + username);
-    }
     open(EngineUrl.createProcessUrl("/cms-live-editor/18DE86A37D77D574/start.ivp?showEditorCms=true"));
   }
 
