@@ -296,8 +296,10 @@ public class CmsLiveEditorWebTest {
     File docFile = new File("resource_test/blank_doc.docx");
     firstInputElement.uploadFile(docFile);
     errorMessageElement.shouldBe(hidden);
+    $(By.id("content-form:cms-edit-value:0:cms-file-item-container"))
+        .$(".remove-document-icon").shouldBe(visible);
     cmsList.findBy(exactText(TEST_CMS_TEXT_URI)).click();
-    var warningDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).shouldBe(visible, Duration.ofSeconds(2));
+    var warningDialog = $(By.cssSelector(CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR)).shouldBe(visible, Duration.ofSeconds(5));
     closeDialog(warningDialog);
     var removeFileElement = $(".pi-trash");
     removeFileElement.shouldBe(visible).click();
@@ -423,13 +425,16 @@ public class CmsLiveEditorWebTest {
     String loginProcessUrl =
         String.format("/cms-live-editor-test/193BDA54C9726ADF/logInUser.ivp?username=%s&password=%s", username, password);
     open(EngineUrl.createProcessUrl(loginProcessUrl));
+    Selenide.screenshot("login-result");
+    $(".exception-content").shouldNotBe(visible);
     open(EngineUrl.createProcessUrl("/cms-live-editor/18DE86A37D77D574/start.ivp?showEditorCms=true"));
   }
 
   private SelenideElement openFirstCmsAndEdit() {
-    SelenideElement selectedCms = $$(CMS_PATH_URI).shouldHave(CollectionCondition.sizeGreaterThan(0)).first();
+    SelenideElement selectedCms = $$(CMS_PATH_URI).findBy(exactText(TEST_CMS_TEXT_URI));
     selectedCms.shouldBe(enabled, Duration.ofSeconds(5)).click();
     $(By.id(EDIT_BUTTON_ID)).shouldBe(visible).shouldBe(enabled, Duration.ofSeconds(5)).click();
+    $$(SUN_EDITOR_EDITABLE_SELECTOR).shouldHave(sizeGreaterThanOrEqual(2), Duration.ofSeconds(10));
     return selectedCms;
   }
 
