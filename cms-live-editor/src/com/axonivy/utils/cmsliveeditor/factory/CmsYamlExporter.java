@@ -150,7 +150,7 @@ public class CmsYamlExporter implements CmsExporter {
       if (i == pathSegments.length - 1) {
         currentNode.put(segment, value);
       } else {
-        currentNode = (Map<String, Object>) currentNode.computeIfAbsent(segment, key -> new TreeMap<>());
+        currentNode = (Map<String, Object>) currentNode.computeIfAbsent(segment, _ -> new TreeMap<>());
       }
     }
   }

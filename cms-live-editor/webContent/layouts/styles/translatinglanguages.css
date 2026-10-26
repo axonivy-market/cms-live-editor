@@ -29,6 +29,14 @@
   border: none !important;
 }
 
+.ui-accordion .ui-accordion-header .ui-panel-actions {
+  float: none;
+  position: absolute;
+  top: 50%;
+  right: 0.5em;
+  transform: translateY(-50%);
+}
+
 .cms-scroll-wrapper {
   scrollbar-width: none;
   -ms-overflow-style: none;

@@ -26,8 +26,8 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <version>5.2.0</version>
+      <artifactId>mockito-core</artifactId>
+      <version>5.23.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -79,10 +79,6 @@
         <groupId>com.axonivy.ivy.ci</groupId>
         <artifactId>project-build-plugin</artifactId>
         <extensions>true</extensions>
-        <configuration>
-          <encoding>UTF-8</encoding>
-          <compilerWarnings>false</compilerWarnings>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
