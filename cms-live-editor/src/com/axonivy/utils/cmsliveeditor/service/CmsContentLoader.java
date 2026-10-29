@@ -6,7 +6,7 @@ import com.axonivy.utils.cmsliveeditor.model.Cms;
 import com.axonivy.utils.cmsliveeditor.model.CmsContent;
 import com.axonivy.utils.cmsliveeditor.utils.FileUtils;
 
-import ch.ivyteam.ivy.application.IApplication;
+import ch.ivyteam.ivy.application.app.Application;
 import ch.ivyteam.ivy.application.IProcessModelVersion;
 import ch.ivyteam.ivy.cm.ContentObject;
 import ch.ivyteam.ivy.cm.ContentObjectReader;
@@ -19,7 +19,7 @@ public class CmsContentLoader {
   private CmsContentLoader() {}
 
   public static void loadFileContentOfCms(Cms selectedCms) {
-    IApplication.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName()))
+    Application.current().getProcessModelVersions().filter(pmv -> pmv.getName().equals(selectedCms.getPmvName()))
         .findFirst().ifPresent(pmv -> loadFileContentFromPmv(selectedCms, pmv));
   }
 
@@ -35,7 +35,7 @@ public class CmsContentLoader {
           break;
         }
         loadCmsFileFromProjectCms(contentObject, cmsContent);
-        loadCmsFileFromApplicationCms(cms, cmsContent, IApplication.current());
+        loadCmsFileFromApplicationCms(cms, cmsContent, Application.current());
       }
     } catch (Exception e) {
       Ivy.log().error(e);
@@ -51,7 +51,7 @@ public class CmsContentLoader {
     }
   }
 
-  public static void loadCmsFileFromApplicationCms(Cms cms, CmsContent cmsContent, IApplication currentApplication) {
+  public static void loadCmsFileFromApplicationCms(Cms cms, CmsContent cmsContent, Application currentApplication) {
     var cmsEntity = ContentManagement.cms(currentApplication).get(cmsContent.getUri());
     ContentObject contentObject = cmsEntity.orElseGet(
         () -> ContentManagement.cms(currentApplication).root().child().file(cms.getUri(), cms.getFileExtension()));

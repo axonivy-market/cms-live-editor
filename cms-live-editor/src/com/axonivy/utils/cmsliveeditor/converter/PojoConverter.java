@@ -2,13 +2,14 @@ package com.axonivy.utils.cmsliveeditor.converter;
 
 import java.util.Map;
 
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-import javax.faces.convert.Converter;
-import javax.faces.convert.ConverterException;
-import javax.faces.convert.FacesConverter;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.convert.Converter;
+import jakarta.faces.convert.ConverterException;
+import jakarta.faces.convert.FacesConverter;
 
 import org.apache.commons.lang3.StringUtils;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * Converter that can handle POJOs. Can handle each type of object.
@@ -21,8 +22,9 @@ import org.apache.commons.lang3.StringUtils;
  * multiple views it is required that the POJOs implement the hasCode method
  * properly.
  */
-@FacesConverter("pojoConverter")
-public class PojoConverter implements Converter {
+@FacesConverter(value = "pojoConverter", managed = true)
+@ApplicationScoped
+public class PojoConverter implements Converter<Object> {
   private static final String UNIQUE_CONVERTER_IDENTIFIER = PojoConverter.class.getName();
   private static final String KEY_DELIMITER = ":::";
   private static final String MAP_KEY_TEMPLATE = UNIQUE_CONVERTER_IDENTIFIER + KEY_DELIMITER + "%s" + KEY_DELIMITER
