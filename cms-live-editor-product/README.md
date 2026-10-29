@@ -80,6 +80,7 @@ A new **Settings** button (gear icon) is available in the top-right corner of th
 ![](./images/21-cms-live-editor-setting-dialog.png)
 
 In the **Settings** dialog, users can:
+- Provide configuration to switch between full and short paths.
 - Define the **Source Language** (leading language for translation)
 - Define the **Target Language**
 
@@ -93,18 +94,21 @@ Users can select CMS entries directly in the translation table:
 ![](./images/22-cms-live-editor-multi-select.png)
 
 #### Auto-Translate Action
-A new **Translate** button is available to translate selected entries.
+A new **Translate** button is available to translate selected/filtered entries.
+![](./images/27-cms-live-editor-translation-menu.png)
 
-![](./images/23-cms-live-editor-translation-dialog.png)
-
-After clicking on the translate button, a dialog is displayed showing the generated translations for the selected CMS entries. Users can review the results and choose which translations to apply by selecting the corresponding checkboxes.
-- Only selected CMS entries are translated
+After clicking on the translate button, a dialog is displayed showing the generated translations for the selected/filtered CMS entries. Users can review the results and choose which translations to apply by selecting the corresponding checkboxes.
+- Only selected/filtered CMS entries are translated
 - The system uses the configured **Source Language** as input and translates into the **Target Language**
 - Existing translations in the target language will be overwritten when **Translate** button is clicked
 
+![](./images/23-cms-live-editor-translation-dialog.png)
+
 ### 9. Switching the Paths column view
 
-By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button. It affects both the main page and the Translation Wizard dialog.
+By default, the short path is displayed. Users can switch between the short path and full path views by clicking the toggle button **Show full path** on the **Settings** dialog. It affects both the main page and the Translation Wizard dialog.
+
+![](./images/28-cms-live-editor-show-full-path-setting.png)
 ![](./images/25-cms-live-editor-switching-view-path.png)
 ![](./images/26-cms-live-editor-short-path-on-translation-dialog.png)
 

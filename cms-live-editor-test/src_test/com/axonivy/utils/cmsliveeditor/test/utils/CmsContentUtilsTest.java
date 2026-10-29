@@ -85,6 +85,7 @@ public class CmsContentUtilsTest {
   @Test
   public void testGetTranslatedCms() {
     Cms cms1 = new Cms();
+    cms1.setUri("/cmsA");
     CmsContent a = new CmsContent();
     a.setLocale(Locale.ENGLISH);
     a.setContent("A");
@@ -92,6 +93,7 @@ public class CmsContentUtilsTest {
     cms1.setContents(List.of(a));
 
     Cms cms2 = new Cms();
+    cms2.setUri("/cmsB");
     CmsContent b = new CmsContent();
     b.setLocale(Locale.FRENCH);
     b.setContent("B");

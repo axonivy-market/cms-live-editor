@@ -16,7 +16,6 @@ import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SETTING_BUT
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.SUN_EDITOR_EDITABLE_SELECTOR;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.TRANSLATE_ALL_BUTTON_ID;
 import static com.axonivy.utils.cmsliveeditor.constants.CmsConstants.UNDO_CHANGES_PATH_ID;
-import static com.codeborne.selenide.ScrollIntoViewOptions.*;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThanOrEqual;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -26,6 +25,7 @@ import static com.codeborne.selenide.Condition.interactable;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.oneOfTexts;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.ScrollIntoViewOptions.instant;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -40,12 +40,15 @@ import org.openqa.selenium.Keys;
 
 import com.axonivy.ivy.webtest.IvyWebTest;
 import com.axonivy.ivy.webtest.engine.EngineUrl;
+import com.axonivy.ivy.webtest.engine.WebAppFixture;
 import com.axonivy.utils.cmsliveeditor.constants.CommonConstants;
+import com.axonivy.utils.cmsliveeditor.constants.IvyVariables;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.ScrollIntoViewOptions.Block;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -59,14 +62,18 @@ public class CmsLiveEditorWebTest {
   private static final String CONTENT_NOT_BEEN_SAVED_DIALOG_SELECTOR = "[id^='content-not-been-saved-dlg']";
   private static final String MORE_TEXT_DECORATION_BUTTON_CSS_QUERY_CLASS = ".se-btn.se-btn-more.se-tooltip";
   private static final String CMS_PATH_URI = "[id^='content-form:table-cms-keys:'][id$=':cms-uri']";
+  private static final String CMS_PATH_URI_ON_TRANSLATION_REVIEW_TABLE = "span.path-column-content";
   private static final String CMS_VALUE_TAB_SELECTOR = "[id^='content-form:cms-values:'][id$=':cms-values-tab']";
   private static final String TEST_CMS_HTML_URI = "/Test/TestContentHtml";
   private static final String TRANSLATED_CMS_REVIEW_DIALOG = "[id$=':table-translation-review']";
   private static final String CMS_SETTINGS_DIALOG = "[id$=':cms-settings-dialog']";
   private static final String CMS_SETTINGS_SAVE_BUTTON = "[id$='content-form:cms-setting-save-btn']";
+  private static final String OPEN_CMS_SETTING_DIALOG_BTN = "[id$=':cms-settings-btn']";
   private static final String EDITOR_TRANSLATE_BTN = "[id$=':cms-edit-value'] .cms-translate-btn";
   private static final String SWITCH_VIEW_PATH_BTN = "[id$=':switch-view-path-btn']";
   private static final String UI_TOGGLE_SWITCH_CHECKED_CLASS = "ui-toggleswitch-checked";
+  private static final String TRANSLATE_SELECTED_ENTRIES_MENU = "Translate selected entries";
+  private static final String TRANSLATE_FILTERED_ENTRIES_MENU = "Translate filtered entries";
 
   /**
    * Dear Bug Hunter,
@@ -314,11 +321,11 @@ public class CmsLiveEditorWebTest {
 
   private void fillContentsToEditor(ElementsCollection editors, String content) {
     for (var editor : editors) {
-      editor.shouldBe(visible).click();
+      editor.shouldBe(visible, Duration.ofSeconds(5)).click();
       editor.sendKeys(Keys.chord(Keys.CONTROL, "a"));
       editor.sendKeys(Keys.DELETE);
       editor.sendKeys(content);
-      editor.shouldHave(Condition.exactText(content));
+      editor.shouldHave(Condition.exactText(content), Duration.ofSeconds(5));
       editor.pressTab();
     }
   }
@@ -326,11 +333,7 @@ public class CmsLiveEditorWebTest {
   private void saveAndUndoCmsChanges() {
     $(By.id(SAVE_BUTTON_ID)).shouldBe(visible).shouldBe(enabled).click();
     $(By.id(SAVE_SUCCESS_BAR_ID)).shouldBe(visible, Duration.ofSeconds(10));
-
     var undoButton = $(By.id("content-form:undo-change-path"));
-    if (undoButton.exists()) {
-      undoButton.shouldBe(enabled).click();
-    }
   }
 
   @Test
@@ -341,19 +344,26 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testViewPathSettingWhenSwitchingViewPathWithTwoUsers() {
+    var openCmsSettingDialogButton = $(By.cssSelector(OPEN_CMS_SETTING_DIALOG_BTN));
+    openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
     var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+    var saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));
+    saveButton.shouldBe(enabled).click();
 
     loginAndStartProcess("cmsAdmin1", "123456");
+    openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
     switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
         .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(2));
 
     loginAndStartProcess("cmsAdmin", "123456");
+    openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
     switchViewPathButton.shouldHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
     switchViewPathButton.shouldBe(visible, Duration.ofSeconds(2))
         .shouldNotHave(Condition.cssClass(UI_TOGGLE_SWITCH_CHECKED_CLASS), Duration.ofSeconds(5));
+    saveButton.shouldBe(enabled).click();
   }
 
   @Test
@@ -364,13 +374,29 @@ public class CmsLiveEditorWebTest {
     var cmsElementWithShortPath = cmsList.findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey));
     cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5));
 
+    var openCmsSettingDialogButton = $(By.cssSelector(OPEN_CMS_SETTING_DIALOG_BTN));
+    openCmsSettingDialogButton.shouldBe(visible, Duration.ofSeconds(5)).click();
     var switchViewPathButton = $(By.cssSelector(SWITCH_VIEW_PATH_BTN));
     switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
+    var saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));
+    saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
+
+    var settingsDialog = $(By.cssSelector(CMS_SETTINGS_DIALOG));
+    settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
     cmsElementWithShortPath.shouldNotBe(visible);
     cmsList.findBy(matchText(searchKey)).shouldBe(visible, Duration.ofSeconds(5));
 
-    switchViewPathButton.shouldBe(visible).shouldBe(enabled).click();
-    cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5));
+    openCmsSettingDialogButton.shouldBe(enabled).click();
+    switchViewPathButton.shouldBe(visible, Duration.ofSeconds(5)).shouldBe(enabled).click();
+    saveButton.shouldBe(enabled, Duration.ofSeconds(5)).click();
+    settingsDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    cmsElementWithShortPath.shouldBe(visible, Duration.ofSeconds(5)).click();
+
+    clickOnTranslateMenuItem(TRANSLATE_SELECTED_ENTRIES_MENU);
+    var table = $(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG));
+    table.shouldBe(visible, Duration.ofSeconds(5));
+    table.$$(By.cssSelector(CMS_PATH_URI_ON_TRANSLATION_REVIEW_TABLE))
+        .findBy(exactText(CommonConstants.DOUBLE_DOT + searchKey)).shouldBe(visible, Duration.ofSeconds(5));
   }
 
   /**
@@ -387,8 +413,7 @@ public class CmsLiveEditorWebTest {
 
   @Test
   public void testOpenTranslateDialogShouldBeOpened() {
-    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
-
+    clickOnTranslateMenuItem(TRANSLATE_SELECTED_ENTRIES_MENU);
     SelenideElement table = $$(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG)).first();
     table.shouldBe(visible, Duration.ofSeconds(5));
     $$(By.cssSelector(".ui-dialog .p-button-primary")).filter(visible).first().click();
@@ -396,8 +421,35 @@ public class CmsLiveEditorWebTest {
   }
 
   @Test
+  public void testOpenTranslateWarningDialogShouldBeOpened(WebAppFixture fixture) {
+    fixture.var(IvyVariables.MAX_TRANSLATED_CMS_ENTRIES_FOR_WARNING, String.valueOf(5));
+    clickOnTranslateMenuItem(TRANSLATE_FILTERED_ENTRIES_MENU);
+    var translationDialog = $(By.cssSelector(TRANSLATED_CMS_REVIEW_DIALOG));
+    translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    var warningDialog = $(By.id("content-form:translation-warning-dialog"));
+    warningDialog.shouldBe(visible, Duration.ofSeconds(5));
+    $(By.id("content-form:cancel-translation")).shouldBe(visible, Duration.ofSeconds(5)).click();
+    warningDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+
+    clickOnTranslateMenuItem(TRANSLATE_FILTERED_ENTRIES_MENU);
+    warningDialog.shouldBe(visible, Duration.ofSeconds(5));
+    $(By.id("content-form:approve-to-process")).shouldBe(visible, Duration.ofSeconds(5)).click();
+    translationDialog.shouldNotBe(visible, Duration.ofSeconds(5));
+    translationDialog.shouldBe(visible, Duration.ofSeconds(5));
+  }
+
+  private void clickOnTranslateMenuItem(String item) {
+    $(".cms-translate-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+    var translationMenu = $(By.id("content-form:cms-translate-btn_menu"));
+    translationMenu.shouldBe(visible, Duration.ofSeconds(5));
+    translationMenu.$$(By.cssSelector(".ui-menuitem-link.ui-corner-all span")).filter(matchText(item)).filter(visible)
+        .first().click();
+  }
+
+  @Test
   public void testOpenSettingsDialogAndSave() {
-    $(".cms-settings-btn").shouldBe(visible, Duration.ofSeconds(5)).click();
+    $(By.cssSelector(OPEN_CMS_SETTING_DIALOG_BTN)).shouldBe(visible, Duration.ofSeconds(5)).click();
     SelenideElement settingsDialog = $$(By.cssSelector(CMS_SETTINGS_DIALOG)).first();
     settingsDialog.shouldBe(visible, Duration.ofSeconds(5));
     SelenideElement saveButton = $(By.cssSelector(CMS_SETTINGS_SAVE_BUTTON));

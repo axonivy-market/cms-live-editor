@@ -2,6 +2,7 @@ Labels:
   AllProjects: All
   Application: Application
   ApplicationCMSDefinition: Validates the HTML syntax of the content to ensure it is well-formed and error-free.
+  Approve: Approve
   AttachDocument: Attach document
   CMS: CMS
   CMSDownload: CMSDownload
@@ -63,16 +64,20 @@ Labels:
   Select: Select
   SelectedCMS: Selected CMS
   Settings: Settings
-  ShowFullPath: Switch to full path view
+  ShowFullPath: Show full path
   ShowOnlyTODO: Show only TODO
-  ShowShortPath: Switch to short path view
   SomeFieldsHaveNotBeenSaved: Some fields have not been saved yet
   Source: source
   SourceLanguage: Source language
   Target: target
   TargetLanguage: Target language
   Translate: Translate
+  TranslateFilteredEntries: Translate filtered entries
   TranslateMultiple: Translate multiple entries
+  TranslateMultipleCmsEntriesWarningMessage: |-
+    <p>If you continue this process, <b>{0}</b> labels will be translated. This may take several minutes.</p>
+    <p>Do you really want to continue?</p>
+  TranslateSelectedEntries: Translate selected entries
   TranslationWizard: Translation wizard
   Translations: Translations
   UndoChanges: Undo changes

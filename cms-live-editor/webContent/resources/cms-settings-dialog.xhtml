@@ -9,46 +9,50 @@
     header="#{ivy.cms.co('/Labels/Settings')}"
     widgetVar="cmsSettingsDialog" modal="true" closable="true"
     onHide="PF('hidden-exit-btn').jq.click();" resizable="false"
-    styleClass="border-round-xl w-25rem">
-
-    <div class="px-4 pb-4 mb-4">
-      <div class="mb-3">
-        <div class="text-lg font-semibold mb-3">
-          #{ivy.cms.co('/Labels/Translations')}</div>
-        <div class="mb-3">
-          <label for="leadingLocale"
-            class="block text-sm mb-2 text-color-secondary">
-            #{ivy.cms.co('/Labels/SourceLanguage')} </label>
-          <p:selectOneMenu id="leadingLocale"
-            value="#{cmsLiveEditorBean.selectedSourceLocale}"
-            styleClass="w-full" filter="true" filterMatchMode="contains">
-            <f:selectItems value="#{cmsLiveEditorBean.languageList}"
-              var="loc" itemLabel="#{loc.displayLanguage}"
-              itemValue="#{loc.toLanguageTag()}" />
-            <p:ajax event="change" process="@this" update="targetLocale" />
-          </p:selectOneMenu>
-        </div>
-        <div class="mb-4">
-          <label for="targetLocale"
-            class="block text-sm mb-2 text-color-secondary">
-            #{ivy.cms.co('/Labels/TargetLanguage')} </label>
-          <p:selectOneMenu id="targetLocale"
-            value="#{cmsLiveEditorBean.selectedTargetLocale}"
-            styleClass="w-full" filter="true" filterMatchMode="contains">
-            <f:selectItems value="#{cmsLiveEditorBean.targetLocales}"
-              var="loc" itemLabel="#{loc.displayLanguage}"
-              itemValue="#{loc.toLanguageTag()}" />
-            <p:ajax event="change" process="@this" update="@none" />
-          </p:selectOneMenu>
-        </div>
-      </div>
+    styleClass="border-round-xl w-25rem cms-settings-dialog">
+    <div class="section-header font-semibold">#{ivy.cms.co('/Labels/Path')}</div>
+    <div class="path-section">
+      <h:outputLabel for="switch-view-path-btn"
+        value="#{ivy.cms.co('/Labels/ShowFullPath')}" />
+      <p:toggleSwitch id="switch-view-path-btn"
+        value="#{cmsLiveEditorBean.fullPathVisible}"
+        styleClass="switch-view-path-btn ml-2">
+      </p:toggleSwitch>
+    </div>
+    <p:divider styleClass="settings-divider" />
+    <div class="section-header font-semibold">#{ivy.cms.co('/Labels/Translations')}</div>
+    <div class="input-section-delimiter">
+      <h:outputLabel for="leading-locale"
+        styleClass="block text-sm mb-2 text-color-secondary"
+        value="#{ivy.cms.co('/Labels/SourceLanguage')}" />
+      <p:selectOneMenu id="leading-locale"
+        value="#{cmsLiveEditorBean.selectedSourceLocale}"
+        styleClass="w-full" filter="true" filterMatchMode="contains">
+        <f:selectItems value="#{cmsLiveEditorBean.languageList}"
+          var="loc" itemLabel="#{loc.displayLanguage}"
+          itemValue="#{loc.toLanguageTag()}" />
+        <p:ajax event="change" process="@this" update="target-locale" />
+      </p:selectOneMenu>
+    </div>
+    <div>
+      <h:outputLabel for="target-locale"
+        styleClass="block text-sm mb-2 text-color-secondary"
+        value="#{ivy.cms.co('/Labels/TargetLanguage')}" />
+      <p:selectOneMenu id="target-locale"
+        value="#{cmsLiveEditorBean.selectedTargetLocale}"
+        styleClass="w-full" filter="true" filterMatchMode="contains">
+        <f:selectItems value="#{cmsLiveEditorBean.targetLocales}"
+          var="loc" itemLabel="#{loc.displayLanguage}"
+          itemValue="#{loc.toLanguageTag()}" />
+        <p:ajax event="change" process="@this" update="@none" />
+      </p:selectOneMenu>
     </div>
     <f:facet name="footer">
       <div class="flex justify-content-center">
         <p:commandButton value="#{ivy.cms.co('/Labels/Save')}"
           id="cms-setting-save-btn"
           styleClass="w-full border-round-lg cms-setting-save-btn"
-          actionListener="#{cmsLiveEditorBean.saveTranslationSettings()}"
+          actionListener="#{cmsLiveEditorBean.saveSettings()}"
           process="@form" update="content-form"
           oncomplete="PF('cmsSettingsDialog').hide();" />
         <p:commandButton widgetVar="hidden-exit-btn" styleClass="hidden"
